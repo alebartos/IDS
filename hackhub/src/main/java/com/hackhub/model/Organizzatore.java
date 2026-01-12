@@ -1,5 +1,7 @@
 package com.hackhub.model;
 
+import com.hackhub.enums.*;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,8 +69,27 @@ public class Organizzatore extends MembroStaff {
      */
     public Hackathon creaHackathon(String nome, LocalDate dataInizio, LocalDate dataFine,
                                     LocalDate scadenzaIscrizioni) {
-        //da implementare
-        return null;
+        // Validazione date
+        if (dataInizio.isAfter(dataFine)) {
+            throw new IllegalArgumentException("La data di inizio deve precedere la data di fine");
+        }
+
+
+        if (scadenzaIscrizioni.isAfter(dataInizio)) {
+            throw new IllegalArgumentException("La scadenza iscrizioni deve precedere la data di inizio");
+        }
+
+
+    // Crea l'hackathon
+        Hackathon nuovoHackathon = new Hackathon(nome, dataInizio, dataFine, scadenzaIscrizioni);
+        nuovoHackathon.setOrganizzatore(this);
+
+
+    // Aggiunge alla lista degli hackathon gestiti
+        this.hackathonGestiti.add(nuovoHackathon);
+
+
+        return nuovoHackathon;
     }
 
     /**
@@ -89,7 +110,29 @@ public class Organizzatore extends MembroStaff {
      * @throws IllegalArgumentException se l'organizzatore non gestisce questo hackathon
      */
     public void proclamaVincitore(Team team, Hackathon hackathon) {
-        //da implementare
+        // Verifica che l'organizzatore gestisca questo hackathon
+        if (!this.hackathonGestiti.contains(hackathon)) {
+            throw new IllegalArgumentException("Non gestisci questo hackathon");
+        }
+
+
+    // Verifica stato hackathon
+        if (hackathon.getStato() != StatoHackathon.IN_VALUTAZIONE) {
+            throw new IllegalStateException("L'hackathon non e' in fase di valutazione");
+        }
+
+
+    // Verifica che tutte le sottomissioni siano valutate
+        for (Sottomissione sottomissione : hackathon.getSottomissioni()) {
+            if (sottomissione.getValutazione() == null) {
+                throw new IllegalStateException("Ci sono sottomissioni non ancora valutate");
+            }
+        }
+
+
+    // Proclama il vincitore
+        hackathon.setVincitore(team);
+        hackathon.setStato(StatoHackathon.CONCLUSO);
     }
 
     /**
