@@ -53,8 +53,20 @@ public class Hackathon {
     /** Numero massimo di membri per team */
     private int maxMembriTeam;
 
+    /** Organizzatore dell'hackathon */
+    private Organizzatore organizzatore;
+
+    /** Lista dei mentori associati */
+    private List<Mentore> mentori;
+
+    /** Giudice dell'hackathon */
+    private Giudice giudice;
+
     /** Lista delle iscrizioni */
     private List<Iscrizione> iscrizioni;
+
+    /** Lista delle sottomissioni */
+    private List<Sottomissione> sottomissioni;
 
     /** Team vincitore (null se non ancora proclamato) */
     private Team vincitore;
@@ -74,7 +86,9 @@ public class Hackathon {
         this.dataFine = dataFine;
         this.scadenzaIscrizioni = scadenzaIscrizioni;
         this.stato = StatoHackathon.IN_ISCRIZIONE;
+        this.mentori = new ArrayList<>();
         this.iscrizioni = new ArrayList<>();
+        this.sottomissioni = new ArrayList<>();
         this.maxMembriTeam = 5; // Default
     }
 
@@ -116,13 +130,28 @@ public class Hackathon {
         return premio;
     }
 
-
     public int getMaxMembriTeam() {
         return maxMembriTeam;
     }
 
+    public Organizzatore getOrganizzatore() {
+        return organizzatore;
+    }
+
+    public List<Mentore> getMentori() {
+        return mentori;
+    }
+
+    public Giudice getGiudice() {
+        return giudice;
+    }
+
     public List<Iscrizione> getIscrizioni() {
         return iscrizioni;
+    }
+
+    public List<Sottomissione> getSottomissioni() {
+        return sottomissioni;
     }
 
     public Team getVincitore() {
@@ -167,11 +196,30 @@ public class Hackathon {
         this.maxMembriTeam = maxMembriTeam;
     }
 
+    public void setOrganizzatore(Organizzatore organizzatore) {
+        this.organizzatore = organizzatore;
+    }
+
+    public void setGiudice(Giudice giudice) {
+        this.giudice = giudice;
+        giudice.aggiungiHackathon(this);
+    }
+
     public void setVincitore(Team vincitore) {
         this.vincitore = vincitore;
     }
 
     // ==================== OPERAZIONI ====================
+
+    /**
+     * Aggiunge un mentore all'hackathon.
+     *
+     * @param mentore Il mentore da aggiungere
+     */
+    public void addMentore(Mentore mentore) {
+        this.mentori.add(mentore);
+        mentore.aggiungiHackathon(this);
+    }
 
     /**
      * Aggiunge un'iscrizione all'hackathon.
@@ -183,13 +231,22 @@ public class Hackathon {
     }
 
     /**
+     * Aggiunge una sottomissione all'hackathon.
+     *
+     * @param sottomissione La sottomissione da aggiungere
+     */
+    public void aggiungiSottomissione(Sottomissione sottomissione) {
+        this.sottomissioni.add(sottomissione);
+    }
+
+    /**
      * Verifica se le iscrizioni sono ancora aperte.
      *
      * @return true se le iscrizioni sono aperte, false altrimenti
      */
     public boolean isIscrizioniAperte() {
         return stato == StatoHackathon.IN_ISCRIZIONE
-            && LocalDate.now().isBefore(scadenzaIscrizioni.plusDays(1));
+                && LocalDate.now().isBefore(scadenzaIscrizioni.plusDays(1));
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.hackhub.model;
 
 import com.hackhub.enums.StatoInvito;
+import java.time.LocalDate;
 
 /**
  * Classe che rappresenta il Leader di un team in HackHub.
@@ -32,12 +33,12 @@ public class Leader extends MembroTeam {
 
     /**
      * Invia un invito a un utente per unirsi al team.
-     * <p>
+     *
      * Precondizioni:
      * - Il Leader deve avere un team
      * - L'utente destinatario non deve appartenere gia' a un team
      * - Non deve esistere gia' un invito pendente per questo utente da questo team
-     * <p>
+     *
      * Postcondizioni:
      * - Viene creato un nuovo Invito con stato IN_ATTESA
      * - L'invito viene aggiunto alla lista degli inviti del destinatario
@@ -45,7 +46,7 @@ public class Leader extends MembroTeam {
      *
      * @param destinatario L'utente da invitare
      * @return L'invito creato
-     * @throws IllegalStateException    se il Leader non ha un team
+     * @throws IllegalStateException se il Leader non ha un team
      * @throws IllegalArgumentException se l'utente appartiene gia' a un team
      * @throws IllegalArgumentException se esiste gia' un invito pendente
      */
@@ -80,12 +81,12 @@ public class Leader extends MembroTeam {
 
     /**
      * Nomina un membro del team come Viceleader.
-     * <p>
+     *
      * Precondizioni:
      * - Il membro deve appartenere allo stesso team del Leader
      * - Il membro non deve essere gia' Viceleader
      * - Il membro non deve essere il Leader stesso
-     * <p>
+     *
      * Postcondizioni:
      * - Se esiste gia' un Viceleader, perde il ruolo
      * - Il membro nominato diventa il nuovo Viceleader
@@ -117,10 +118,10 @@ public class Leader extends MembroTeam {
 
     /**
      * Elimina il team.
-     * <p>
+     *
      * Precondizioni:
      * - Il Leader deve essere l'unico membro del team
-     * <p>
+     *
      * Postcondizioni:
      * - Tutti gli inviti pendenti vengono annullati
      * - Il team viene eliminato
@@ -164,4 +165,75 @@ public class Leader extends MembroTeam {
      * @throws IllegalStateException se le iscrizioni sono chiuse
      * @throws IllegalArgumentException se il team ha troppi membri
      */
+    public Iscrizione iscriviTeam(Hackathon hackathon) {
+        Team teamCorrente = this.getTeam();
+
+        // Verifica che il team non sia gia' iscritto
+        for (Iscrizione iscrizione : hackathon.getIscrizioni()) {
+            if (iscrizione.getTeam().equals(teamCorrente)) {
+                throw new IllegalStateException("Il team e' gia' iscritto a questo hackathon");
+            }
+        }
+
+        // Verifica che le iscrizioni siano aperte
+        if (!hackathon.isIscrizioniAperte()) {
+            throw new IllegalStateException("Le iscrizioni sono chiuse");
+        }
+
+        // Verifica il limite di membri
+        if (teamCorrente.countMembri() > hackathon.getMaxMembriTeam()) {
+            throw new IllegalArgumentException(
+                    "Il team ha troppi membri (max: " + hackathon.getMaxMembriTeam() + ")"
+            );
+        }
+
+        // Crea l'iscrizione
+        Iscrizione nuovaIscrizione = new Iscrizione(teamCorrente, hackathon);
+
+        // Aggiunge l'iscrizione all'hackathon e al team
+        hackathon.aggiungiIscrizione(nuovaIscrizione);
+        teamCorrente.aggiungiIscrizione(nuovaIscrizione);
+
+        return nuovaIscrizione;
+    }
+
+    /**
+     * Abbandona il team con logica speciale per il Leader.
+     *
+     * La logica e':
+     * - Se esiste un Viceleader: il Viceleader diventa Leader
+     * - Se e' l'unico membro: il team viene eliminato
+     * - Se ci sono altri membri ma nessun Viceleader: errore
+     *
+     * @throws IllegalStateException se ci sono membri ma nessun Viceleader
+     */
+    @Override
+    public void abbandonaTeam() {
+        Team teamCorrente = this.getTeam();
+
+        if (teamCorrente == null) {
+            throw new IllegalStateException("Non appartieni a nessun team");
+        }
+
+        MembroTeam viceleader = teamCorrente.getViceleader();
+
+        if (viceleader != null) {
+            // Il Viceleader diventa Leader
+            // Nota: in una implementazione completa, dovremmo creare un nuovo Leader
+            // Per ora, rimuoviamo semplicemente il Leader attuale
+            teamCorrente.removeMembro(this);
+            this.setTeam(null);
+
+            // Qui andrebbe la logica per promuovere il Viceleader a Leader
+            // Verra' implementata quando avremo il service layer
+
+        } else if (teamCorrente.countMembri() == 1) {
+            // Unico membro, elimina il team
+            this.eliminaTeam();
+
+        } else {
+            // Ci sono altri membri ma nessun Viceleader
+            throw new IllegalStateException("Devi nominare un Viceleader prima di abbandonare");
+        }
+    }
 }

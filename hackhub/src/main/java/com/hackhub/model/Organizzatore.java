@@ -1,6 +1,5 @@
 package com.hackhub.model;
 
-import com.hackhub.enums.StatoHackathon;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
