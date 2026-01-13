@@ -11,12 +11,12 @@ import java.util.List;
 
 /**
  * Builder per la creazione di oggetti Hackathon.
- *
+ * <p>
  * Implementa il pattern Builder per semplificare la creazione di Hackathon
- * con molti parametri opzionali, rendendo il codice piu' leggibile e flessibile.
- *
+ * con molti parametri opzionali, rendendo il codice più leggibile e flessibile.
+ * <p>
  * Esempio d'uso:
- * <pre>
+ * <p>
  * Hackathon hackathon = new HackathonBuilder()
  *     .nome("HackUnicam 2025")
  *     .dataInizio(LocalDate.of(2025, 6, 1))
@@ -77,7 +77,7 @@ public class HackathonBuilder {
      * Inizializza un nuovo builder con valori di default.
      */
     public HackathonBuilder() {
-        // Costruttore vuoto - i valori di default sono gia' inizializzati
+        // Costruttore vuoto - i valori di default sono già inizializzati
     }
 
     /**

@@ -5,7 +5,7 @@ import com.hackhub.enums.StatoInvito;
 /**
  * Classe che rappresenta il Leader di un team in HackHub.
  * <p>
- * Il Leader e' il membro con i privilegi massimi nel team. Puo':
+ * Il Leader è il membro con i privilegi massimi nel team. Puo':
  * - Invitare nuovi utenti al team
  * - Nominare un Viceleader
  * - Eliminare il team
@@ -35,8 +35,8 @@ public class Leader extends MembroTeam {
      * <p>
      * Precondizioni:
      * - Il Leader deve avere un team
-     * - L'utente destinatario non deve appartenere gia' a un team
-     * - Non deve esistere gia' un invito pendente per questo utente da questo team
+     * - L'utente destinatario non deve appartenere già a un team
+     * - Non deve esistere già un invito pendente per questo utente da questo team
      * <p>
      * Postcondizioni:
      * - Viene creato un nuovo Invito con stato IN_ATTESA
@@ -46,8 +46,8 @@ public class Leader extends MembroTeam {
      * @param destinatario L'utente da invitare
      * @return L'invito creato
      * @throws IllegalStateException se il Leader non ha un team
-     * @throws IllegalArgumentException se l'utente appartiene gia' a un team
-     * @throws IllegalArgumentException se esiste gia' un invito pendente
+     * @throws IllegalArgumentException se l'utente appartiene già a un team
+     * @throws IllegalArgumentException se esiste già un invito pendente
      */
     public Invito invitaUtente(Utente destinatario) {
         Team teamCorrente = this.getTeam();
@@ -57,14 +57,14 @@ public class Leader extends MembroTeam {
         }
 
         if (destinatario.haTeam()) {
-            throw new IllegalArgumentException("L'utente appartiene gia' a un team");
+            throw new IllegalArgumentException("L'utente appartiene già a un team");
         }
 
-        // Verifica che non esista gia' un invito pendente
+        // Verifica che non esista già un invito pendente
         for (Invito invito : teamCorrente.getInviti()) {
             if (invito.getDestinatario().equals(destinatario)
                     && invito.getStato() == StatoInvito.IN_ATTESA) {
-                throw new IllegalArgumentException("Hai gia' inviato un invito a questo utente");
+                throw new IllegalArgumentException("Hai già inviato un invito a questo utente");
             }
         }
 
@@ -83,16 +83,16 @@ public class Leader extends MembroTeam {
      * <p>
      * Precondizioni:
      * - Il membro deve appartenere allo stesso team del Leader
-     * - Il membro non deve essere gia' Viceleader
+     * - Il membro non deve essere già Viceleader
      * - Il membro non deve essere il Leader stesso
      * <p>
      * Postcondizioni:
-     * - Se esiste gia' un Viceleader, perde il ruolo
+     * - Se esiste già un Viceleader, perde il ruolo
      * - Il membro nominato diventa il nuovo Viceleader
      *
      * @param membro Il membro da nominare Viceleader
      * @throws IllegalArgumentException se il membro non appartiene al team
-     * @throws IllegalArgumentException se il membro e' il Leader stesso
+     * @throws IllegalArgumentException se il membro è il Leader stesso
      */
     public void nominaViceleader(MembroTeam membro) {
         Team teamCorrente = this.getTeam();
@@ -124,7 +124,7 @@ public class Leader extends MembroTeam {
      * Postcondizioni:
      * - Tutti gli inviti pendenti vengono annullati
      * - Il team viene eliminato
-     * - Il Leader non appartiene piu' a nessun team
+     * - Il Leader non appartiene più a nessun team
      *
      * @throws IllegalStateException se ci sono altri membri nel team
      */
@@ -150,7 +150,7 @@ public class Leader extends MembroTeam {
      * Iscrive il team a un hackathon.
      * <p>
      * Precondizioni:
-     * - Il team non deve essere gia' iscritto all'hackathon
+     * - Il team non deve essere già iscritto all'hackathon
      * - L'hackathon deve essere in stato IN_ISCRIZIONE
      * - La scadenza delle iscrizioni non deve essere passata
      * - Il numero di membri del team deve rispettare il limite dell'hackathon
@@ -160,17 +160,17 @@ public class Leader extends MembroTeam {
      *
      * @param hackathon L'hackathon a cui iscriversi
      * @return L'iscrizione creata
-     * @throws IllegalStateException se il team e' gia' iscritto
+     * @throws IllegalStateException se il team è già iscritto
      * @throws IllegalStateException se le iscrizioni sono chiuse
      * @throws IllegalArgumentException se il team ha troppi membri
      */
     public Iscrizione iscriviTeam(Hackathon hackathon) {
         Team teamCorrente = this.getTeam();
 
-        // Verifica che il team non sia gia' iscritto
+        // Verifica che il team non sia già iscritto
         for (Iscrizione iscrizione : hackathon.getIscrizioni()) {
             if (iscrizione.getTeam().equals(teamCorrente)) {
-                throw new IllegalStateException("Il team e' gia' iscritto a questo hackathon");
+                throw new IllegalStateException("Il team è già iscritto a questo hackathon");
             }
         }
 
@@ -199,9 +199,9 @@ public class Leader extends MembroTeam {
     /**
      * Abbandona il team con logica speciale per il Leader.
      * <p>
-     * La logica e':
+     * La logica è:
      * - Se esiste un Viceleader: il Viceleader diventa Leader
-     * - Se e' l'unico membro: il team viene eliminato
+     * - Se è l'unico membro: il team viene eliminato
      * - Se ci sono altri membri ma nessun Viceleader: errore
      *
      * @throws IllegalStateException se ci sono membri ma nessun Viceleader

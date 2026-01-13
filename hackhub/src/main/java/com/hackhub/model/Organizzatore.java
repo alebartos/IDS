@@ -52,7 +52,7 @@ public class Organizzatore extends MembroStaff {
      * Crea un nuovo hackathon.
      * <p>
      * Precondizioni:
-     * - Il nome dell'hackathon non deve essere gia' in uso
+     * - Il nome dell'hackathon non deve essere già in uso
      * - La data di inizio deve precedere la data di fine
      * - La scadenza iscrizioni deve precedere la data di inizio
      * <p>
@@ -106,7 +106,7 @@ public class Organizzatore extends MembroStaff {
      *
      * @param team      Il team vincitore
      * @param hackathon L'hackathon in cui proclamare il vincitore
-     * @throws IllegalStateException se l'hackathon non e' in stato IN_VALUTAZIONE
+     * @throws IllegalStateException se l'hackathon non è in stato IN_VALUTAZIONE
      * @throws IllegalArgumentException se l'organizzatore non gestisce questo hackathon
      */
     public void proclamaVincitore(Team team, Hackathon hackathon) {
@@ -118,7 +118,7 @@ public class Organizzatore extends MembroStaff {
 
     // Verifica stato hackathon
         if (hackathon.getStato() != StatoHackathon.IN_VALUTAZIONE) {
-            throw new IllegalStateException("L'hackathon non e' in fase di valutazione");
+            throw new IllegalStateException("L'hackathon non è in fase di valutazione");
         }
 
 

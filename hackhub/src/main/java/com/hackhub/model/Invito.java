@@ -155,7 +155,7 @@ public class Invito {
      * - Lo stato deve essere IN_ATTESA
      * <p>
      * Postcondizioni:
-     * - Lo stato passa a RIFIUTATO
+     * - Lo stato passa a: RIFIUTATO
      * - La data di risposta viene impostata a oggi
      */
     public void rifiuta() {

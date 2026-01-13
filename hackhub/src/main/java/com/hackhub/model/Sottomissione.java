@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 /**
  * Classe che rappresenta una Sottomissione di un progetto in HackHub.
  * <p>
- * Una Sottomissione e' il progetto presentato da un Team per un Hackathon.
+ * Una Sottomissione è il progetto presentato da un Team per un Hackathon.
  * Caratteristiche:
- * - Puo' essere modificata finche' non e' definitiva
+ * - Puo' essere modificata finchè non è definitiva
  * - Una volta definitiva, puo' essere valutata dal Giudice
  * <p>
  * Relazioni:
@@ -35,13 +35,13 @@ public class Sottomissione {
     /** Data e ora della consegna */
     private LocalDateTime dataConsegna;
 
-    /** Indica se la sottomissione e' definitiva */
+    /** Indica se la sottomissione è definitiva */
     private boolean definitiva;
 
     /** Team che ha sottomesso il progetto */
     private Team team;
 
-    /** Hackathon per cui e' stata fatta la sottomissione */
+    /** Hackathon per cui è stata fatta la sottomissione */
     private Hackathon hackathon;
 
     /** Valutazione ricevuta (null se non ancora valutata) */
@@ -112,7 +112,7 @@ public class Sottomissione {
     }
 
     /**
-     * Verifica se la sottomissione e' definitiva.
+     * Verifica se la sottomissione è definitiva.
      *
      * @return true se definitiva, false altrimenti
      */
@@ -130,7 +130,7 @@ public class Sottomissione {
     }
 
     /**
-     * Restituisce l'hackathon per cui e' stata fatta la sottomissione.
+     * Restituisce l'hackathon per cui è stata fatta la sottomissione.
      *
      * @return L'hackathon
      */
@@ -153,7 +153,7 @@ public class Sottomissione {
      * Imposta il titolo del progetto.
      *
      * @param titolo Il nuovo titolo
-     * @throws IllegalStateException se la sottomissione e' gia' definitiva
+     * @throws IllegalStateException se la sottomissione è già definitiva
      */
     public void setTitolo(String titolo) {
         verificaNonDefinitiva();
@@ -164,7 +164,7 @@ public class Sottomissione {
      * Imposta la descrizione del progetto.
      *
      * @param descrizione La nuova descrizione
-     * @throws IllegalStateException se la sottomissione e' gia' definitiva
+     * @throws IllegalStateException se la sottomissione è già definitiva
      */
     public void setDescrizione(String descrizione) {
         verificaNonDefinitiva();
@@ -175,7 +175,7 @@ public class Sottomissione {
      * Imposta l'URL del progetto.
      *
      * @param urlProgetto Il nuovo URL
-     * @throws IllegalStateException se la sottomissione e' gia' definitiva
+     * @throws IllegalStateException se la sottomissione è già definitiva
      */
     public void setUrlProgetto(String urlProgetto) {
         verificaNonDefinitiva();
@@ -208,11 +208,11 @@ public class Sottomissione {
     /**
      * Verifica che la sottomissione non sia definitiva.
      *
-     * @throws IllegalStateException se la sottomissione e' gia' definitiva
+     * @throws IllegalStateException se la sottomissione è già definitiva
      */
     private void verificaNonDefinitiva() {
         if (this.definitiva) {
-            throw new IllegalStateException("La sottomissione e' gia' definitiva e non puo' essere modificata");
+            throw new IllegalStateException("La sottomissione è già definitiva e non puo' essere modificata");
         }
     }
 

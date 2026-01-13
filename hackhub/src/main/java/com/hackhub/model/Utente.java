@@ -77,7 +77,7 @@ public class Utente extends UtenteAstratto {
      * Crea un nuovo team con l'utente come Leader.
      * <p>
      * Precondizioni:
-     * - L'utente non deve appartenere gia' a un team
+     * - L'utente non deve appartenere già a un team
      * <p>
      * Postcondizioni:
      * - Viene creato un nuovo Team
@@ -86,11 +86,11 @@ public class Utente extends UtenteAstratto {
      * @param nome        Il nome del team (deve essere univoco)
      * @param descrizione La descrizione del team (opzionale)
      * @return Il team appena creato
-     * @throws IllegalStateException se l'utente appartiene gia' a un team
+     * @throws IllegalStateException se l'utente appartiene già a un team
      */
     public Team creaTeam(String nome, String descrizione) {
         if (this.team != null) {
-            throw new IllegalStateException("Appartieni gia' a un team");
+            throw new IllegalStateException("Appartieni già a un team");
         }
 
         // Crea il nuovo team
@@ -112,7 +112,7 @@ public class Utente extends UtenteAstratto {
      * <p>
      * Precondizioni:
      * - L'invito deve essere in stato IN_ATTESA
-     * - L'utente non deve appartenere gia' a un team
+     * - L'utente non deve appartenere già a un team
      * <p>
      * Postcondizioni:
      * - L'invito passa allo stato ACCETTATO
@@ -120,16 +120,16 @@ public class Utente extends UtenteAstratto {
      * - Tutti gli altri inviti pendenti vengono rifiutati automaticamente
      *
      * @param invito L'invito da accettare
-     * @throws IllegalStateException se l'utente appartiene gia' a un team
-     * @throws IllegalArgumentException se l'invito non e' in stato IN_ATTESA
+     * @throws IllegalStateException se l'utente appartiene già a un team
+     * @throws IllegalArgumentException se l'invito non è in stato IN_ATTESA
      */
     public void accettaInvito(Invito invito) {
         if (this.team != null) {
-            throw new IllegalStateException("Appartieni gia' a un team");
+            throw new IllegalStateException("Appartieni già a un team");
         }
 
         if (invito.getStato() != StatoInvito.IN_ATTESA) {
-            throw new IllegalArgumentException("L'invito non e' in attesa");
+            throw new IllegalArgumentException("L'invito non è in attesa");
         }
 
         // Accetta l'invito
@@ -156,11 +156,11 @@ public class Utente extends UtenteAstratto {
      * - L'invito passa allo stato RIFIUTATO
      *
      * @param invito L'invito da rifiutare
-     * @throws IllegalArgumentException se l'invito non e' in stato IN_ATTESA
+     * @throws IllegalArgumentException se l'invito non è in stato IN_ATTESA
      */
     public void rifiutaInvito(Invito invito) {
         if (invito.getStato() != StatoInvito.IN_ATTESA) {
-            throw new IllegalArgumentException("L'invito non e' in attesa");
+            throw new IllegalArgumentException("L'invito non è in attesa");
         }
 
         invito.rifiuta();

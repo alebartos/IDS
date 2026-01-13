@@ -22,7 +22,7 @@ public class Mentore extends MembroStaff {
     /** Lista delle call proposte dal mentore */
     private List<Call> callProposte;
 
-    /** Lista degli hackathon a cui il mentore e' associato */
+    /** Lista degli hackathon a cui il mentore è associato */
     private List<Hackathon> hackathonAssociati;
 
     /**
@@ -118,8 +118,8 @@ public class Mentore extends MembroStaff {
      *
      * @param call    La call da prenotare
      * @param dataOra Data e ora dello slot
-     * @throws IllegalStateException se la call non e' in stato CONFERMATA
-     * @throws IllegalArgumentException se il mentore non e' il proprietario della call
+     * @throws IllegalStateException se la call non è in stato CONFERMATA
+     * @throws IllegalArgumentException se il mentore non è il proprietario della call
      */
     public void prenotaSlot(Call call, LocalDateTime dataOra) {
         // Verifica che la call appartenga al mentore
@@ -129,7 +129,7 @@ public class Mentore extends MembroStaff {
 
         // Verifica stato call
         if (call.getStato() != StatoCall.CONFERMATA) {
-            throw new IllegalStateException("La call non e' in stato CONFERMATA");
+            throw new IllegalStateException("La call non è in stato CONFERMATA");
         }
 
         // Prenota lo slot

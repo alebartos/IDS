@@ -17,7 +17,7 @@ public class Giudice extends MembroStaff {
     /** Lista delle valutazioni espresse dal giudice */
     private List<Valutazione> valutazioniEspresse;
 
-    /** Lista degli hackathon a cui il giudice e' assegnato */
+    /** Lista degli hackathon a cui il giudice è assegnato */
     private List<Hackathon> hackathonAssegnati;
 
     /**
@@ -61,7 +61,7 @@ public class Giudice extends MembroStaff {
      * Valuta una sottomissione di un team.
      * <p>
      * Precondizioni:
-     * - La sottomissione non deve essere gia' stata valutata
+     * - La sottomissione non deve essere già stata valutata
      * - La sottomissione deve essere definitiva
      * - Il giudice deve essere assegnato all'hackathon della sottomissione
      * <p>
@@ -74,18 +74,18 @@ public class Giudice extends MembroStaff {
      * @param punteggio     Il punteggio assegnato (es: 0-100)
      * @param giudizio      Il giudizio testuale
      * @return La valutazione creata
-     * @throws IllegalStateException se la sottomissione e' gia' stata valutata
-     * @throws IllegalStateException se la sottomissione non e' definitiva
+     * @throws IllegalStateException se la sottomissione è già stata valutata
+     * @throws IllegalStateException se la sottomissione non è definitiva
      */
     public Valutazione valutaSottomissione(Sottomissione sottomissione, int punteggio, String giudizio) {
-        // Verifica che non sia gia' stata valutata
+        // Verifica che non sia già stata valutata
         if (sottomissione.getValutazione() != null) {
-            throw new IllegalStateException("La sottomissione e' gia' stata valutata");
+            throw new IllegalStateException("La sottomissione è già stata valutata");
         }
 
         // Verifica che sia definitiva
         if (!sottomissione.isDefinitiva()) {
-            throw new IllegalStateException("La sottomissione non e' definitiva");
+            throw new IllegalStateException("La sottomissione non è definitiva");
         }
 
         // Crea la valutazione

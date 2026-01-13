@@ -5,7 +5,7 @@ import java.time.LocalDate;
 /**
  * Classe che rappresenta un membro di un team in HackHub.
  * <p>
- * Un MembroTeam e' un Utente che fa parte di un team. Puo':
+ * Un MembroTeam è un Utente che fa parte di un team. Puo':
  * - Abbandonare il team
  * - Essere nominato Viceleader dal Leader
  * <p>
@@ -14,10 +14,10 @@ import java.time.LocalDate;
  */
 public class MembroTeam extends Utente {
 
-    /** Indica se il membro e' il Viceleader del team */
+    /** Indica se il membro è il Viceleader del team */
     private boolean isViceLeader;
 
-    /** Data in cui il membro e' entrato nel team */
+    /** Data in cui il membro è entrato nel team */
     private LocalDate dataIngresso;
 
     /**
@@ -37,9 +37,9 @@ public class MembroTeam extends Utente {
     // ==================== GETTER ====================
 
     /**
-     * Verifica se il membro e' il Viceleader del team.
+     * Verifica se il membro è il Viceleader del team.
      *
-     * @return true se e' Viceleader, false altrimenti
+     * @return true se è Viceleader, false altrimenti
      */
     public boolean isViceLeader() {
         return isViceLeader;
@@ -80,17 +80,17 @@ public class MembroTeam extends Utente {
      * Abbandona il team corrente.
      * <p>
      * La logica varia in base al ruolo:
-     * - Se e' Leader con Viceleader: il Viceleader diventa Leader
-     * - Se e' Leader senza Viceleader e unico membro: il team viene eliminato
-     * - Se e' Leader senza Viceleader ma con altri membri: deve prima nominare un Viceleader
-     * - Se e' Viceleader: perde il ruolo e lascia il team
-     * - Se e' membro normale: lascia semplicemente il team
+     * - Se è Leader con Viceleader: il Viceleader diventa Leader
+     * - Se è Leader senza Viceleader e unico membro: il team viene eliminato
+     * - Se è Leader senza Viceleader ma con altri membri: deve prima nominare un Viceleader
+     * - Se è Viceleader: perde il ruolo e lascia il team
+     * - Se è membro normale: lascia semplicemente il team
      * <p>
      * Precondizioni:
      * - Il membro deve appartenere a un team
      * <p>
      * Postcondizioni:
-     * - Il membro non appartiene piu' al team
+     * - Il membro non appartiene più al team
      * - Se era Viceleader, il ruolo viene revocato
      * - Se era Leader, la gestione viene delegata alla classe Leader
      *
@@ -103,7 +103,7 @@ public class MembroTeam extends Utente {
             throw new IllegalStateException("Non appartieni a nessun team");
         }
 
-        // Se e' Viceleader, revoca il ruolo
+        // Se è Viceleader, revoca il ruolo
         if (this.isViceLeader) {
             this.isViceLeader = false;
         }

@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 /**
  * Classe che rappresenta una Call di mentoring in HackHub.
  * <p>
- * Una Call e' una sessione di mentoring tra un Mentore e un Team.
+ * Una Call è una sessione di mentoring tra un Mentore e un Team.
  * Ciclo di vita:
  * PROPOSTA -> CONFERMATA -> PRENOTATA -> COMPLETATA
  * (Puo' essere ANNULLATA in qualsiasi momento)
@@ -188,13 +188,13 @@ public class Call {
      * - Lo stato deve essere PROPOSTA
      * <p>
      * Postcondizioni:
-     * - Lo stato passa a CONFERMATA
+     * - Lo stato passa a: CONFERMATA
      *
-     * @throws IllegalStateException se lo stato non e' PROPOSTA
+     * @throws IllegalStateException se lo stato non è PROPOSTA
      */
     public void conferma() {
         if (this.stato != StatoCall.PROPOSTA) {
-            throw new IllegalStateException("La call non e' in stato PROPOSTA");
+            throw new IllegalStateException("La call non è in stato PROPOSTA");
         }
         this.stato = StatoCall.CONFERMATA;
     }
@@ -208,29 +208,29 @@ public class Call {
      * Postcondizioni:
      * - Lo stato passa ad ANNULLATA
      *
-     * @throws IllegalStateException se la call e' gia' completata
+     * @throws IllegalStateException se la call è già completata
      */
     public void annulla() {
         if (this.stato == StatoCall.COMPLETATA) {
-            throw new IllegalStateException("Non puoi annullare una call gia' completata");
+            throw new IllegalStateException("Non puoi annullare una call già completata");
         }
         this.stato = StatoCall.ANNULLATA;
     }
 
     /**
-     * Completa la call (la call e' stata effettuata).
+     * Completa la call (la call è stata effettuata).
      * <p>
      * Precondizioni:
      * - Lo stato deve essere PRENOTATA
      * <p>
      * Postcondizioni:
-     * - Lo stato passa a COMPLETATA
+     * - Lo stato passa a: COMPLETATA
      *
-     * @throws IllegalStateException se lo stato non e' PRENOTATA
+     * @throws IllegalStateException se lo stato non è PRENOTATA
      */
     public void completa() {
         if (this.stato != StatoCall.PRENOTATA) {
-            throw new IllegalStateException("La call non e' in stato PRENOTATA");
+            throw new IllegalStateException("La call non è in stato PRENOTATA");
         }
         this.stato = StatoCall.COMPLETATA;
     }
