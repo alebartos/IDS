@@ -8,12 +8,12 @@ import java.util.List;
 
 /**
  * Classe che rappresenta un Organizzatore di hackathon in HackHub.
- *
+ * <p>
  * L'Organizzatore puo':
  * - Creare nuovi hackathon
  * - Gestire gli hackathon creati
  * - Proclamare il vincitore di un hackathon
- *
+ * <p>
  * Estende: MembroStaff
  */
 public class Organizzatore extends MembroStaff {
@@ -50,12 +50,12 @@ public class Organizzatore extends MembroStaff {
 
     /**
      * Crea un nuovo hackathon.
-     *
+     * <p>
      * Precondizioni:
      * - Il nome dell'hackathon non deve essere gia' in uso
      * - La data di inizio deve precedere la data di fine
      * - La scadenza iscrizioni deve precedere la data di inizio
-     *
+     * <p>
      * Postcondizioni:
      * - Viene creato un nuovo Hackathon con stato IN_ISCRIZIONE
      * - L'organizzatore viene associato all'hackathon
@@ -94,12 +94,12 @@ public class Organizzatore extends MembroStaff {
 
     /**
      * Proclama il vincitore di un hackathon.
-     *
+     * <p>
      * Precondizioni:
      * - L'hackathon deve essere in stato IN_VALUTAZIONE
      * - L'organizzatore deve gestire questo hackathon
      * - Tutte le sottomissioni devono essere state valutate
-     *
+     * <p>
      * Postcondizioni:
      * - Il team viene proclamato vincitore
      * - L'hackathon passa allo stato CONCLUSO

@@ -1,18 +1,17 @@
 package com.hackhub.model;
 
 import com.hackhub.enums.StatoInvito;
-import java.time.LocalDate;
 
 /**
  * Classe che rappresenta il Leader di un team in HackHub.
- *
+ * <p>
  * Il Leader e' il membro con i privilegi massimi nel team. Puo':
  * - Invitare nuovi utenti al team
  * - Nominare un Viceleader
  * - Eliminare il team
  * - Iscrivere il team a un hackathon
  * - Abbandonare il team (con regole speciali)
- *
+ * <p>
  * Estende: MembroTeam
  */
 public class Leader extends MembroTeam {
@@ -33,12 +32,12 @@ public class Leader extends MembroTeam {
 
     /**
      * Invia un invito a un utente per unirsi al team.
-     *
+     * <p>
      * Precondizioni:
      * - Il Leader deve avere un team
      * - L'utente destinatario non deve appartenere gia' a un team
      * - Non deve esistere gia' un invito pendente per questo utente da questo team
-     *
+     * <p>
      * Postcondizioni:
      * - Viene creato un nuovo Invito con stato IN_ATTESA
      * - L'invito viene aggiunto alla lista degli inviti del destinatario
@@ -81,12 +80,12 @@ public class Leader extends MembroTeam {
 
     /**
      * Nomina un membro del team come Viceleader.
-     *
+     * <p>
      * Precondizioni:
      * - Il membro deve appartenere allo stesso team del Leader
      * - Il membro non deve essere gia' Viceleader
      * - Il membro non deve essere il Leader stesso
-     *
+     * <p>
      * Postcondizioni:
      * - Se esiste gia' un Viceleader, perde il ruolo
      * - Il membro nominato diventa il nuovo Viceleader
@@ -118,10 +117,10 @@ public class Leader extends MembroTeam {
 
     /**
      * Elimina il team.
-     *
+     * <p>
      * Precondizioni:
      * - Il Leader deve essere l'unico membro del team
-     *
+     * <p>
      * Postcondizioni:
      * - Tutti gli inviti pendenti vengono annullati
      * - Il team viene eliminato
@@ -149,13 +148,13 @@ public class Leader extends MembroTeam {
 
     /**
      * Iscrive il team a un hackathon.
-     *
+     * <p>
      * Precondizioni:
      * - Il team non deve essere gia' iscritto all'hackathon
      * - L'hackathon deve essere in stato IN_ISCRIZIONE
      * - La scadenza delle iscrizioni non deve essere passata
      * - Il numero di membri del team deve rispettare il limite dell'hackathon
-     *
+     * <p>
      * Postcondizioni:
      * - Viene creata una nuova Iscrizione con stato CONFERMATA
      *
@@ -199,7 +198,7 @@ public class Leader extends MembroTeam {
 
     /**
      * Abbandona il team con logica speciale per il Leader.
-     *
+     * <p>
      * La logica e':
      * - Se esiste un Viceleader: il Viceleader diventa Leader
      * - Se e' l'unico membro: il team viene eliminato

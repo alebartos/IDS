@@ -2,7 +2,7 @@ package com.hackhub.enums;
 
 /**
  * Enum che rappresenta i possibili stati di un invito a un team.
- *
+ * <p>
  * Gli stati possibili sono:
  * - IN_ATTESA: l'invito e' stato inviato ma non ancora gestito dal destinatario
  * - ACCETTATO: il destinatario ha accettato l'invito e ora fa parte del team

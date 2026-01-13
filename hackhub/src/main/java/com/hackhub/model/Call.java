@@ -5,12 +5,12 @@ import java.time.LocalDateTime;
 
 /**
  * Classe che rappresenta una Call di mentoring in HackHub.
- *
+ * <p>
  * Una Call e' una sessione di mentoring tra un Mentore e un Team.
  * Ciclo di vita:
  * PROPOSTA -> CONFERMATA -> PRENOTATA -> COMPLETATA
  * (Puo' essere ANNULLATA in qualsiasi momento)
- *
+ * <p>
  * Relazioni:
  * - Composizione con Mentore (la call non esiste senza mentore)
  * - Aggregazione con Team
@@ -183,10 +183,10 @@ public class Call {
 
     /**
      * Conferma la call (il team accetta la proposta).
-     *
+     * <p>
      * Precondizioni:
      * - Lo stato deve essere PROPOSTA
-     *
+     * <p>
      * Postcondizioni:
      * - Lo stato passa a CONFERMATA
      *
@@ -201,10 +201,10 @@ public class Call {
 
     /**
      * Annulla la call.
-     *
+     * <p>
      * Precondizioni:
      * - Lo stato non deve essere COMPLETATA
-     *
+     * <p>
      * Postcondizioni:
      * - Lo stato passa ad ANNULLATA
      *
@@ -219,10 +219,10 @@ public class Call {
 
     /**
      * Completa la call (la call e' stata effettuata).
-     *
+     * <p>
      * Precondizioni:
      * - Lo stato deve essere PRENOTATA
-     *
+     * <p>
      * Postcondizioni:
      * - Lo stato passa a COMPLETATA
      *

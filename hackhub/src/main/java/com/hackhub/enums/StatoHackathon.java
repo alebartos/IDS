@@ -2,7 +2,7 @@ package com.hackhub.enums;
 
 /**
  * Enum che rappresenta i possibili stati di un hackathon.
- *
+ * <p>
  * Il ciclo di vita di un hackathon segue questo flusso:
  * IN_ISCRIZIONE -> IN_CORSO -> IN_VALUTAZIONE -> CONCLUSO
  */

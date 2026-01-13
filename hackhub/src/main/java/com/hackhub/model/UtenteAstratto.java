@@ -2,11 +2,11 @@ package com.hackhub.model;
 
 /**
  * Classe astratta base per tutti gli utenti del sistema HackHub.
- *
+ * <p>
  * Questa classe definisce gli attributi e i comportamenti comuni a tutti
  * i tipi di utente: Utente normale, MembroTeam, Leader e membri dello Staff
  * (Organizzatore, Mentore, Giudice).
- *
+ * <p>
  * Gerarchia:
  *                     UtenteAstratto (questa classe)
  *                    /                \
@@ -162,7 +162,7 @@ public abstract class UtenteAstratto {
     /**
      * Restituisce una rappresentazione testuale dell'utente.
      *
-     * @return Stringa con nome, cognome e email dell'utente
+     * @return Stringa con nome, cognome ed email dell'utente
      */
     @Override
     public String toString() {

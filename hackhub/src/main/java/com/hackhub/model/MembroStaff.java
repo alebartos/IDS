@@ -2,15 +2,15 @@ package com.hackhub.model;
 
 /**
  * Classe astratta che rappresenta un membro dello staff in HackHub.
- *
+ * <p>
  * I membri dello staff sono utenti con ruoli speciali nella gestione
  * degli hackathon. Non possono creare o unirsi a team.
- *
+ * <p>
  * Tipi di staff:
  * - Organizzatore: crea e gestisce hackathon
  * - Mentore: supporta i team con call di mentoring
  * - Giudice: valuta le sottomissioni dei team
- *
+ * <p>
  * Estende: UtenteAstratto
  * Esteso da: Organizzatore, Mentore, Giudice
  */

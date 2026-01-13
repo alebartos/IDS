@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 
 /**
  * Classe che rappresenta una Valutazione di una Sottomissione in HackHub.
- *
+ * <p>
  * Una Valutazione viene espressa da un Giudice su una Sottomissione definitiva.
  * Contiene un punteggio numerico e un giudizio testuale.
- *
+ * <p>
  * Relazioni:
  * - Composizione con Sottomissione (la valutazione non esiste senza sottomissione)
  * - Associazione con Giudice

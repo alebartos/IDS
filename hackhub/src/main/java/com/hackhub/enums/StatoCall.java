@@ -2,10 +2,10 @@ package com.hackhub.enums;
 
 /**
  * Enum che rappresenta i possibili stati di una call con un mentore.
- *
+ * <p>
  * Il ciclo di vita di una call segue questo flusso tipico:
  * PROPOSTA -> CONFERMATA -> PRENOTATA -> COMPLETATA
- *
+ * <p>
  * Una call puo' essere ANNULLATA in qualsiasi momento prima del completamento.
  */
 public enum StatoCall {

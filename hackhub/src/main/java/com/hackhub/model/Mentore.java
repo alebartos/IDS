@@ -7,11 +7,11 @@ import java.util.List;
 
 /**
  * Classe che rappresenta un Mentore in HackHub.
- *
+ * <p>
  * Il Mentore supporta i team durante gli hackathon attraverso:
  * - Proposte di call di mentoring
  * - Prenotazione di slot per le call
- *
+ * <p>
  * Estende: MembroStaff
  */
 public class Mentore extends MembroStaff {
@@ -84,10 +84,10 @@ public class Mentore extends MembroStaff {
 
     /**
      * Propone una call di mentoring a un team.
-     *
+     * <p>
      * Precondizioni:
      * - Il team deve essere iscritto a un hackathon associato al mentore
-     *
+     * <p>
      * Postcondizioni:
      * - Viene creata una nuova Call con stato PROPOSTA
      * - La call viene aggiunta alla lista delle call del mentore
@@ -107,11 +107,11 @@ public class Mentore extends MembroStaff {
 
     /**
      * Prenota uno slot per una call confermata.
-     *
+     * <p>
      * Precondizioni:
      * - La call deve essere in stato CONFERMATA
      * - Il mentore deve essere il proprietario della call
-     *
+     * <p>
      * Postcondizioni:
      * - La call passa allo stato PRENOTATA
      * - Vengono impostati data e ora della call

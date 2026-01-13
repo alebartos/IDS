@@ -5,10 +5,10 @@ import java.time.LocalDate;
 
 /**
  * Classe che rappresenta l'iscrizione di un Team a un Hackathon.
- *
+ * <p>
  * Un'iscrizione viene creata quando un Leader iscrive il proprio team
  * a un hackathon. Lo stato iniziale e' CONFERMATA.
- *
+ * <p>
  * Relazioni:
  * - Composizione con Team (l'iscrizione non esiste senza team)
  * - Associazione con Hackathon
@@ -109,7 +109,7 @@ public class Iscrizione {
 
     /**
      * Annulla l'iscrizione.
-     *
+     * <p>
      * Postcondizioni:
      * - Lo stato passa ad ANNULLATA
      */

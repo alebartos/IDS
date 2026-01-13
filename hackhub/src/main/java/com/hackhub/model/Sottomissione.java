@@ -4,12 +4,12 @@ import java.time.LocalDateTime;
 
 /**
  * Classe che rappresenta una Sottomissione di un progetto in HackHub.
- *
+ * <p>
  * Una Sottomissione e' il progetto presentato da un Team per un Hackathon.
  * Caratteristiche:
  * - Puo' essere modificata finche' non e' definitiva
  * - Una volta definitiva, puo' essere valutata dal Giudice
- *
+ * <p>
  * Relazioni:
  * - Composizione con Team (la sottomissione non esiste senza team)
  * - Associazione con Hackathon

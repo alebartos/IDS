@@ -4,11 +4,11 @@ import java.time.LocalDate;
 
 /**
  * Classe che rappresenta un membro di un team in HackHub.
- *
+ * <p>
  * Un MembroTeam e' un Utente che fa parte di un team. Puo':
  * - Abbandonare il team
  * - Essere nominato Viceleader dal Leader
- *
+ * <p>
  * Estende: Utente
  * Esteso da: Leader
  */
@@ -78,17 +78,17 @@ public class MembroTeam extends Utente {
 
     /**
      * Abbandona il team corrente.
-     *
+     * <p>
      * La logica varia in base al ruolo:
      * - Se e' Leader con Viceleader: il Viceleader diventa Leader
      * - Se e' Leader senza Viceleader e unico membro: il team viene eliminato
      * - Se e' Leader senza Viceleader ma con altri membri: deve prima nominare un Viceleader
      * - Se e' Viceleader: perde il ruolo e lascia il team
      * - Se e' membro normale: lascia semplicemente il team
-     *
+     * <p>
      * Precondizioni:
      * - Il membro deve appartenere a un team
-     *
+     * <p>
      * Postcondizioni:
      * - Il membro non appartiene piu' al team
      * - Se era Viceleader, il ruolo viene revocato

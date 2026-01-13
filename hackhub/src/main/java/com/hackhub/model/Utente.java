@@ -6,15 +6,15 @@ import java.util.List;
 
 /**
  * Classe che rappresenta un utente registrato nel sistema HackHub.
- *
+ * <p>
  * Un Utente puo':
  * - Creare un nuovo team (diventando Leader)
  * - Ricevere inviti da altri team
  * - Accettare o rifiutare inviti
- *
+ * <p>
  * Quando un Utente accetta un invito, diventa MembroTeam.
  * Quando un Utente crea un team, diventa Leader.
- *
+ * <p>
  * Estende: UtenteAstratto
  * Esteso da: MembroTeam
  */
@@ -75,10 +75,10 @@ public class Utente extends UtenteAstratto {
 
     /**
      * Crea un nuovo team con l'utente come Leader.
-     *
+     * <p>
      * Precondizioni:
      * - L'utente non deve appartenere gia' a un team
-     *
+     * <p>
      * Postcondizioni:
      * - Viene creato un nuovo Team
      * - L'utente diventa il Leader del team
@@ -109,11 +109,11 @@ public class Utente extends UtenteAstratto {
 
     /**
      * Accetta un invito a unirsi a un team.
-     *
+     * <p>
      * Precondizioni:
      * - L'invito deve essere in stato IN_ATTESA
      * - L'utente non deve appartenere gia' a un team
-     *
+     * <p>
      * Postcondizioni:
      * - L'invito passa allo stato ACCETTATO
      * - L'utente diventa MembroTeam del team
@@ -148,10 +148,10 @@ public class Utente extends UtenteAstratto {
 
     /**
      * Rifiuta un invito a unirsi a un team.
-     *
+     * <p>
      * Precondizioni:
      * - L'invito deve essere in stato IN_ATTESA
-     *
+     * <p>
      * Postcondizioni:
      * - L'invito passa allo stato RIFIUTATO
      *

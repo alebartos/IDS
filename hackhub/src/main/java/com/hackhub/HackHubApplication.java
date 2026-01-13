@@ -2,7 +2,7 @@ package com.hackhub;
 
 /**
  * Classe principale dell'applicazione HackHub.
- *
+ * <p>
  * HackHub e' una piattaforma per la gestione di Hackathon che permette:
  * - Registrazione e autenticazione utenti
  * - Creazione e gestione team

@@ -7,14 +7,14 @@ import java.util.List;
 
 /**
  * Classe che rappresenta un Hackathon in HackHub.
- *
+ * <p>
  * Un Hackathon e' un evento competitivo dove i team sviluppano progetti.
  * Caratteristiche:
  * - Ha un Organizzatore che lo gestisce
  * - Ha uno o piu' Mentori che supportano i team
  * - Ha un Giudice che valuta le sottomissioni
  * - I team si iscrivono e sottomettono progetti
- *
+ * <p>
  * Ciclo di vita:
  * IN_ISCRIZIONE -> IN_CORSO -> IN_VALUTAZIONE -> CONCLUSO
  */

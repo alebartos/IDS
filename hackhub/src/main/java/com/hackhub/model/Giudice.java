@@ -5,11 +5,11 @@ import java.util.List;
 
 /**
  * Classe che rappresenta un Giudice in HackHub.
- *
+ * <p>
  * Il Giudice:
  * - Valuta le sottomissioni dei team negli hackathon
  * - Assegna punteggi e giudizi
- *
+ * <p>
  * Estende: MembroStaff
  */
 public class Giudice extends MembroStaff {
@@ -59,12 +59,12 @@ public class Giudice extends MembroStaff {
 
     /**
      * Valuta una sottomissione di un team.
-     *
+     * <p>
      * Precondizioni:
      * - La sottomissione non deve essere gia' stata valutata
      * - La sottomissione deve essere definitiva
      * - Il giudice deve essere assegnato all'hackathon della sottomissione
-     *
+     * <p>
      * Postcondizioni:
      * - Viene creata una nuova Valutazione
      * - La valutazione viene associata alla sottomissione
