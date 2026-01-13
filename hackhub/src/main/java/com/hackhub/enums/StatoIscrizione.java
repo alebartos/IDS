@@ -2,7 +2,7 @@ package com.hackhub.enums;
 
 /**
  * Enum che rappresenta i possibili stati di un'iscrizione di un team a un hackathon.
- *
+ * <p>
  * Gli stati possibili sono:
  * - CONFERMATA: iscrizione valida e attiva
  * - ANNULLATA: iscrizione annullata volontariamente dal team

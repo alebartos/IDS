@@ -5,14 +5,14 @@ import java.time.LocalDate;
 
 /**
  * Classe che rappresenta un Invito a unirsi a un team in HackHub.
- *
+ * <p>
  * Un Invito viene creato quando un Leader invita un Utente a unirsi al team.
  * L'utente puo' accettare o rifiutare l'invito.
- *
+ * <p>
  * Ciclo di vita:
  * 1. Creazione: stato IN_ATTESA
  * 2. Risposta: stato ACCETTATO o RIFIUTATO
- *
+ * <p>
  * Relazioni:
  * - Composizione con Team (l'invito non esiste senza team)
  * - Associazione con Utente (destinatario)
@@ -135,10 +135,10 @@ public class Invito {
 
     /**
      * Accetta l'invito.
-     *
+     * <p>
      * Precondizioni:
      * - Lo stato deve essere IN_ATTESA
-     *
+     * <p>
      * Postcondizioni:
      * - Lo stato passa ad ACCETTATO
      * - La data di risposta viene impostata a oggi
@@ -150,10 +150,10 @@ public class Invito {
 
     /**
      * Rifiuta l'invito.
-     *
+     * <p>
      * Precondizioni:
      * - Lo stato deve essere IN_ATTESA
-     *
+     * <p>
      * Postcondizioni:
      * - Lo stato passa a RIFIUTATO
      * - La data di risposta viene impostata a oggi

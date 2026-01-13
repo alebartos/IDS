@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * Classe che rappresenta un Team in HackHub.
- *
+ * <p>
  * Un Team e' un gruppo di utenti che partecipa agli hackathon.
  * Caratteristiche:
  * - Ha un Leader che lo gestisce
@@ -14,7 +14,7 @@ import java.util.List;
  * - Puo' avere uno o piu' membri
  * - Puo' iscriversi a hackathon
  * - Puo' sottomettere progetti
- *
+ * <p>
  * Relazioni:
  * - Composizione con MembroTeam (i membri non esistono senza team)
  * - Composizione con Invito (gli inviti non esistono senza team)
