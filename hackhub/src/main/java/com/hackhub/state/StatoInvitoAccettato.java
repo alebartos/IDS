@@ -5,7 +5,7 @@ import com.hackhub.model.Invito;
 /**
  * Stato concreto che rappresenta un invito accettato.
  *
- * Questo e' uno stato finale: nessuna transizione e' permessa.
+ * Questo è uno stato finale: nessuna transizione è permessa.
  * Qualsiasi tentativo di accettare o rifiutare l'invito
  * genera un'eccezione.
  *
@@ -17,7 +17,7 @@ public class StatoInvitoAccettato implements IStatoInvito {
     private static final String NOME_STATO = "ACCETTATO";
 
     /**
-     * Operazione non permessa: l'invito e' gia' accettato.
+     * Operazione non permessa: l'invito è già accettato.
      *
      * @param invito L'invito
      * @throws IllegalStateException sempre, operazione non valida
@@ -28,14 +28,14 @@ public class StatoInvitoAccettato implements IStatoInvito {
     }
 
     /**
-     * Operazione non permessa: l'invito e' gia' accettato.
+     * Operazione non permessa: l'invito è già accettato.
      *
      * @param invito L'invito
      * @throws IllegalStateException sempre, operazione non valida
      */
     @Override
     public void rifiuta(Invito invito) {
-        throw new IllegalStateException("Non puoi rifiutare un invito gia' accettato");
+        throw new IllegalStateException("Non puoi rifiutare un invito già accettato");
     }
 
     /**
