@@ -37,7 +37,7 @@ public class StatoCallConfermata implements IStatoCall {
      */
     @Override
     public void prenota(Call call, LocalDateTime dataOra) {
-        //da implementare
+        // da implementare
     }
 
     /**
@@ -59,7 +59,7 @@ public class StatoCallConfermata implements IStatoCall {
      */
     @Override
     public void annulla(Call call) {
-        //da implementare
+        call.setStatoCall(new StatoCallAnnullata());
     }
 
     /**

@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 /**
  * Stato concreto che rappresenta una call proposta dal mentore.
  *
- * In questo stato la call può:
+ * In questo stato la call puo':
  * - Essere confermata dal team (transizione a CONFERMATA)
  * - Essere annullata (transizione a ANNULLATA)
  *
@@ -25,7 +25,7 @@ public class StatoCallProposta implements IStatoCall {
      */
     @Override
     public void conferma(Call call) {
-        //da implementare
+        call.setStatoCall(new StatoCallConfermata());
     }
 
     /**
@@ -59,7 +59,7 @@ public class StatoCallProposta implements IStatoCall {
      */
     @Override
     public void annulla(Call call) {
-        //da implementare
+        call.setStatoCall(new StatoCallAnnullata());
     }
 
     /**

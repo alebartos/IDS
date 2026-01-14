@@ -1,19 +1,22 @@
 package com.hackhub.model;
 
-import com.hackhub.enums.StatoCall;
+import com.hackhub.state.IStatoCall;
+import com.hackhub.state.StatoCallProposta;
 import java.time.LocalDateTime;
 
 /**
  * Classe che rappresenta una Call di mentoring in HackHub.
- * <p>
- * Una Call è una sessione di mentoring tra un Mentore e un Team.
+ *
+ * Una Call e' una sessione di mentoring tra un Mentore e un Team.
  * Ciclo di vita:
  * PROPOSTA -> CONFERMATA -> PRENOTATA -> COMPLETATA
  * (Puo' essere ANNULLATA in qualsiasi momento)
- * <p>
+ *
  * Relazioni:
  * - Composizione con Mentore (la call non esiste senza mentore)
  * - Aggregazione con Team
+ *
+ * Design Pattern: State (per la gestione degli stati)
  */
 public class Call {
 
@@ -23,8 +26,8 @@ public class Call {
     /** Contatore statico per generare ID univoci */
     private static Long contatoreId = 1L;
 
-    /** Stato corrente della call */
-    private StatoCall stato;
+    /** Stato corrente della call (State Pattern) */
+    private IStatoCall statoCall;
 
     /** Data e ora della call (impostata dopo la prenotazione) */
     private LocalDateTime dataOra;
@@ -54,7 +57,7 @@ public class Call {
         this.id = contatoreId++;
         this.mentore = mentore;
         this.team = team;
-        this.stato = StatoCall.PROPOSTA;
+        this.statoCall = new StatoCallProposta();
         this.durata = 30; // Default 30 minuti
     }
 
@@ -74,8 +77,17 @@ public class Call {
      *
      * @return Lo stato corrente
      */
-    public StatoCall getStato() {
-        return stato;
+    public IStatoCall getStatoCall() {
+        return statoCall;
+    }
+
+    /**
+     * Restituisce il nome dello stato corrente.
+     *
+     * @return Il nome dello stato
+     */
+    public String getStatoNome() {
+        return statoCall.getNomeStato();
     }
 
     /**
@@ -135,12 +147,12 @@ public class Call {
     // ==================== SETTER ====================
 
     /**
-     * Imposta lo stato della call.
+     * Imposta lo stato della call (usato dal pattern State).
      *
-     * @param stato Il nuovo stato
+     * @param statoCall Il nuovo stato
      */
-    public void setStato(StatoCall stato) {
-        this.stato = stato;
+    public void setStatoCall(IStatoCall statoCall) {
+        this.statoCall = statoCall;
     }
 
     /**
@@ -183,56 +195,113 @@ public class Call {
 
     /**
      * Conferma la call (il team accetta la proposta).
-     * <p>
+     * Delega l'operazione allo stato corrente (State Pattern).
+     *
      * Precondizioni:
      * - Lo stato deve essere PROPOSTA
-     * <p>
-     * Postcondizioni:
-     * - Lo stato passa a: CONFERMATA
      *
-     * @throws IllegalStateException se lo stato non è PROPOSTA
+     * Postcondizioni:
+     * - Lo stato passa a CONFERMATA
+     *
+     * @throws IllegalStateException se l'operazione non e' permessa
      */
     public void conferma() {
-        if (this.stato != StatoCall.PROPOSTA) {
-            throw new IllegalStateException("La call non è in stato PROPOSTA");
-        }
-        this.stato = StatoCall.CONFERMATA;
+        statoCall.conferma(this);
+    }
+
+    /**
+     * Prenota la call con data e ora.
+     * Delega l'operazione allo stato corrente (State Pattern).
+     *
+     * Precondizioni:
+     * - Lo stato deve essere CONFERMATA
+     *
+     * Postcondizioni:
+     * - Lo stato passa a PRENOTATA
+     * - La data e ora vengono impostate
+     *
+     * @param dataOra La data e ora della prenotazione
+     * @throws IllegalStateException se l'operazione non e' permessa
+     */
+    public void prenota(LocalDateTime dataOra) {
+        statoCall.prenota(this, dataOra);
+    }
+
+    /**
+     * Completa la call (la call e' stata effettuata).
+     * Delega l'operazione allo stato corrente (State Pattern).
+     *
+     * Precondizioni:
+     * - Lo stato deve essere PRENOTATA
+     *
+     * Postcondizioni:
+     * - Lo stato passa a COMPLETATA
+     *
+     * @throws IllegalStateException se l'operazione non e' permessa
+     */
+    public void completa() {
+        statoCall.completa(this);
     }
 
     /**
      * Annulla la call.
-     * <p>
+     * Delega l'operazione allo stato corrente (State Pattern).
+     *
      * Precondizioni:
      * - Lo stato non deve essere COMPLETATA
-     * <p>
+     *
      * Postcondizioni:
      * - Lo stato passa ad ANNULLATA
      *
-     * @throws IllegalStateException se la call è già completata
+     * @throws IllegalStateException se l'operazione non e' permessa
      */
     public void annulla() {
-        if (this.stato == StatoCall.COMPLETATA) {
-            throw new IllegalStateException("Non puoi annullare una call già completata");
-        }
-        this.stato = StatoCall.ANNULLATA;
+        statoCall.annulla(this);
     }
 
     /**
-     * Completa la call (la call è stata effettuata).
-     * <p>
-     * Precondizioni:
-     * - Lo stato deve essere PRENOTATA
-     * <p>
-     * Postcondizioni:
-     * - Lo stato passa a: COMPLETATA
+     * Verifica se la call e' in stato proposta.
      *
-     * @throws IllegalStateException se lo stato non è PRENOTATA
+     * @return true se lo stato e' PROPOSTA
      */
-    public void completa() {
-        if (this.stato != StatoCall.PRENOTATA) {
-            throw new IllegalStateException("La call non è in stato PRENOTATA");
-        }
-        this.stato = StatoCall.COMPLETATA;
+    public boolean isProposta() {
+        return "PROPOSTA".equals(statoCall.getNomeStato());
+    }
+
+    /**
+     * Verifica se la call e' confermata.
+     *
+     * @return true se lo stato e' CONFERMATA
+     */
+    public boolean isConfermata() {
+        return "CONFERMATA".equals(statoCall.getNomeStato());
+    }
+
+    /**
+     * Verifica se la call e' prenotata.
+     *
+     * @return true se lo stato e' PRENOTATA
+     */
+    public boolean isPrenotata() {
+        return "PRENOTATA".equals(statoCall.getNomeStato());
+    }
+
+    /**
+     * Verifica se la call e' completata.
+     *
+     * @return true se lo stato e' COMPLETATA
+     */
+    public boolean isCompletata() {
+        return "COMPLETATA".equals(statoCall.getNomeStato());
+    }
+
+    /**
+     * Verifica se la call e' annullata.
+     *
+     * @return true se lo stato e' ANNULLATA
+     */
+    public boolean isAnnullata() {
+        return "ANNULLATA".equals(statoCall.getNomeStato());
     }
 
     /**
@@ -242,7 +311,7 @@ public class Call {
      */
     @Override
     public String toString() {
-        String info = "Call: " + mentore.getNome() + " -> " + team.getNome() + " [" + stato + "]";
+        String info = "Call: " + mentore.getNome() + " -> " + team.getNome() + " [" + statoCall.getNomeStato() + "]";
         if (dataOra != null) {
             info += " - " + dataOra;
         }
