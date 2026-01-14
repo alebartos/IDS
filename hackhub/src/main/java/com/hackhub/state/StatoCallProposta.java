@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 /**
  * Stato concreto che rappresenta una call proposta dal mentore.
  *
- * In questo stato la call puo':
+ * In questo stato la call può:
  * - Essere confermata dal team (transizione a CONFERMATA)
  * - Essere annullata (transizione a ANNULLATA)
  *

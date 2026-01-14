@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 /**
  * Stato concreto che rappresenta una call confermata dal team.
  *
- * In questo stato la call puo':
+ * In questo stato la call può:
  * - Essere prenotata con data e ora (transizione a PRENOTATA)
  * - Essere annullata (transizione a ANNULLATA)
  *
@@ -18,14 +18,14 @@ public class StatoCallConfermata implements IStatoCall {
     private static final String NOME_STATO = "CONFERMATA";
 
     /**
-     * Operazione non permessa: la call e' gia' confermata.
+     * Operazione non permessa: la call è già confermata.
      *
      * @param call La call
      * @throws IllegalStateException sempre
      */
     @Override
     public void conferma(Call call) {
-        throw new IllegalStateException("La call e' gia' stata confermata");
+        throw new IllegalStateException("La call è già stata confermata");
     }
 
     /**
