@@ -1,10 +1,16 @@
 package it.unicam.ids.service;
 
+
 import it.unicam.ids.dto.HackathonRequest;
+import it.unicam.ids.dto.TeamRequest;
 import it.unicam.ids.model.Hackathon;
+import it.unicam.ids.model.Leader;
 import it.unicam.ids.model.Organizzatore;
+import it.unicam.ids.model.Team;
 import it.unicam.ids.repository.HackathonRepository;
+import it.unicam.ids.repository.LeaderRepository;
 import it.unicam.ids.repository.OrganizzatoreRepository;
+import it.unicam.ids.repository.TeamRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,20 +29,39 @@ class HackathonServiceTest {
     private HackathonService hackathonService;
 
     @Autowired
+    private TeamService teamService;
+
+    @Autowired
     private HackathonRepository hackathonRepository;
 
     @Autowired
     private OrganizzatoreRepository organizzatoreRepository;
 
+    @Autowired
+    private LeaderRepository leaderRepository;
+
+    @Autowired
+    private TeamRepository teamRepository;
+
     private Organizzatore organizzatore;
+    private Leader leader;
+    private Team team;
 
     @BeforeEach
     void setUp() {
         hackathonRepository.deleteAll();
+        teamRepository.deleteAll();
+        leaderRepository.deleteAll();
         organizzatoreRepository.deleteAll();
 
         organizzatore = new Organizzatore("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
         organizzatore = organizzatoreRepository.save(organizzatore);
+
+        leader = new Leader("Mario", "Rossi", "mario.rossi@example.com", "password123");
+        leader = leaderRepository.save(leader);
+
+        TeamRequest teamRequest = new TeamRequest("Team Test", "Descrizione test", leader.getId());
+        team = teamService.creaTeam(teamRequest);
     }
 
     @Test
@@ -201,5 +226,67 @@ class HackathonServiceTest {
 
         Hackathon hackathonPassato = hackathonService.creaHackathon(organizzatore, requestPassato);
         assertFalse(hackathonService.checkValiditaHackathon(hackathonPassato.getId()));
+    }
+
+    @Test
+    void testIscriviTeamSuccess() {
+        HackathonRequest request = new HackathonRequest(
+                "Hackathon Iscrizione",
+                "Description",
+                LocalDate.now().plusMonths(2),
+                LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
+                "Milano",
+                "Rules",
+                "Prize",
+                5
+        );
+
+        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
+
+        assertDoesNotThrow(() -> hackathonService.iscriviTeam(hackathon, team));
+    }
+
+    @Test
+    void testIscriviTeamHackathonChiuso() {
+        HackathonRequest request = new HackathonRequest(
+                "Hackathon Chiuso",
+                "Description",
+                LocalDate.now().minusMonths(1),
+                LocalDate.now().minusMonths(1).plusDays(3),
+                LocalDate.now().minusMonths(2),
+                "Milano",
+                "Rules",
+                "Prize",
+                5
+        );
+
+        Hackathon hackathonPassato = hackathonService.creaHackathon(organizzatore, request);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> hackathonService.iscriviTeam(hackathonPassato, team));
+    }
+
+    @Test
+    void testIscriviTeamParametriNull() {
+        HackathonRequest request = new HackathonRequest(
+                "Hackathon Null Test",
+                "Description",
+                LocalDate.now().plusMonths(2),
+                LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
+                "Milano",
+                "Rules",
+                "Prize",
+                5
+        );
+
+        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> hackathonService.iscriviTeam(null, team));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> hackathonService.iscriviTeam(hackathon, null));
     }
 }
