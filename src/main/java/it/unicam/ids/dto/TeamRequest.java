@@ -17,6 +17,7 @@ public class TeamRequest {
         this.leaderId = leaderId;
     }
 
+
     public String getNome() {
         return nome;
     }

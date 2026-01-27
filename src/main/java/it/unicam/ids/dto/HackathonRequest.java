@@ -32,6 +32,7 @@ public class HackathonRequest {
         this.maxMembriTeam = maxMembriTeam;
     }
 
+
     public String getNome() {
         return nome;
     }

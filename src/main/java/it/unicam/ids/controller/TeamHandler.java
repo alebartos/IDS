@@ -29,6 +29,7 @@ public class TeamHandler {
         }
     }
 
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getDettagliTeam(@PathVariable Long id) {
         try {

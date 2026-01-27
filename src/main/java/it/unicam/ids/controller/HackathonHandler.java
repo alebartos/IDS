@@ -36,6 +36,7 @@ public class HackathonHandler {
         }
     }
 
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getDettagliHackathon(@PathVariable Long id) {
         try {

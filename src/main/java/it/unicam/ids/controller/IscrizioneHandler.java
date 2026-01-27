@@ -17,6 +17,7 @@ public class IscrizioneHandler {
     @Autowired
     private TeamService teamService;
 
+
     @PostMapping("/iscriviTeam")
     public ResponseEntity<?> iscriviTeam(@RequestParam Long hackathonId,
                                           @RequestParam Long teamId) {
