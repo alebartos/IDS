@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/hackathon")
 public class HackathonHandler {
@@ -29,7 +31,8 @@ public class HackathonHandler {
             Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
             return ResponseEntity.status(HttpStatus.CREATED).body(hackathon);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("errore", "Dati non validi per la creazione dell'hackathon"));
         }
     }
 
@@ -39,7 +42,8 @@ public class HackathonHandler {
             Hackathon hackathon = hackathonService.getDettagliHackathon(id);
             return ResponseEntity.ok(hackathon);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("errore", "Hackathon non trovato"));
         }
     }
 
@@ -49,7 +53,8 @@ public class HackathonHandler {
             int maxMembri = hackathonService.getMaxMembriTeam(id);
             return ResponseEntity.ok(maxMembri);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("errore", "Hackathon non trovato"));
         }
     }
 

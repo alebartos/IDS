@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/team")
@@ -23,7 +24,8 @@ public class TeamHandler {
             Team team = teamService.creaTeam(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(team);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("errore", "Dati non validi per la creazione del team"));
         }
     }
 
@@ -33,7 +35,8 @@ public class TeamHandler {
             Team team = teamService.getDettagliTeam(id);
             return ResponseEntity.ok(team);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("errore", "Team non trovato"));
         }
     }
 
@@ -43,7 +46,8 @@ public class TeamHandler {
             List<Object> membri = teamService.getMembriTeam(id);
             return ResponseEntity.ok(membri);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("errore", "Team non trovato"));
         }
     }
 
