@@ -7,6 +7,7 @@ import java.util.Objects;
 @Entity
 @Table
 public class MembroStaff extends UtenteAstratto {
+
     @ManyToOne
     @JoinColumn(name = "hackathon_id")
     private Hackathon hackathon;
