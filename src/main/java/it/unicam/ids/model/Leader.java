@@ -25,15 +25,6 @@ public class Leader extends MembroTeam {
         this.team = team;
     }
 
-    public void creaTeam() {
-    }
-
-    public void iscriviTeam() {
-    }
-
-    public void selezionaPartecipanti() {
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
