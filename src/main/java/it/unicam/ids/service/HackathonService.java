@@ -1,11 +1,10 @@
 package it.unicam.ids.service;
 
-
-
 import it.unicam.ids.builder.HackathonBuilder;
 import it.unicam.ids.dto.HackathonRequest;
 import it.unicam.ids.model.*;
 import it.unicam.ids.repository.HackathonRepository;
+import it.unicam.ids.repository.UtenteRepository;
 
 import java.time.LocalDate;
 
@@ -16,14 +15,20 @@ import java.time.LocalDate;
 public class HackathonService {
 
     private final HackathonRepository hackathonRepository;
+    private final UtenteRepository utenteRepository;
 
-    public HackathonService(HackathonRepository hackathonRepository) {
+    public HackathonService(HackathonRepository hackathonRepository, UtenteRepository utenteRepository) {
         this.hackathonRepository = hackathonRepository;
+        this.utenteRepository = utenteRepository;
     }
 
-    public Hackathon creaHackathon(Organizzatore organizzatore, HackathonRequest request) {
+    public Hackathon creaHackathon(Utente organizzatore, HackathonRequest request) {
         if (organizzatore == null) {
             throw new IllegalArgumentException("L'organizzatore è obbligatorio");
+        }
+
+        if (!organizzatore.hasRuolo(Ruolo.ORGANIZZATORE)) {
+            throw new IllegalArgumentException("L'utente deve avere il ruolo ORGANIZZATORE");
         }
 
         if (esisteHackathonConNome(request.getNome())) {
@@ -94,9 +99,148 @@ public class HackathonService {
         }
     }
 
-    public void iscriviTeam(Hackathon hackathon, Team team) {
+    /**
+     * Assegna un giudice a un hackathon. Solo un organizzatore può assegnare giudici.
+     * @param hackathonId ID dell'hackathon
+     * @param giudiceId ID dell'utente da assegnare come giudice
+     * @param richiedenteId ID dell'utente che sta effettuando l'operazione (deve essere ORGANIZZATORE)
+     * @return l'hackathon aggiornato
+     */
+    public Hackathon assegnaGiudice(Long hackathonId, Long giudiceId, Long richiedenteId) {
+        // Verifica che il richiedente sia un organizzatore
+        Utente richiedente = utenteRepository.findById(richiedenteId)
+                .orElseThrow(() -> new IllegalArgumentException("Utente richiedente non trovato"));
+
+        if (!richiedente.hasRuolo(Ruolo.ORGANIZZATORE)) {
+            throw new IllegalArgumentException("Solo un organizzatore può assegnare giudici");
+        }
+
+        if (giudiceId == null) {
+            throw new IllegalArgumentException("L'ID del giudice è obbligatorio");
+        }
+
+        Hackathon hackathon = getDettagliHackathon(hackathonId);
+
+        if (hackathon.hasGiudice()) {
+            throw new IllegalArgumentException("L'hackathon ha già un giudice assegnato");
+        }
+
+        Utente giudice = utenteRepository.findById(giudiceId)
+                .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
+
+        giudice.addRuolo(Ruolo.GIUDICE);
+        utenteRepository.save(giudice);
+
+        hackathon.setGiudice(giudice);
+        return hackathonRepository.save(hackathon);
+    }
+
+    /**
+     * Rimuove il giudice da un hackathon. Solo un organizzatore può rimuovere giudici.
+     * @param hackathonId ID dell'hackathon
+     * @param richiedenteId ID dell'utente che sta effettuando l'operazione (deve essere ORGANIZZATORE)
+     * @return l'hackathon aggiornato
+     */
+    public Hackathon rimuoviGiudice(Long hackathonId, Long richiedenteId) {
+        // Verifica che il richiedente sia un organizzatore
+        Utente richiedente = utenteRepository.findById(richiedenteId)
+                .orElseThrow(() -> new IllegalArgumentException("Utente richiedente non trovato"));
+
+        if (!richiedente.hasRuolo(Ruolo.ORGANIZZATORE)) {
+            throw new IllegalArgumentException("Solo un organizzatore può rimuovere giudici");
+        }
+
+        Hackathon hackathon = getDettagliHackathon(hackathonId);
+
+        if (!hackathon.hasGiudice()) {
+            throw new IllegalArgumentException("L'hackathon non ha un giudice assegnato");
+        }
+
+        Utente giudice = hackathon.getGiudice();
+        if (giudice != null) {
+            giudice.deleteRuolo(Ruolo.GIUDICE);
+            utenteRepository.save(giudice);
+        }
+
+        hackathon.setGiudice(null);
+        return hackathonRepository.save(hackathon);
+    }
+
+    /**
+     * Aggiunge un membro allo staff dell'hackathon. Solo un organizzatore può aggiungere staff.
+     * @param hackathonId ID dell'hackathon
+     * @param utenteId ID dell'utente da aggiungere allo staff
+     * @param richiedenteId ID dell'utente che sta effettuando l'operazione (deve essere ORGANIZZATORE)
+     * @return l'hackathon aggiornato
+     */
+    public Hackathon aggiungiMembroStaff(Long hackathonId, Long utenteId, Long richiedenteId) {
+        // Verifica che il richiedente sia un organizzatore
+        Utente richiedente = utenteRepository.findById(richiedenteId)
+                .orElseThrow(() -> new IllegalArgumentException("Utente richiedente non trovato"));
+
+        if (!richiedente.hasRuolo(Ruolo.ORGANIZZATORE)) {
+            throw new IllegalArgumentException("Solo un organizzatore può aggiungere membri allo staff");
+        }
+
+        Hackathon hackathon = getDettagliHackathon(hackathonId);
+
+        Utente utente = utenteRepository.findById(utenteId)
+                .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
+
+        if (hackathon.checkStaff(utente)) {
+            throw new IllegalArgumentException("L'utente è già membro dello staff");
+        }
+
+        utente.addRuolo(Ruolo.MEMBRO_STAFF);
+        utenteRepository.save(utente);
+
+        hackathon.addMembroStaff(utente);
+        return hackathonRepository.save(hackathon);
+    }
+
+    /**
+     * Rimuove un membro dallo staff dell'hackathon. Solo un organizzatore può rimuovere staff.
+     * @param hackathonId ID dell'hackathon
+     * @param utenteId ID dell'utente da rimuovere dallo staff
+     * @param richiedenteId ID dell'utente che sta effettuando l'operazione (deve essere ORGANIZZATORE)
+     * @return l'hackathon aggiornato
+     */
+    public Hackathon rimuoviMembroStaff(Long hackathonId, Long utenteId, Long richiedenteId) {
+        // Verifica che il richiedente sia un organizzatore
+        Utente richiedente = utenteRepository.findById(richiedenteId)
+                .orElseThrow(() -> new IllegalArgumentException("Utente richiedente non trovato"));
+
+        if (!richiedente.hasRuolo(Ruolo.ORGANIZZATORE)) {
+            throw new IllegalArgumentException("Solo un organizzatore può rimuovere membri dallo staff");
+        }
+
+        Hackathon hackathon = getDettagliHackathon(hackathonId);
+
+        Utente utente = utenteRepository.findById(utenteId)
+                .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
+
+        if (!hackathon.checkStaff(utente)) {
+            throw new IllegalArgumentException("L'utente non è membro dello staff");
+        }
+
+        hackathon.removeMembroStaff(utente);
+        return hackathonRepository.save(hackathon);
+    }
+
+    /**
+     * Iscrive un team a un hackathon. Solo il leader del team può iscriverlo.
+     * @param hackathon l'hackathon
+     * @param team il team
+     * @param richiedenteId ID dell'utente che sta effettuando l'iscrizione (deve essere il leader del team)
+     */
+    public void iscriviTeam(Hackathon hackathon, Team team, Long richiedenteId) {
         if (hackathon == null || team == null) {
             throw new IllegalArgumentException("Hackathon e Team sono obbligatori");
+        }
+
+        // Verifica che il richiedente sia il leader del team
+        if (team.getLeader() == null || !team.getLeader().getId().equals(richiedenteId)) {
+            throw new IllegalArgumentException("Solo il leader del team può iscriverlo a un hackathon");
         }
 
         if (!checkValiditaHackathon(hackathon.getId())) {
