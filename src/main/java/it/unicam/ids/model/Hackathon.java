@@ -20,14 +20,15 @@ public class Hackathon {
     private String regolamento;
     private String premio;
     private Integer maxMembriTeam;
-    private List<MembroStaff> membriStaff = new ArrayList<>();
+    private List<Utente> membriStaff = new ArrayList<>();
+    private Utente giudice;
 
     public Hackathon() {
     }
 
     public Hackathon(Long id, String nome, String descrizione, LocalDate dataInizio, LocalDate dataFine,
                      LocalDate scadenzaIscrizioni, String luogo, String regolamento, String premio,
-                     Integer maxMembriTeam, List<MembroStaff> membriStaff) {
+                     Integer maxMembriTeam, List<Utente> membriStaff) {
         this.id = id;
         this.nome = nome;
         this.descrizione = descrizione;
@@ -121,12 +122,41 @@ public class Hackathon {
         this.maxMembriTeam = maxMembriTeam;
     }
 
-    public List<MembroStaff> getMembriStaff() {
+    public List<Utente> getMembriStaff() {
         return membriStaff;
     }
 
-    public void setMembriStaff(List<MembroStaff> membriStaff) {
+    public void setMembriStaff(List<Utente> membriStaff) {
         this.membriStaff = membriStaff;
+    }
+
+    public void addMembroStaff(Utente membro) {
+        if (membro != null && !this.membriStaff.contains(membro)) {
+            this.membriStaff.add(membro);
+        }
+    }
+
+    public boolean removeMembroStaff(Utente membro) {
+        return this.membriStaff.remove(membro);
+    }
+
+    public Utente getGiudice() {
+        return giudice;
+    }
+
+    public void setGiudice(Utente giudice) {
+        this.giudice = giudice;
+    }
+
+    public boolean hasGiudice() {
+        return this.giudice != null;
+    }
+
+    /**
+     * Verifica se un utente è già assegnato come staff a questo hackathon.
+     */
+    public boolean checkStaff(Utente utente) {
+        return this.membriStaff.contains(utente);
     }
 
     @Override
@@ -135,9 +165,9 @@ public class Hackathon {
         if (o == null || getClass() != o.getClass()) return false;
         Hackathon hackathon = (Hackathon) o;
         return Objects.equals(id, hackathon.id) &&
-               Objects.equals(nome, hackathon.nome) &&
-               Objects.equals(dataInizio, hackathon.dataInizio) &&
-               Objects.equals(dataFine, hackathon.dataFine);
+                Objects.equals(nome, hackathon.nome) &&
+                Objects.equals(dataInizio, hackathon.dataInizio) &&
+                Objects.equals(dataFine, hackathon.dataFine);
     }
 
     @Override
@@ -148,13 +178,13 @@ public class Hackathon {
     @Override
     public String toString() {
         return "Hackathon{" +
-               "id=" + id +
-               ", nome='" + nome + '\'' +
-               ", descrizione='" + descrizione + '\'' +
-               ", dataInizio=" + dataInizio +
-               ", dataFine=" + dataFine +
-               ", luogo='" + luogo + '\'' +
-               ", maxMembriTeam=" + maxMembriTeam +
-               '}';
+                "id=" + id +
+                ", nome='" + nome + '\'' +
+                ", descrizione='" + descrizione + '\'' +
+                ", dataInizio=" + dataInizio +
+                ", dataFine=" + dataFine +
+                ", luogo='" + luogo + '\'' +
+                ", maxMembriTeam=" + maxMembriTeam +
+                '}';
     }
 }
