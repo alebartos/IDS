@@ -10,11 +10,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class TeamTest {
 
     private Team team;
-    private Leader leader;
+    private Utente leader;
 
     @BeforeEach
     void setUp() {
-        leader = new Leader("Mario", "Rossi", "mario.rossi@example.com", "password123");
+        leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
+        leader.addRuolo(Ruolo.LEADER);
 
         team = new Team();
         team.setNome("Team Alpha");
