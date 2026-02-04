@@ -1,10 +1,10 @@
-package it.unicam.ids.controller;
+package it.unicam .ids.controller;
 
 import it.unicam.ids.dto.HackathonRequest;
-import it.unicam.ids.model.Hackathon;
-import it.unicam.ids.repository.HackathonRepository;
-import it.unicam.ids.repository.OrganizzatoreRepository;
-import it.unicam.ids.service.HackathonService;
+import it.unicam .ids.model.*;
+import it.unicam .ids.repository.HackathonRepository;
+import it.unicam .ids.repository.UtenteRepository;
+import it.unicam .ids.service.HackathonService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -17,18 +17,19 @@ class HackathonHandlerTest {
     private HackathonHandler hackathonHandler;
     private HackathonService hackathonService;
     private HackathonRepository hackathonRepository;
-    private OrganizzatoreRepository organizzatoreRepository;
-    private Organizzatore organizzatore;
+    private UtenteRepository utenteRepository;
+    private Utente organizzatore;
 
     @BeforeEach
     void setUp() {
         hackathonRepository = new HackathonRepository();
-        organizzatoreRepository = new OrganizzatoreRepository();
-        hackathonService = new HackathonService(hackathonRepository);
-        hackathonHandler = new HackathonHandler(hackathonService, organizzatoreRepository);
+        utenteRepository = new UtenteRepository();
+        hackathonService = new HackathonService(hackathonRepository, utenteRepository);
+        hackathonHandler = new HackathonHandler(hackathonService, utenteRepository);
 
-        organizzatore = new Organizzatore("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
-        organizzatore = organizzatoreRepository.save(organizzatore);
+        organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
+        organizzatore.addRuolo(Ruolo.ORGANIZZATORE);
+        organizzatore = utenteRepository.save(organizzatore);
     }
 
     @Test
@@ -52,6 +53,29 @@ class HackathonHandlerTest {
         assertTrue(response.isSuccess());
         assertNotNull(response.getData());
         assertEquals("Hackathon 2025", response.getData().getNome());
+    }
+
+    @Test
+    void testCreaHackathonSenzaRuoloOrganizzatore() {
+        Utente utenteNonOrganizzatore = new Utente("Anna", "Bianchi", "anna@example.com", "password");
+        utenteNonOrganizzatore = utenteRepository.save(utenteNonOrganizzatore);
+
+        HackathonRequest request = new HackathonRequest(
+                "Hackathon No Org",
+                "Test",
+                LocalDate.of(2025, 3, 1),
+                LocalDate.of(2025, 3, 3),
+                LocalDate.of(2025, 2, 15),
+                "Milano",
+                "Rules",
+                "Prize",
+                5
+        );
+
+        Result<Hackathon> response = hackathonHandler.creaHackathon(request, utenteNonOrganizzatore.getId());
+
+        assertEquals(400, response.getStatusCode());
+        assertFalse(response.isSuccess());
     }
 
     @Test

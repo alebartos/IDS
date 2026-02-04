@@ -1,6 +1,8 @@
 package it.unicam.ids.builder;
 
+import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Team;
+import it.unicam.ids.model.Utente;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -10,11 +12,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TeamBuilderTest {
 
-    private Leader leader;
+    private Utente leader;
 
     @BeforeEach
     void setUp() {
-        leader = new Leader("Mario", "Rossi", "mario.rossi@example.com", "password123");
+        leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
+        leader.addRuolo(Ruolo.LEADER);
     }
 
     @Test
