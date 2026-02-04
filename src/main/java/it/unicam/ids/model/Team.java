@@ -1,20 +1,26 @@
 package it.unicam.ids.model;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
+/**
+ * Rappresenta un Team partecipante agli Hackathon.
+ */
 public class Team {
 
     private Long id;
     private String nome;
     private String descrizione;
     private LocalDate dataCreazione;
-    private Leader leader;
+    private Utente leader;
+    private List<Utente> membri = new ArrayList<>();
 
     public Team() {
     }
 
-    public Team(Long id, String nome, String descrizione, LocalDate dataCreazione, Leader leader) {
+    public Team(Long id, String nome, String descrizione, LocalDate dataCreazione, Utente leader) {
         this.id = id;
         this.nome = nome;
         this.descrizione = descrizione;
@@ -54,16 +60,46 @@ public class Team {
         this.dataCreazione = dataCreazione;
     }
 
-    public Leader getLeader() {
+    public Utente getLeader() {
         return leader;
     }
 
-    public void setLeader(Leader leader) {
+    public void setLeader(Utente leader) {
         this.leader = leader;
     }
 
     public int getMaxMembriTeam() {
         return 0;
+    }
+
+    public List<Utente> getMembri() {
+        return membri;
+    }
+
+    public void setMembri(List<Utente> membri) {
+        this.membri = membri != null ? membri : new ArrayList<>();
+    }
+
+    public void aggiungiMembro(Utente membro) {
+        if (membro != null && !this.membri.contains(membro)) {
+            this.membri.add(membro);
+        }
+    }
+
+    public boolean rimuoviMembro(Utente membro) {
+        return this.membri.remove(membro);
+    }
+
+    public boolean rimuoviMembroById(Long membroId) {
+        return this.membri.removeIf(m -> m.getId().equals(membroId));
+    }
+
+    public boolean hasMembro(Long membroId) {
+        return this.membri.stream().anyMatch(m -> m.getId().equals(membroId));
+    }
+
+    public int getNumeroMembri() {
+        return this.membri.size();
     }
 
     @Override

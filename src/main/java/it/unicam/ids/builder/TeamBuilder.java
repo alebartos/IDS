@@ -1,6 +1,7 @@
 package it.unicam.ids.builder;
 
 import it.unicam.ids.model.Team;
+import it.unicam.ids.model.Utente;
 
 import java.time.LocalDate;
 
@@ -9,7 +10,7 @@ public class TeamBuilder {
     private String nome;
     private String descrizione;
     private LocalDate dataCreazione;
-    private Leader leader;
+    private Utente leader;
 
     private TeamBuilder() {
         this.dataCreazione = LocalDate.now();
@@ -34,7 +35,7 @@ public class TeamBuilder {
         return this;
     }
 
-    public TeamBuilder leader(Leader leader) {
+    public TeamBuilder leader(Utente leader) {
         this.leader = leader;
         return this;
     }
