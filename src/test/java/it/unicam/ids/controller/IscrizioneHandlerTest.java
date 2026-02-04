@@ -3,11 +3,12 @@ package it.unicam.ids.controller;
 import it.unicam.ids.dto.HackathonRequest;
 import it.unicam.ids.dto.TeamRequest;
 import it.unicam.ids.model.Hackathon;
+import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Team;
+import it.unicam.ids.model.Utente;
 import it.unicam.ids.repository.HackathonRepository;
-import it.unicam.ids.repository.LeaderRepository;
-import it.unicam.ids.repository.OrganizzatoreRepository;
 import it.unicam.ids.repository.TeamRepository;
+import it.unicam.ids.repository.UtenteRepository;
 import it.unicam.ids.service.HackathonService;
 import it.unicam.ids.service.TeamService;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,25 +25,25 @@ class IscrizioneHandlerTest {
     private TeamService teamService;
     private HackathonRepository hackathonRepository;
     private TeamRepository teamRepository;
-    private LeaderRepository leaderRepository;
-    private OrganizzatoreRepository organizzatoreRepository;
+    private UtenteRepository utenteRepository;
 
     private Hackathon hackathon;
     private Team team;
+    private Utente leader;
 
     @BeforeEach
     void setUp() {
         hackathonRepository = new HackathonRepository();
         teamRepository = new TeamRepository();
-        leaderRepository = new LeaderRepository();
-        organizzatoreRepository = new OrganizzatoreRepository();
+        utenteRepository = new UtenteRepository();
 
-        hackathonService = new HackathonService(hackathonRepository);
-        teamService = new TeamService(teamRepository, leaderRepository);
+        hackathonService = new HackathonService(hackathonRepository, utenteRepository);
+        teamService = new TeamService(teamRepository, utenteRepository);
         iscrizioneHandler = new IscrizioneHandler(hackathonService, teamService);
 
-        Organizzatore organizzatore = new Organizzatore("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
-        organizzatore = organizzatoreRepository.save(organizzatore);
+        Utente organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
+        organizzatore.addRuolo(Ruolo.ORGANIZZATORE);
+        organizzatore = utenteRepository.save(organizzatore);
 
         HackathonRequest hackathonRequest = new HackathonRequest(
                 "Test Hackathon",
@@ -57,8 +58,8 @@ class IscrizioneHandlerTest {
         );
         hackathon = hackathonService.creaHackathon(organizzatore, hackathonRequest);
 
-        Leader leader = new Leader("Mario", "Rossi", "mario.rossi@example.com", "password123");
-        leader = leaderRepository.save(leader);
+        leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
+        leader = utenteRepository.save(leader);
 
         TeamRequest teamRequest = new TeamRequest("Team Alpha", "Test team", leader.getId());
         team = teamService.creaTeam(teamRequest);
@@ -66,7 +67,7 @@ class IscrizioneHandlerTest {
 
     @Test
     void testIscriviTeamSuccess() {
-        Result<String> response = iscrizioneHandler.iscriviTeam(hackathon.getId(), team.getId());
+        Result<String> response = iscrizioneHandler.iscriviTeam(hackathon.getId(), team.getId(), leader.getId());
 
         assertNotNull(response);
         assertEquals(200, response.getStatusCode());
@@ -74,9 +75,21 @@ class IscrizioneHandlerTest {
     }
 
     @Test
+    void testIscriviTeamNonLeader() {
+        Utente nonLeader = new Utente("Paolo", "Neri", "paolo.neri@example.com", "password");
+        nonLeader = utenteRepository.save(nonLeader);
+
+        Result<String> response = iscrizioneHandler.iscriviTeam(hackathon.getId(), team.getId(), nonLeader.getId());
+
+        assertEquals(400, response.getStatusCode());
+        assertFalse(response.isSuccess());
+    }
+
+    @Test
     void testIscriviTeamHackathonNonValido() {
-        Organizzatore org = new Organizzatore("Paolo", "Bianchi", "paolo@example.com", "pass");
-        org = organizzatoreRepository.save(org);
+        Utente org = new Utente("Paolo", "Bianchi", "paolo@example.com", "pass");
+        org.addRuolo(Ruolo.ORGANIZZATORE);
+        org = utenteRepository.save(org);
 
         HackathonRequest hackathonRequestPassato = new HackathonRequest(
                 "Passato Hackathon",
@@ -92,7 +105,7 @@ class IscrizioneHandlerTest {
 
         Hackathon hackathonPassato = hackathonService.creaHackathon(org, hackathonRequestPassato);
 
-        Result<String> response = iscrizioneHandler.iscriviTeam(hackathonPassato.getId(), team.getId());
+        Result<String> response = iscrizioneHandler.iscriviTeam(hackathonPassato.getId(), team.getId(), leader.getId());
 
         assertEquals(400, response.getStatusCode());
         assertFalse(response.isSuccess());
@@ -100,7 +113,7 @@ class IscrizioneHandlerTest {
 
     @Test
     void testIscriviTeamNotFound() {
-        Result<String> response = iscrizioneHandler.iscriviTeam(99999L, team.getId());
+        Result<String> response = iscrizioneHandler.iscriviTeam(99999L, team.getId(), leader.getId());
 
         assertEquals(400, response.getStatusCode());
         assertFalse(response.isSuccess());
