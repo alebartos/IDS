@@ -1,7 +1,5 @@
 package it.unicam.ids.controller;
 
-
-import it.unicam.ids.controller.Result;
 import it.unicam.ids.model.Hackathon;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.service.HackathonService;
@@ -22,15 +20,18 @@ public class IscrizioneHandler {
     }
 
     /**
-     * Iscrive un team a un hackathon.
+     * Iscrive un team a un hackathon. Solo il leader del team può iscriverlo.
      * Endpoint futuro: POST /api/iscrizioni/iscriviTeam
+     * @param hackathonId ID dell'hackathon
+     * @param teamId ID del team
+     * @param richiedenteId ID dell'utente che effettua l'iscrizione (deve essere il leader del team)
      */
-    public Result<String> iscriviTeam(Long hackathonId, Long teamId) {
+    public Result<String> iscriviTeam(Long hackathonId, Long teamId, Long richiedenteId) {
         try {
             Hackathon hackathon = hackathonService.getDettagliHackathon(hackathonId);
             Team team = teamService.getDettagliTeam(teamId);
 
-            hackathonService.iscriviTeam(hackathon, team);
+            hackathonService.iscriviTeam(hackathon, team, richiedenteId);
 
             return Result.success("Team iscritto con successo");
         } catch (IllegalArgumentException e) {
