@@ -1,10 +1,10 @@
 package it.unicam.ids.controller;
 
-
 import it.unicam.ids.dto.TeamRequest;
 import it.unicam.ids.model.Team;
-import it.unicam.ids.repository.LeaderRepository;
+import it.unicam.ids.model.Utente;
 import it.unicam.ids.repository.TeamRepository;
+import it.unicam.ids.repository.UtenteRepository;
 import it.unicam.ids.service.TeamService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,18 +16,18 @@ class TeamHandlerTest {
     private TeamHandler teamHandler;
     private TeamService teamService;
     private TeamRepository teamRepository;
-    private LeaderRepository leaderRepository;
-    private Leader leader;
+    private UtenteRepository utenteRepository;
+    private Utente leader;
 
     @BeforeEach
     void setUp() {
         teamRepository = new TeamRepository();
-        leaderRepository = new LeaderRepository();
-        teamService = new TeamService(teamRepository, leaderRepository);
+        utenteRepository = new UtenteRepository();
+        teamService = new TeamService(teamRepository, utenteRepository);
         teamHandler = new TeamHandler(teamService);
 
-        leader = new Leader("Mario", "Rossi", "mario.rossi@example.com", "password123");
-        leader = leaderRepository.save(leader);
+        leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
+        leader = utenteRepository.save(leader);
     }
 
     @Test
