@@ -3,8 +3,6 @@ package it.unicam.ids.service;
 import it.unicam.ids.dto.HackathonRequest;
 import it.unicam.ids.dto.TeamRequest;
 import it.unicam.ids.model.Hackathon;
-import it.unicam.ids.model.Leader;
-import it.unicam.ids.model.Organizzatore;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.LeaderRepository;

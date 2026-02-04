@@ -1,6 +1,5 @@
 package it.unicam.ids.builder;
 
-import it.unicam.ids.model.Leader;
 import it.unicam.ids.model.Team;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

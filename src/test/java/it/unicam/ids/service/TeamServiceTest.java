@@ -1,7 +1,6 @@
 package it.unicam.ids.service;
 
 import it.unicam.ids.dto.TeamRequest;
-import it.unicam.ids.model.Leader;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.repository.LeaderRepository;
 import it.unicam.ids.repository.TeamRepository;

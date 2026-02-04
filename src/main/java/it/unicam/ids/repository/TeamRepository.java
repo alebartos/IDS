@@ -1,6 +1,5 @@
 package it.unicam.ids.repository;
 
-import it.unicam.ids.model.Leader;
 import it.unicam.ids.model.Team;
 
 import java.util.ArrayList;

@@ -1,7 +1,5 @@
 package it.unicam.ids.repository;
 
-import it.unicam.ids.model.Organizzatore;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

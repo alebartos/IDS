@@ -2,7 +2,6 @@ package it.unicam.ids.controller;
 
 import it.unicam.ids.dto.HackathonRequest;
 import it.unicam.ids.model.Hackathon;
-import it.unicam.ids.model.Organizzatore;
 import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.OrganizzatoreRepository;
 import it.unicam.ids.service.HackathonService;
