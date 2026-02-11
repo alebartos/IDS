@@ -146,7 +146,7 @@ public class Utente {
         if (o == null || getClass() != o.getClass()) return false;
         Utente utente = (Utente) o;
         return Objects.equals(id, utente.id) &&
-               Objects.equals(email, utente.email);
+                Objects.equals(email, utente.email);
     }
 
     @Override
@@ -157,11 +157,11 @@ public class Utente {
     @Override
     public String toString() {
         return "Utente{" +
-               "id=" + id +
-               ", nome='" + nome + '\'' +
-               ", cognome='" + cognome + '\'' +
-               ", email='" + email + '\'' +
-               ", ruoli=" + ruoli +
-               '}';
+                "id=" + id +
+                ", nome='" + nome + '\'' +
+                ", cognome='" + cognome + '\'' +
+                ", email='" + email + '\'' +
+                ", ruoli=" + ruoli +
+                '}';
     }
 }

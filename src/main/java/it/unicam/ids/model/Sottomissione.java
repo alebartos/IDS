@@ -1,5 +1,6 @@
 package it.unicam.ids.model;
 
+import it.unicam.ids.dto.DatiProgetto;
 import java.time.LocalDate;
 
 /**
@@ -8,17 +9,15 @@ import java.time.LocalDate;
 public class Sottomissione {
 
     private Long id;
-    private String descrizione;
-    private String linkRepository;
-    private String fileAllegati;
-    private LocalDate dataUltimaModifica;
+    private DatiProgetto datiProgetto;
+    private LocalDate dataInvio;
     private StatoSottomissione stato;
     private Long teamId;
     private Long hackathonId;
 
     public Sottomissione() {
         this.stato = StatoSottomissione.BOZZA;
-        this.dataUltimaModifica = LocalDate.now();
+        this.dataInvio = LocalDate.now();
     }
 
     public Long getId() {
@@ -29,39 +28,21 @@ public class Sottomissione {
         this.id = id;
     }
 
-    public String getDescrizione() {
-        return descrizione;
+    public DatiProgetto getDatiProgetto() {
+        return datiProgetto;
     }
 
-    public void setDescrizione(String descrizione) {
-        this.descrizione = descrizione;
-        this.dataUltimaModifica = LocalDate.now();
+    public void setDatiProgetto(DatiProgetto datiProgetto) {
+        this.datiProgetto = datiProgetto;
+        this.dataInvio = LocalDate.now();
     }
 
-    public String getLinkRepository() {
-        return linkRepository;
+    public LocalDate getDataInvio() {
+        return dataInvio;
     }
 
-    public void setLinkRepository(String linkRepository) {
-        this.linkRepository = linkRepository;
-        this.dataUltimaModifica = LocalDate.now();
-    }
-
-    public String getFileAllegati() {
-        return fileAllegati;
-    }
-
-    public void setFileAllegati(String fileAllegati) {
-        this.fileAllegati = fileAllegati;
-        this.dataUltimaModifica = LocalDate.now();
-    }
-
-    public LocalDate getDataUltimaModifica() {
-        return dataUltimaModifica;
-    }
-
-    public void setDataUltimaModifica(LocalDate dataUltimaModifica) {
-        this.dataUltimaModifica = dataUltimaModifica;
+    public void setDataInvio(LocalDate dataInvio) {
+        this.dataInvio = dataInvio;
     }
 
     public StatoSottomissione getStato() {
@@ -70,7 +51,7 @@ public class Sottomissione {
 
     public void setStato(StatoSottomissione stato) {
         this.stato = stato;
-        this.dataUltimaModifica = LocalDate.now();
+        this.dataInvio = LocalDate.now();
     }
 
     public Long getTeamId() {
@@ -107,7 +88,7 @@ public class Sottomissione {
     public String toString() {
         return "Sottomissione{" +
                 "id=" + id +
-                ", descrizione='" + descrizione + '\'' +
+                ", datiProgetto=" + datiProgetto +
                 ", stato=" + stato +
                 ", teamId=" + teamId +
                 ", hackathonId=" + hackathonId +
