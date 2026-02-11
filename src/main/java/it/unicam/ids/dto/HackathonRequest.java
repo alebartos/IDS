@@ -15,7 +15,7 @@ public class HackathonRequest {
     private LocalDate scadenzaIscrizioni;
     private String luogo;
     private String regolamento;
-    private String premio;
+    private double premio;
     private Integer maxMembriTeam;
 
     public HackathonRequest() {
@@ -23,7 +23,7 @@ public class HackathonRequest {
 
     public HackathonRequest(String nome, String descrizione, LocalDate dataInizio, LocalDate dataFine,
                             LocalDate scadenzaIscrizioni, String luogo, String regolamento,
-                            String premio, Integer maxMembriTeam) {
+                            double premio, Integer maxMembriTeam) {
         this.nome = nome;
         this.descrizione = descrizione;
         this.dataInizio = dataInizio;
@@ -91,11 +91,11 @@ public class HackathonRequest {
         this.regolamento = regolamento;
     }
 
-    public String getPremio() {
+    public double getPremio() {
         return premio;
     }
 
-    public void setPremio(String premio) {
+    public void setPremio(double premio) {
         this.premio = premio;
     }
 
