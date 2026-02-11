@@ -1,7 +1,6 @@
 package it.unicam.ids.repository;
 
 import it.unicam.ids.model.Team;
-import it.unicam.ids.model.Utente;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,15 +56,9 @@ public class TeamRepository {
                 .anyMatch(team -> team.getNome() != null && team.getNome().equals(nome));
     }
 
-    public Optional<Team> findByLeader(Utente leader) {
-        return storage.values().stream()
-                .filter(team -> team.getLeader() != null && team.getLeader().equals(leader))
-                .findFirst();
-    }
-
     public Optional<Team> findByLeaderId(Long leaderId) {
         return storage.values().stream()
-                .filter(team -> team.getLeader() != null && team.getLeader().getId().equals(leaderId))
+                .filter(team -> team.getLeaderId() != null && team.getLeaderId().equals(leaderId))
                 .findFirst();
     }
 }
