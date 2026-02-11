@@ -39,7 +39,7 @@ public class InvitoService {
                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
 
         // Verifica che il richiedente sia il leader del team
-        if (team.getLeader() == null || !team.getLeader().getId().equals(richiedenteId)) {
+        if (team.getLeaderId() == null || !team.getLeaderId().equals(richiedenteId)) {
             throw new IllegalArgumentException("Solo il leader del team può invitare nuovi membri");
         }
 
@@ -72,21 +72,25 @@ public class InvitoService {
             throw new IllegalArgumentException("Solo il destinatario può accettare l'invito");
         }
 
-        if (invito.getStato() != StatoInvito.PENDING) {
+        if (invito.getStato() != StatoInvito.IN_ATTESA) {
             throw new IllegalArgumentException("L'invito non è più in attesa");
         }
 
         invito.accetta();
         invitoRepository.save(invito);
 
-        // Aggiungi l'utente come membro del team
+        // Aggiungi il membro al team
         Team team = invito.getTeam();
+        if (team != null) {
+            team.addMembro(invito.getDestinatarioId());
+            teamRepository.save(team);
+        }
+
+        // Aggiungi il ruolo MEMBRO_TEAM all'utente
         Utente destinatario = invito.getDestinatario();
-        if (team != null && destinatario != null) {
-            team.aggiungiMembro(destinatario);
+        if (destinatario != null) {
             destinatario.addRuolo(Ruolo.MEMBRO_TEAM);
             utenteRepository.save(destinatario);
-            teamRepository.save(team);
         }
 
         invitoRepository.chiudiAltriInviti(invito.getDestinatarioId(), invitoId);
@@ -105,7 +109,7 @@ public class InvitoService {
             throw new IllegalArgumentException("Solo il destinatario può rifiutare l'invito");
         }
 
-        if (invito.getStato() != StatoInvito.PENDING) {
+        if (invito.getStato() != StatoInvito.IN_ATTESA) {
             throw new IllegalArgumentException("L'invito non è più in attesa");
         }
 
@@ -116,16 +120,16 @@ public class InvitoService {
     /**
      * Gestisce un invito (accetta o rifiuta). Solo il destinatario può gestirlo.
      * @param invitoId ID dell'invito
-     * @param risposta "ACCEPTED" o "REJECTED"
+     * @param risposta "ACCETTATO" o "RIFIUTATO"
      * @param richiedenteId ID dell'utente che sta gestendo l'invito (deve essere il destinatario)
      */
     public void gestisciInvito(Long invitoId, String risposta, Long richiedenteId) {
-        if ("ACCEPTED".equalsIgnoreCase(risposta)) {
+        if ("ACCETTATO".equalsIgnoreCase(risposta)) {
             accettaInvito(invitoId, richiedenteId);
-        } else if ("REJECTED".equalsIgnoreCase(risposta)) {
+        } else if ("RIFIUTATO".equalsIgnoreCase(risposta)) {
             rifiutaInvito(invitoId, richiedenteId);
         } else {
-            throw new IllegalArgumentException("Risposta non valida. Usare ACCEPTED o REJECTED");
+            throw new IllegalArgumentException("Risposta non valida. Usare ACCETTATO o RIFIUTATO");
         }
     }
 

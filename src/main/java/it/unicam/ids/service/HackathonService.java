@@ -2,7 +2,10 @@ package it.unicam.ids.service;
 
 import it.unicam.ids.builder.HackathonBuilder;
 import it.unicam.ids.dto.HackathonRequest;
-import it.unicam.ids.model.*;
+import it.unicam.ids.model.Hackathon;
+import it.unicam.ids.model.Ruolo;
+import it.unicam.ids.model.Team;
+import it.unicam.ids.model.Utente;
 import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.UtenteRepository;
 
@@ -50,6 +53,8 @@ public class HackathonService {
                 .premio(request.getPremio())
                 .maxMembriTeam(request.getMaxMembriTeam() != null ? request.getMaxMembriTeam() : 5)
                 .build();
+
+        hackathon.setOrganizzatoreId(organizzatore.getId());
 
         return hackathonRepository.save(hackathon);
     }
@@ -131,7 +136,7 @@ public class HackathonService {
         giudice.addRuolo(Ruolo.GIUDICE);
         utenteRepository.save(giudice);
 
-        hackathon.setGiudice(giudice);
+        hackathon.setGiudiceId(giudiceId);
         return hackathonRepository.save(hackathon);
     }
 
@@ -156,13 +161,16 @@ public class HackathonService {
             throw new IllegalArgumentException("L'hackathon non ha un giudice assegnato");
         }
 
-        Utente giudice = hackathon.getGiudice();
-        if (giudice != null) {
-            giudice.deleteRuolo(Ruolo.GIUDICE);
-            utenteRepository.save(giudice);
+        Long giudiceId = hackathon.getGiudiceId();
+        if (giudiceId != null) {
+            Utente giudice = utenteRepository.findById(giudiceId).orElse(null);
+            if (giudice != null) {
+                giudice.deleteRuolo(Ruolo.GIUDICE);
+                utenteRepository.save(giudice);
+            }
         }
 
-        hackathon.setGiudice(null);
+        hackathon.setGiudiceId(null);
         return hackathonRepository.save(hackathon);
     }
 
@@ -187,14 +195,14 @@ public class HackathonService {
         Utente utente = utenteRepository.findById(utenteId)
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
 
-        if (hackathon.checkStaff(utente)) {
+        if (hackathon.checkStaff(utenteId)) {
             throw new IllegalArgumentException("L'utente è già membro dello staff");
         }
 
         utente.addRuolo(Ruolo.MEMBRO_STAFF);
         utenteRepository.save(utente);
 
-        hackathon.addMembroStaff(utente);
+        hackathon.addMembroStaffId(utenteId);
         return hackathonRepository.save(hackathon);
     }
 
@@ -216,14 +224,11 @@ public class HackathonService {
 
         Hackathon hackathon = getDettagliHackathon(hackathonId);
 
-        Utente utente = utenteRepository.findById(utenteId)
-                .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
-
-        if (!hackathon.checkStaff(utente)) {
+        if (!hackathon.checkStaff(utenteId)) {
             throw new IllegalArgumentException("L'utente non è membro dello staff");
         }
 
-        hackathon.removeMembroStaff(utente);
+        hackathon.removeMembroStaffId(utenteId);
         return hackathonRepository.save(hackathon);
     }
 
@@ -239,7 +244,7 @@ public class HackathonService {
         }
 
         // Verifica che il richiedente sia il leader del team
-        if (team.getLeader() == null || !team.getLeader().getId().equals(richiedenteId)) {
+        if (team.getLeaderId() == null || !team.getLeaderId().equals(richiedenteId)) {
             throw new IllegalArgumentException("Solo il leader del team può iscriverlo a un hackathon");
         }
 
