@@ -1,10 +1,12 @@
-package it.unicam .ids.controller;
+package it.unicam.ids.controller;
 
 import it.unicam.ids.dto.HackathonRequest;
-import it.unicam .ids.model.*;
-import it.unicam .ids.repository.HackathonRepository;
-import it.unicam .ids.repository.UtenteRepository;
-import it.unicam .ids.service.HackathonService;
+import it.unicam.ids.model.Hackathon;
+import it.unicam.ids.model.Ruolo;
+import it.unicam.ids.model.Utente;
+import it.unicam.ids.repository.HackathonRepository;
+import it.unicam.ids.repository.UtenteRepository;
+import it.unicam.ids.service.HackathonService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +44,7 @@ class HackathonHandlerTest {
                 LocalDate.of(2025, 2, 15),
                 "Milano",
                 "Rules",
-                "1000 Euro",
+                1000.0,
                 5
         );
 
@@ -68,7 +70,7 @@ class HackathonHandlerTest {
                 LocalDate.of(2025, 2, 15),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -88,7 +90,7 @@ class HackathonHandlerTest {
                 LocalDate.of(2025, 2, 15),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -112,7 +114,7 @@ class HackathonHandlerTest {
                 LocalDate.of(2025, 2, 15),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 7
         );
 
@@ -134,7 +136,7 @@ class HackathonHandlerTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -156,7 +158,7 @@ class HackathonHandlerTest {
                 LocalDate.of(2025, 2, 15),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 

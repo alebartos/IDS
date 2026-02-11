@@ -53,7 +53,7 @@ class IscrizioneHandlerTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
         hackathon = hackathonService.creaHackathon(organizzatore, hackathonRequest);
@@ -99,7 +99,7 @@ class IscrizioneHandlerTest {
                 LocalDate.now().minusMonths(2),
                 "Roma",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
