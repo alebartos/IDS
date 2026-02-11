@@ -18,7 +18,7 @@ public class Hackathon {
     private LocalDate scadenzaIscrizioni;
     private String luogo;
     private String regolamento;
-    private String premio;
+    private double premio;
     private Integer maxMembriTeam;
     private Long organizzatoreId;
     private Long giudiceId;
@@ -36,7 +36,7 @@ public class Hackathon {
     }
 
     public Hackathon(Long id, String nome, String descrizione, LocalDate dataInizio, LocalDate dataFine,
-                     LocalDate scadenzaIscrizioni, String luogo, String regolamento, String premio,
+                     LocalDate scadenzaIscrizioni, String luogo, String regolamento, double premio,
                      Integer maxMembriTeam) {
         this.id = id;
         this.nome = nome;
@@ -117,11 +117,11 @@ public class Hackathon {
         this.regolamento = regolamento;
     }
 
-    public String getPremio() {
+    public double getPremio() {
         return premio;
     }
 
-    public void setPremio(String premio) {
+    public void setPremio(double premio) {
         this.premio = premio;
     }
 
