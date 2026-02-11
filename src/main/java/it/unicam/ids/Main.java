@@ -180,7 +180,7 @@ public class Main {
         System.out.print("Regolamento: ");
         String regolamento = scanner.nextLine();
         System.out.print("Premio: ");
-        String premio = scanner.nextLine();
+        double premio = Double.parseDouble(scanner.nextLine());
         System.out.print("Max Membri per Team: ");
         Integer maxMembri = Integer.parseInt(scanner.nextLine());
 
@@ -281,7 +281,7 @@ public class Main {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Nessun uso di AI, codice originale",
-                "10000 Euro",
+                10000.0,
                 5
         );
         Result<Hackathon> hackathonResult = hackathonHandler.creaHackathon(hackathonRequest, organizzatore.getId());
