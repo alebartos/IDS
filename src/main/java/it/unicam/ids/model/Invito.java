@@ -10,18 +10,19 @@ public class Invito {
 
     private Long id;
     private LocalDate dataInvio;
+    private LocalDate dataRisposta;
     private StatoInvito stato;
     private Team team;
     private Utente destinatario;
 
     public Invito() {
         this.dataInvio = LocalDate.now();
-        this.stato = StatoInvito.PENDING;
+        this.stato = StatoInvito.IN_ATTESA;
     }
 
     public Invito(Team team, Utente destinatario) {
         this.dataInvio = LocalDate.now();
-        this.stato = StatoInvito.PENDING;
+        this.stato = StatoInvito.IN_ATTESA;
         this.team = team;
         this.destinatario = destinatario;
     }
@@ -40,6 +41,14 @@ public class Invito {
 
     public void setDataInvio(LocalDate dataInvio) {
         this.dataInvio = dataInvio;
+    }
+
+    public LocalDate getDataRisposta() {
+        return dataRisposta;
+    }
+
+    public void setDataRisposta(LocalDate dataRisposta) {
+        this.dataRisposta = dataRisposta;
     }
 
     public StatoInvito getStato() {
@@ -74,15 +83,17 @@ public class Invito {
     }
 
     public void accetta() {
-        this.stato = StatoInvito.ACCEPTED;
+        this.stato = StatoInvito.ACCETTATO;
+        this.dataRisposta = LocalDate.now();
     }
 
     public void rifiuta() {
-        this.stato = StatoInvito.REJECTED;
+        this.stato = StatoInvito.RIFIUTATO;
+        this.dataRisposta = LocalDate.now();
     }
 
-    public boolean isPending() {
-        return this.stato == StatoInvito.PENDING;
+    public boolean isInAttesa() {
+        return this.stato == StatoInvito.IN_ATTESA;
     }
 
     @Override
@@ -91,8 +102,8 @@ public class Invito {
         if (o == null || getClass() != o.getClass()) return false;
         Invito invito = (Invito) o;
         return Objects.equals(id, invito.id) &&
-               Objects.equals(team, invito.team) &&
-               Objects.equals(destinatario, invito.destinatario);
+                Objects.equals(team, invito.team) &&
+                Objects.equals(destinatario, invito.destinatario);
     }
 
     @Override
@@ -103,11 +114,12 @@ public class Invito {
     @Override
     public String toString() {
         return "Invito{" +
-               "id=" + id +
-               ", dataInvio=" + dataInvio +
-               ", stato=" + stato +
-               ", teamId=" + (team != null ? team.getId() : null) +
-               ", destinatarioId=" + (destinatario != null ? destinatario.getId() : null) +
-               '}';
+                "id=" + id +
+                ", dataInvio=" + dataInvio +
+                ", dataRisposta=" + dataRisposta +
+                ", stato=" + stato +
+                ", teamId=" + (team != null ? team.getId() : null) +
+                ", destinatarioId=" + (destinatario != null ? destinatario.getId() : null) +
+                '}';
     }
 }
