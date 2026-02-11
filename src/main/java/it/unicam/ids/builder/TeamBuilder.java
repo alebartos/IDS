@@ -1,19 +1,13 @@
 package it.unicam.ids.builder;
 
 import it.unicam.ids.model.Team;
-import it.unicam.ids.model.Utente;
-
-import java.time.LocalDate;
 
 public class TeamBuilder {
 
     private String nome;
-    private String descrizione;
-    private LocalDate dataCreazione;
-    private Utente leader;
+    private Long leaderId;
 
     private TeamBuilder() {
-        this.dataCreazione = LocalDate.now();
     }
 
     public static TeamBuilder newBuilder() {
@@ -25,18 +19,8 @@ public class TeamBuilder {
         return this;
     }
 
-    public TeamBuilder descrizione(String descrizione) {
-        this.descrizione = descrizione;
-        return this;
-    }
-
-    public TeamBuilder dataCreazione(LocalDate dataCreazione) {
-        this.dataCreazione = dataCreazione;
-        return this;
-    }
-
-    public TeamBuilder leader(Utente leader) {
-        this.leader = leader;
+    public TeamBuilder leaderId(Long leaderId) {
+        this.leaderId = leaderId;
         return this;
     }
 
@@ -44,15 +28,13 @@ public class TeamBuilder {
         if (nome == null || nome.isEmpty()) {
             throw new IllegalStateException("Il nome del team è obbligatorio");
         }
-        if (leader == null) {
-            throw new IllegalStateException("Il leader del team è obbligatorio");
+        if (leaderId == null) {
+            throw new IllegalStateException("Il leaderId del team è obbligatorio");
         }
 
         Team team = new Team();
         team.setNome(nome);
-        team.setDescrizione(descrizione);
-        team.setDataCreazione(dataCreazione);
-        team.setLeader(leader);
+        team.setLeaderId(leaderId);
         return team;
     }
 }
