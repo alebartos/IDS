@@ -3,7 +3,6 @@ package it.unicam.ids.builder;
 import it.unicam.ids.model.Hackathon;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 
 public class HackathonBuilder {
 
@@ -14,7 +13,7 @@ public class HackathonBuilder {
     private LocalDate scadenzaIscrizioni;
     private String luogo;
     private String regolamento;
-    private String premio;
+    private double premio;
     private Integer maxMembriTeam;
 
     private HackathonBuilder() {
@@ -60,7 +59,7 @@ public class HackathonBuilder {
         return this;
     }
 
-    public HackathonBuilder premio(String premio) {
+    public HackathonBuilder premio(double premio) {
         this.premio = premio;
         return this;
     }
@@ -97,7 +96,6 @@ public class HackathonBuilder {
         hackathon.setRegolamento(regolamento);
         hackathon.setPremio(premio);
         hackathon.setMaxMembriTeam(maxMembriTeam);
-        hackathon.setMembriStaff(new ArrayList<>());
         return hackathon;
     }
 }
