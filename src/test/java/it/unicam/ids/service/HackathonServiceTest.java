@@ -58,7 +58,7 @@ class HackathonServiceTest {
                 LocalDate.of(2025, 2, 15),
                 "Milano",
                 "Rules",
-                "1000 Euro",
+                1000.0,
                 5
         );
 
@@ -68,6 +68,7 @@ class HackathonServiceTest {
         assertNotNull(hackathon.getId());
         assertEquals("Hackathon 2025", hackathon.getNome());
         assertEquals("Milano", hackathon.getLuogo());
+        assertEquals(organizzatore.getId(), hackathon.getOrganizzatoreId());
     }
 
     @Test
@@ -80,7 +81,7 @@ class HackathonServiceTest {
                 LocalDate.of(2025, 2, 15),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -94,7 +95,7 @@ class HackathonServiceTest {
                 LocalDate.of(2025, 3, 15),
                 "Roma",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -116,7 +117,7 @@ class HackathonServiceTest {
                 LocalDate.of(2025, 2, 15),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -149,7 +150,7 @@ class HackathonServiceTest {
                 LocalDate.of(2025, 2, 15),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -169,7 +170,7 @@ class HackathonServiceTest {
                 LocalDate.of(2025, 2, 15),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -191,7 +192,7 @@ class HackathonServiceTest {
                 LocalDate.of(2025, 2, 15),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 7
         );
 
@@ -211,7 +212,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -226,7 +227,7 @@ class HackathonServiceTest {
                 LocalDate.now().minusMonths(2),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -244,7 +245,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -264,7 +265,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -289,7 +290,7 @@ class HackathonServiceTest {
                 LocalDate.now().minusMonths(2),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -309,7 +310,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -332,7 +333,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -343,8 +344,8 @@ class HackathonServiceTest {
 
         Hackathon aggiornato = hackathonService.assegnaGiudice(hackathon.getId(), giudice.getId(), organizzatore.getId());
 
-        assertNotNull(aggiornato.getGiudice());
-        assertEquals(giudice.getId(), aggiornato.getGiudice().getId());
+        assertNotNull(aggiornato.getGiudiceId());
+        assertEquals(giudice.getId(), aggiornato.getGiudiceId());
         assertTrue(aggiornato.hasGiudice());
         assertTrue(giudice.hasRuolo(Ruolo.GIUDICE));
     }
@@ -359,7 +360,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -387,7 +388,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -415,7 +416,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -435,7 +436,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -448,7 +449,7 @@ class HackathonServiceTest {
 
         Hackathon aggiornato = hackathonService.rimuoviGiudice(hackathon.getId(), organizzatore.getId());
 
-        assertNull(aggiornato.getGiudice());
+        assertNull(aggiornato.getGiudiceId());
         assertFalse(aggiornato.hasGiudice());
     }
 
@@ -462,7 +463,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -490,7 +491,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -510,7 +511,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -521,7 +522,7 @@ class HackathonServiceTest {
 
         Hackathon aggiornato = hackathonService.aggiungiMembroStaff(hackathon.getId(), staff.getId(), organizzatore.getId());
 
-        assertTrue(aggiornato.checkStaff(staff));
+        assertTrue(aggiornato.checkStaff(staff.getId()));
         assertTrue(staff.hasRuolo(Ruolo.MEMBRO_STAFF));
     }
 
@@ -535,7 +536,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -563,7 +564,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
@@ -575,7 +576,7 @@ class HackathonServiceTest {
         hackathonService.aggiungiMembroStaff(hackathon.getId(), staff.getId(), organizzatore.getId());
         Hackathon aggiornato = hackathonService.rimuoviMembroStaff(hackathon.getId(), staff.getId(), organizzatore.getId());
 
-        assertFalse(aggiornato.checkStaff(staff));
+        assertFalse(aggiornato.checkStaff(staff.getId()));
     }
 
     @Test
@@ -588,7 +589,7 @@ class HackathonServiceTest {
                 LocalDate.now().plusMonths(1),
                 "Milano",
                 "Rules",
-                "Prize",
+                5000.0,
                 5
         );
 
