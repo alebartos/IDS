@@ -20,15 +20,24 @@ public class Hackathon {
     private String regolamento;
     private String premio;
     private Integer maxMembriTeam;
-    private List<Utente> membriStaff = new ArrayList<>();
-    private Utente giudice;
+    private Long organizzatoreId;
+    private Long giudiceId;
+    private List<Long> membroStaffIds = new ArrayList<>();
+    private List<Long> mentoreIds = new ArrayList<>();
+    private List<Long> teamIds = new ArrayList<>();
+    private Long teamVincitoreId;
+    private StatoHackathon stato;
 
     public Hackathon() {
+        this.stato = StatoHackathon.IN_ISCRIZIONE;
+        this.membroStaffIds = new ArrayList<>();
+        this.mentoreIds = new ArrayList<>();
+        this.teamIds = new ArrayList<>();
     }
 
     public Hackathon(Long id, String nome, String descrizione, LocalDate dataInizio, LocalDate dataFine,
                      LocalDate scadenzaIscrizioni, String luogo, String regolamento, String premio,
-                     Integer maxMembriTeam, List<Utente> membriStaff) {
+                     Integer maxMembriTeam) {
         this.id = id;
         this.nome = nome;
         this.descrizione = descrizione;
@@ -39,7 +48,9 @@ public class Hackathon {
         this.regolamento = regolamento;
         this.premio = premio;
         this.maxMembriTeam = maxMembriTeam;
-        this.membriStaff = membriStaff != null ? membriStaff : new ArrayList<>();
+        this.membroStaffIds = new ArrayList<>();
+        this.mentoreIds = new ArrayList<>();
+        this.teamIds = new ArrayList<>();
     }
 
     public Long getId() {
@@ -122,41 +133,128 @@ public class Hackathon {
         this.maxMembriTeam = maxMembriTeam;
     }
 
-    public List<Utente> getMembriStaff() {
-        return membriStaff;
+    public Long getOrganizzatoreId() {
+        return organizzatoreId;
     }
 
-    public void setMembriStaff(List<Utente> membriStaff) {
-        this.membriStaff = membriStaff;
+    public void setOrganizzatoreId(Long organizzatoreId) {
+        this.organizzatoreId = organizzatoreId;
     }
 
-    public void addMembroStaff(Utente membro) {
-        if (membro != null && !this.membriStaff.contains(membro)) {
-            this.membriStaff.add(membro);
-        }
+    public Long getGiudiceId() {
+        return giudiceId;
     }
 
-    public boolean removeMembroStaff(Utente membro) {
-        return this.membriStaff.remove(membro);
-    }
-
-    public Utente getGiudice() {
-        return giudice;
-    }
-
-    public void setGiudice(Utente giudice) {
-        this.giudice = giudice;
+    public void setGiudiceId(Long giudiceId) {
+        this.giudiceId = giudiceId;
     }
 
     public boolean hasGiudice() {
-        return this.giudice != null;
+        return this.giudiceId != null;
+    }
+
+    public List<Long> getMembroStaffIds() {
+        return membroStaffIds;
+    }
+
+    public void setMembroStaffIds(List<Long> membroStaffIds) {
+        this.membroStaffIds = membroStaffIds;
+    }
+
+    public void addMembroStaffId(Long membroStaffId) {
+        if (membroStaffId != null && !this.membroStaffIds.contains(membroStaffId)) {
+            this.membroStaffIds.add(membroStaffId);
+        }
+    }
+
+    public boolean removeMembroStaffId(Long membroStaffId) {
+        return this.membroStaffIds.remove(membroStaffId);
     }
 
     /**
      * Verifica se un utente è già assegnato come staff a questo hackathon.
      */
-    public boolean checkStaff(Utente utente) {
-        return this.membriStaff.contains(utente);
+    public boolean checkStaff(Long utenteId) {
+        return this.membroStaffIds.contains(utenteId);
+    }
+
+    public StatoHackathon getStato() {
+        return stato;
+    }
+
+    public void setStato(StatoHackathon stato) {
+        this.stato = stato;
+    }
+
+    public List<Long> getMentoreIds() {
+        return mentoreIds;
+    }
+
+    public void setMentoreIds(List<Long> mentoreIds) {
+        this.mentoreIds = mentoreIds;
+    }
+
+    /**
+     * Aggiunge un mentore all'hackathon tramite il suo ID.
+     * @param mentoreId l'ID dell'utente da aggiungere come mentore
+     */
+    public void addMentoreId(Long mentoreId) {
+        if (mentoreId != null && !this.mentoreIds.contains(mentoreId)) {
+            this.mentoreIds.add(mentoreId);
+        }
+    }
+
+    /**
+     * Verifica se un utente è già assegnato come mentore a questo hackathon.
+     * @param mentoreId l'ID dell'utente da verificare
+     * @return true se l'utente è già mentore, false altrimenti
+     */
+    public boolean checkMentoreEsistente(Long mentoreId) {
+        return this.mentoreIds.contains(mentoreId);
+    }
+
+    /**
+     * Rimuove un mentore dall'hackathon.
+     * @param mentoreId l'ID dell'utente da rimuovere
+     * @return true se il mentore è stato rimosso, false altrimenti
+     */
+    public boolean removeMentoreId(Long mentoreId) {
+        return this.mentoreIds.remove(mentoreId);
+    }
+
+    public List<Long> getTeamIds() {
+        return teamIds;
+    }
+
+    public void setTeamIds(List<Long> teamIds) {
+        this.teamIds = teamIds;
+    }
+
+    /**
+     * Aggiunge un team all'hackathon tramite il suo ID.
+     * @param teamId l'ID del team da aggiungere
+     */
+    public void addTeamId(Long teamId) {
+        if (teamId != null && !this.teamIds.contains(teamId)) {
+            this.teamIds.add(teamId);
+        }
+    }
+
+    /**
+     * Rimuove un team dall'hackathon.
+     * @param teamId l'ID del team da rimuovere
+     * @return true se il team è stato rimosso, false altrimenti
+     */
+    public boolean removeTeamId(Long teamId) {
+        return this.teamIds.remove(teamId);
+    }
+
+    public Long getTeamVincitoreId() {
+        return teamVincitoreId;
+    }
+
+    public void setTeamVincitoreId(Long teamVincitoreId) {
+        this.teamVincitoreId = teamVincitoreId;
     }
 
     @Override

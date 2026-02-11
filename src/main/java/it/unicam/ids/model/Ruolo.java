@@ -9,5 +9,6 @@ public enum Ruolo {
     MEMBRO_STAFF,
     ORGANIZZATORE,
     GIUDICE,
-    LEADER
+    LEADER,
+    MENTORE
 }
