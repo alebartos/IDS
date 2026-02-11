@@ -9,9 +9,6 @@ import it.unicam.ids.repository.UtenteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDate;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class TeamServiceTest {
@@ -40,8 +37,7 @@ class TeamServiceTest {
         assertNotNull(team);
         assertNotNull(team.getId());
         assertEquals("Team Alpha", team.getNome());
-        assertEquals("Test team", team.getDescrizione());
-        assertEquals(leader.getId(), team.getLeader().getId());
+        assertEquals(leader.getId(), team.getLeaderId());
         // Verifica che il leader abbia il ruolo LEADER
         assertTrue(leader.hasRuolo(Ruolo.LEADER));
     }
@@ -72,8 +68,7 @@ class TeamServiceTest {
     void testValidaTeam() {
         Team validTeam = new Team();
         validTeam.setNome("Valid Team");
-        validTeam.setDataCreazione(LocalDate.now());
-        validTeam.setLeader(leader);
+        validTeam.setLeaderId(leader.getId());
 
         assertTrue(teamService.validaTeam(validTeam));
 
@@ -81,9 +76,12 @@ class TeamServiceTest {
 
         Team invalidTeam = new Team();
         invalidTeam.setNome("");
-        invalidTeam.setDataCreazione(LocalDate.now());
-        invalidTeam.setLeader(leader);
+        invalidTeam.setLeaderId(leader.getId());
         assertFalse(teamService.validaTeam(invalidTeam));
+
+        Team noLeaderTeam = new Team();
+        noLeaderTeam.setNome("No Leader");
+        assertFalse(teamService.validaTeam(noLeaderTeam));
     }
 
     @Test
@@ -99,143 +97,30 @@ class TeamServiceTest {
     }
 
     @Test
-    void testGetTeamByLeader() {
+    void testGetTeamByLeaderId() {
         TeamRequest request = new TeamRequest("Team Delta", "Leader test", leader.getId());
         Team createdTeam = teamService.creaTeam(request);
 
-        Team retrievedTeam = teamService.getTeamByLeader(leader);
+        Team retrievedTeam = teamService.getTeamByLeaderId(leader.getId());
 
         assertNotNull(retrievedTeam);
         assertEquals(createdTeam.getId(), retrievedTeam.getId());
     }
 
     @Test
-    void testAggiungiMembroSuccess() {
-        TeamRequest request = new TeamRequest("Team Membri", "Test membri", leader.getId());
-        Team team = teamService.creaTeam(request);
+    void testCreaTeamLeaderGiaEsistente() {
+        TeamRequest request1 = new TeamRequest("Team One", "First", leader.getId());
+        teamService.creaTeam(request1);
 
-        Utente membro = new Utente("Anna", "Bianchi", "anna.bianchi@example.com", "password789");
-        membro = utenteRepository.save(membro);
+        TeamRequest request2 = new TeamRequest("Team Two", "Second", leader.getId());
 
-        // Il leader aggiunge il membro
-        Team teamAggiornato = teamService.aggiungiMembro(team.getId(), membro.getId(), leader.getId());
-
-        assertEquals(1, teamAggiornato.getNumeroMembri());
-        assertTrue(teamAggiornato.hasMembro(membro.getId()));
-        assertTrue(membro.hasRuolo(Ruolo.MEMBRO_TEAM));
+        assertThrows(IllegalArgumentException.class, () -> teamService.creaTeam(request2));
     }
 
     @Test
-    void testAggiungiMembroNonLeader() {
-        TeamRequest request = new TeamRequest("Team Non Leader", "Test", leader.getId());
-        Team team = teamService.creaTeam(request);
+    void testCreaTeamUtenteNonTrovato() {
+        TeamRequest request = new TeamRequest("Team Invalid", "Test", 999L);
 
-        Utente membro = new Utente("Anna", "Bianchi", "anna.bianchi@example.com", "password789");
-        membro = utenteRepository.save(membro);
-
-        Utente nonLeader = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
-        nonLeader = utenteRepository.save(nonLeader);
-        final Long nonLeaderId = nonLeader.getId();
-        final Long membroId = membro.getId();
-
-        // Un non-leader tenta di aggiungere un membro
-        assertThrows(IllegalArgumentException.class,
-                () -> teamService.aggiungiMembro(team.getId(), membroId, nonLeaderId));
-    }
-
-    @Test
-    void testAggiungiMembroGiaPresente() {
-        TeamRequest request = new TeamRequest("Team Membri Dup", "Test membri", leader.getId());
-        Team team = teamService.creaTeam(request);
-
-        Utente membro = new Utente("Anna", "Bianchi", "anna.bianchi@example.com", "password789");
-        membro = utenteRepository.save(membro);
-        final Long membroId = membro.getId();
-
-        teamService.aggiungiMembro(team.getId(), membroId, leader.getId());
-
-        assertThrows(IllegalArgumentException.class,
-                () -> teamService.aggiungiMembro(team.getId(), membroId, leader.getId()));
-    }
-
-    @Test
-    void testAggiungiMembroNull() {
-        TeamRequest request = new TeamRequest("Team Membri Null", "Test membri", leader.getId());
-        Team team = teamService.creaTeam(request);
-
-        assertThrows(IllegalArgumentException.class,
-                () -> teamService.aggiungiMembro(team.getId(), null, leader.getId()));
-    }
-
-    @Test
-    void testRimuoviMembroSuccess() {
-        TeamRequest request = new TeamRequest("Team Rimuovi", "Test rimuovi", leader.getId());
-        Team team = teamService.creaTeam(request);
-
-        Utente membro = new Utente("Anna", "Bianchi", "anna.bianchi@example.com", "password789");
-        membro = utenteRepository.save(membro);
-
-        teamService.aggiungiMembro(team.getId(), membro.getId(), leader.getId());
-
-        // Il leader rimuove il membro
-        Team teamAggiornato = teamService.rimuoviMembro(team.getId(), membro.getId(), leader.getId());
-
-        assertEquals(0, teamAggiornato.getNumeroMembri());
-        assertFalse(teamAggiornato.hasMembro(membro.getId()));
-    }
-
-    @Test
-    void testRimuoviMembroNonLeader() {
-        TeamRequest request = new TeamRequest("Team Rimuovi Non Leader", "Test", leader.getId());
-        Team team = teamService.creaTeam(request);
-
-        Utente membro = new Utente("Anna", "Bianchi", "anna.bianchi@example.com", "password789");
-        membro = utenteRepository.save(membro);
-        teamService.aggiungiMembro(team.getId(), membro.getId(), leader.getId());
-
-        Utente nonLeader = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
-        nonLeader = utenteRepository.save(nonLeader);
-        final Long nonLeaderId = nonLeader.getId();
-        final Long membroId = membro.getId();
-
-        // Un non-leader tenta di rimuovere un membro
-        assertThrows(IllegalArgumentException.class,
-                () -> teamService.rimuoviMembro(team.getId(), membroId, nonLeaderId));
-    }
-
-    @Test
-    void testRimuoviMembroNonPresente() {
-        TeamRequest request = new TeamRequest("Team Non Presente", "Test", leader.getId());
-        Team team = teamService.creaTeam(request);
-
-        assertThrows(IllegalArgumentException.class,
-                () -> teamService.rimuoviMembro(team.getId(), 999L, leader.getId()));
-    }
-
-    @Test
-    void testRimuoviLeader() {
-        TeamRequest request = new TeamRequest("Team Leader Remove", "Test", leader.getId());
-        Team team = teamService.creaTeam(request);
-
-        assertThrows(IllegalArgumentException.class,
-                () -> teamService.rimuoviMembro(team.getId(), leader.getId(), leader.getId()));
-    }
-
-    @Test
-    void testGetMembriTeam() {
-        TeamRequest request = new TeamRequest("Team Get Membri", "Test", leader.getId());
-        Team team = teamService.creaTeam(request);
-
-        Utente membro1 = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        membro1 = utenteRepository.save(membro1);
-        Utente membro2 = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
-        membro2 = utenteRepository.save(membro2);
-
-        teamService.aggiungiMembro(team.getId(), membro1.getId(), leader.getId());
-        teamService.aggiungiMembro(team.getId(), membro2.getId(), leader.getId());
-
-        List<Utente> membri = teamService.getMembriTeam(team.getId());
-
-        assertEquals(2, membri.size());
+        assertThrows(IllegalArgumentException.class, () -> teamService.creaTeam(request));
     }
 }

@@ -55,7 +55,7 @@ class InvitoServiceTest {
         assertNotNull(invito.getId());
         assertEquals(team.getId(), invito.getTeam().getId());
         assertEquals(destinatario.getId(), invito.getDestinatarioId());
-        assertEquals(StatoInvito.PENDING, invito.getStato());
+        assertEquals(StatoInvito.IN_ATTESA, invito.getStato());
     }
 
     @Test
@@ -115,14 +115,14 @@ class InvitoServiceTest {
         invitoService.accettaInvito(invito.getId(), destinatario.getId());
 
         Invito aggiornato = invitoService.getInvito(invito.getId());
-        assertEquals(StatoInvito.ACCEPTED, aggiornato.getStato());
-
-        // Verifica che il destinatario sia stato aggiunto al team
-        Team teamAggiornato = teamService.getDettagliTeam(team.getId());
-        assertTrue(teamAggiornato.hasMembro(destinatario.getId()));
+        assertEquals(StatoInvito.ACCETTATO, aggiornato.getStato());
 
         // Verifica che il destinatario abbia il ruolo MEMBRO_TEAM
         assertTrue(destinatario.hasRuolo(Ruolo.MEMBRO_TEAM));
+
+        // Verifica che il membro sia stato aggiunto al team
+        Team teamAggiornato = teamRepository.findById(team.getId()).orElseThrow();
+        assertTrue(teamAggiornato.findById(destinatario.getId()));
     }
 
     @Test
@@ -154,7 +154,7 @@ class InvitoServiceTest {
         invitoService.rifiutaInvito(invito.getId(), destinatario.getId());
 
         Invito aggiornato = invitoService.getInvito(invito.getId());
-        assertEquals(StatoInvito.REJECTED, aggiornato.getStato());
+        assertEquals(StatoInvito.RIFIUTATO, aggiornato.getStato());
     }
 
     @Test
@@ -170,23 +170,23 @@ class InvitoServiceTest {
     }
 
     @Test
-    void testGestisciInvitoAccepted() {
+    void testGestisciInvitoAccettato() {
         Invito invito = invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
 
-        invitoService.gestisciInvito(invito.getId(), "ACCEPTED", destinatario.getId());
+        invitoService.gestisciInvito(invito.getId(), "ACCETTATO", destinatario.getId());
 
         Invito aggiornato = invitoService.getInvito(invito.getId());
-        assertEquals(StatoInvito.ACCEPTED, aggiornato.getStato());
+        assertEquals(StatoInvito.ACCETTATO, aggiornato.getStato());
     }
 
     @Test
-    void testGestisciInvitoRejected() {
+    void testGestisciInvitoRifiutato() {
         Invito invito = invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
 
-        invitoService.gestisciInvito(invito.getId(), "REJECTED", destinatario.getId());
+        invitoService.gestisciInvito(invito.getId(), "RIFIUTATO", destinatario.getId());
 
         Invito aggiornato = invitoService.getInvito(invito.getId());
-        assertEquals(StatoInvito.REJECTED, aggiornato.getStato());
+        assertEquals(StatoInvito.RIFIUTATO, aggiornato.getStato());
     }
 
     @Test
@@ -227,8 +227,8 @@ class InvitoServiceTest {
         Invito primoInvito = invitoService.getInvito(invito1.getId());
         Invito secondoInvito = invitoService.getInvito(invito2.getId());
 
-        assertEquals(StatoInvito.ACCEPTED, primoInvito.getStato());
-        assertEquals(StatoInvito.REJECTED, secondoInvito.getStato());
+        assertEquals(StatoInvito.ACCETTATO, primoInvito.getStato());
+        assertEquals(StatoInvito.RIFIUTATO, secondoInvito.getStato());
     }
 
     @Test
