@@ -19,7 +19,7 @@ class HackathonBuilderTest {
                 .scadenzaIscrizioni(LocalDate.of(2025, 2, 15))
                 .luogo("Milano")
                 .regolamento("Rules")
-                .premio("1000 Euro")
+                .premio(1000.0)
                 .maxMembriTeam(6)
                 .build();
 
@@ -27,7 +27,7 @@ class HackathonBuilderTest {
         assertEquals("Hackathon 2025", hackathon.getNome());
         assertEquals("Test event", hackathon.getDescrizione());
         assertEquals("Milano", hackathon.getLuogo());
-        assertEquals("1000 Euro", hackathon.getPremio());
+        assertEquals(1000.0, hackathon.getPremio());
         assertEquals(6, hackathon.getMaxMembriTeam());
     }
 
