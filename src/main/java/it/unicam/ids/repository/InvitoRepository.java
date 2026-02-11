@@ -60,7 +60,7 @@ public class InvitoRepository {
                         invito.getTeam().getId().equals(teamId) &&
                         invito.getDestinatarioId() != null &&
                         invito.getDestinatarioId().equals(destinatarioId) &&
-                        invito.getStato() == StatoInvito.PENDING)
+                        invito.getStato() == StatoInvito.IN_ATTESA)
                 .findFirst();
     }
 
@@ -89,7 +89,7 @@ public class InvitoRepository {
         return storage.values().stream()
                 .filter(invito -> invito.getDestinatarioId() != null &&
                         invito.getDestinatarioId().equals(destinatarioId) &&
-                        invito.getStato() == StatoInvito.PENDING)
+                        invito.getStato() == StatoInvito.IN_ATTESA)
                 .collect(Collectors.toList());
     }
 
@@ -102,7 +102,7 @@ public class InvitoRepository {
                 .filter(invito -> invito.getDestinatarioId() != null &&
                         invito.getDestinatarioId().equals(destinatarioId) &&
                         !invito.getId().equals(invitoAccettatoId) &&
-                        invito.getStato() == StatoInvito.PENDING)
-                .forEach(invito -> invito.setStato(StatoInvito.REJECTED));
+                        invito.getStato() == StatoInvito.IN_ATTESA)
+                .forEach(invito -> invito.setStato(StatoInvito.RIFIUTATO));
     }
 }
