@@ -58,8 +58,8 @@ public class InvitoRepository {
         return storage.values().stream()
                 .filter(invito -> invito.getTeam() != null &&
                         invito.getTeam().getId().equals(teamId) &&
-                        invito.getDestinatarioId() != null &&
-                        invito.getDestinatarioId().equals(destinatarioId) &&
+                        invito.getDestinatario() != null &&
+                        invito.getDestinatario().getId().equals(destinatarioId) &&
                         invito.getStato() == StatoInvito.IN_ATTESA)
                 .findFirst();
     }
@@ -70,8 +70,8 @@ public class InvitoRepository {
 
     public List<Invito> findByDestinatarioId(Long destinatarioId) {
         return storage.values().stream()
-                .filter(invito -> invito.getDestinatarioId() != null &&
-                        invito.getDestinatarioId().equals(destinatarioId))
+                .filter(invito -> invito.getDestinatario() != null &&
+                        invito.getDestinatario().getId().equals(destinatarioId))
                 .collect(Collectors.toList());
     }
 
@@ -87,8 +87,8 @@ public class InvitoRepository {
 
     public List<Invito> findPendingByDestinatarioId(Long destinatarioId) {
         return storage.values().stream()
-                .filter(invito -> invito.getDestinatarioId() != null &&
-                        invito.getDestinatarioId().equals(destinatarioId) &&
+                .filter(invito -> invito.getDestinatario() != null &&
+                        invito.getDestinatario().getId().equals(destinatarioId) &&
                         invito.getStato() == StatoInvito.IN_ATTESA)
                 .collect(Collectors.toList());
     }
@@ -99,8 +99,8 @@ public class InvitoRepository {
 
     public void chiudiAltriInviti(Long destinatarioId, Long invitoAccettatoId) {
         storage.values().stream()
-                .filter(invito -> invito.getDestinatarioId() != null &&
-                        invito.getDestinatarioId().equals(destinatarioId) &&
+                .filter(invito -> invito.getDestinatario() != null &&
+                        invito.getDestinatario().getId().equals(destinatarioId) &&
                         !invito.getId().equals(invitoAccettatoId) &&
                         invito.getStato() == StatoInvito.IN_ATTESA)
                 .forEach(invito -> invito.setStato(StatoInvito.RIFIUTATO));
