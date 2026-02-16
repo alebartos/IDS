@@ -10,5 +10,7 @@ public enum Ruolo {
     ORGANIZZATORE,
     GIUDICE,
     LEADER,
-    MENTORE
+    MENTORE,
+    VICELEADER,
+    PARTECIPANTE
 }

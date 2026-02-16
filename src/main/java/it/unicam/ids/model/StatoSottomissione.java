@@ -5,5 +5,6 @@ package it.unicam.ids.model;
  */
 public enum StatoSottomissione {
     BOZZA,
-    CONSEGNATA
+    CONSEGNATA,
+    VALUTATA
 }
