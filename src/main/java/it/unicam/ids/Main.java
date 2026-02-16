@@ -4,16 +4,16 @@ import it.unicam.ids.controller.HackathonHandler;
 import it.unicam.ids.controller.IscrizioneHandler;
 import it.unicam.ids.controller.Result;
 import it.unicam.ids.controller.TeamHandler;
-import it.unicam.ids.dto.HackathonRequest;
-import it.unicam.ids.dto.TeamRequest;
 import it.unicam.ids.model.Hackathon;
 import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
 import it.unicam.ids.repository.HackathonRepository;
+import it.unicam.ids.repository.InvitoRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 import it.unicam.ids.service.HackathonService;
+import it.unicam.ids.service.IscrizioneService;
 import it.unicam.ids.service.TeamService;
 
 import java.time.LocalDate;
@@ -28,9 +28,11 @@ public class Main {
     private final UtenteRepository utenteRepository;
     private final TeamRepository teamRepository;
     private final HackathonRepository hackathonRepository;
+    private final InvitoRepository invitoRepository;
 
     private final TeamService teamService;
     private final HackathonService hackathonService;
+    private final IscrizioneService iscrizioneService;
 
     private final TeamHandler teamHandler;
     private final HackathonHandler hackathonHandler;
@@ -43,15 +45,17 @@ public class Main {
         utenteRepository = new UtenteRepository();
         teamRepository = new TeamRepository();
         hackathonRepository = new HackathonRepository();
+        invitoRepository = new InvitoRepository();
 
         // Inizializzazione Service
-        teamService = new TeamService(teamRepository, utenteRepository);
-        hackathonService = new HackathonService(hackathonRepository, utenteRepository);
+        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
+        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService);
+        iscrizioneService = new IscrizioneService(teamRepository, hackathonRepository);
 
         // Inizializzazione Handler (Controller)
         teamHandler = new TeamHandler(teamService);
-        hackathonHandler = new HackathonHandler(hackathonService, utenteRepository);
-        iscrizioneHandler = new IscrizioneHandler(hackathonService, teamService);
+        hackathonHandler = new HackathonHandler(hackathonService);
+        iscrizioneHandler = new IscrizioneHandler(iscrizioneService);
 
         scanner = new Scanner(System.in);
     }
@@ -77,9 +81,7 @@ public class Main {
                 case "3" -> creaTeam();
                 case "4" -> creaHackathon();
                 case "5" -> iscriviTeamAHackathon();
-                case "6" -> visualizzaTeam();
-                case "7" -> visualizzaHackathon();
-                case "8" -> eseguiDemo();
+                case "6" -> eseguiDemo();
                 case "0" -> {
                     running = false;
                     System.out.println("\nArrivederci!");
@@ -97,9 +99,7 @@ public class Main {
         System.out.println("3. Crea Team");
         System.out.println("4. Crea Hackathon");
         System.out.println("5. Iscrivi Team a Hackathon");
-        System.out.println("6. Visualizza Team");
-        System.out.println("7. Visualizza Hackathon");
-        System.out.println("8. Esegui Demo automatica");
+        System.out.println("6. Esegui Demo automatica");
         System.out.println("0. Esci");
         System.out.print("\nScelta: ");
     }
@@ -116,7 +116,7 @@ public class Main {
         String password = scanner.nextLine();
 
         Utente organizzatore = new Utente(nome, cognome, email, password);
-        organizzatore.addRuolo(Ruolo.ORGANIZZATORE);
+        organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
         organizzatore = utenteRepository.save(organizzatore);
 
         System.out.println("\nOrganizzatore creato con ID: " + organizzatore.getId());
@@ -145,13 +145,10 @@ public class Main {
         System.out.println("\n--- CREA TEAM ---");
         System.out.print("Nome Team: ");
         String nome = scanner.nextLine();
-        System.out.print("Descrizione: ");
-        String descrizione = scanner.nextLine();
         System.out.print("ID Leader: ");
         Long leaderId = Long.parseLong(scanner.nextLine());
 
-        TeamRequest request = new TeamRequest(nome, descrizione, leaderId);
-        Result<Team> result = teamHandler.creaTeam(request);
+        Result<Team> result = teamHandler.creaTeam(nome, leaderId);
 
         if (result.isSuccess()) {
             System.out.println("\nTeam creato con successo!");
@@ -169,8 +166,6 @@ public class Main {
         String nome = scanner.nextLine();
         System.out.print("Descrizione: ");
         String descrizione = scanner.nextLine();
-        System.out.print("Luogo: ");
-        String luogo = scanner.nextLine();
         System.out.print("Data Inizio (YYYY-MM-DD): ");
         LocalDate dataInizio = LocalDate.parse(scanner.nextLine());
         System.out.print("Data Fine (YYYY-MM-DD): ");
@@ -182,14 +177,10 @@ public class Main {
         System.out.print("Premio: ");
         double premio = Double.parseDouble(scanner.nextLine());
         System.out.print("Max Membri per Team: ");
-        Integer maxMembri = Integer.parseInt(scanner.nextLine());
+        int maxMembri = Integer.parseInt(scanner.nextLine());
 
-        HackathonRequest request = new HackathonRequest(
-                nome, descrizione, dataInizio, dataFine, scadenza,
-                luogo, regolamento, premio, maxMembri
-        );
-
-        Result<Hackathon> result = hackathonHandler.creaHackathon(request, organizzatoreId);
+        Result<Hackathon> result = hackathonHandler.creaHackathonRequest(
+                nome, dataInizio, dataFine, descrizione, regolamento, scadenza, maxMembri, premio, organizzatoreId);
 
         if (result.isSuccess()) {
             System.out.println("\nHackathon creato con successo!");
@@ -201,42 +192,12 @@ public class Main {
 
     private void iscriviTeamAHackathon() {
         System.out.println("\n--- ISCRIVI TEAM A HACKATHON ---");
-        System.out.print("ID Hackathon: ");
-        Long hackathonId = Long.parseLong(scanner.nextLine());
         System.out.print("ID Team: ");
         Long teamId = Long.parseLong(scanner.nextLine());
-        System.out.print("ID Leader (chi effettua l'iscrizione): ");
-        Long leaderId = Long.parseLong(scanner.nextLine());
-
-        Result<String> result = iscrizioneHandler.iscriviTeam(hackathonId, teamId, leaderId);
-
-        if (result.isSuccess()) {
-            System.out.println("\n" + result.getData());
-        } else {
-            System.out.println("\nErrore: " + result.getErrorMessage());
-        }
-    }
-
-    private void visualizzaTeam() {
-        System.out.println("\n--- VISUALIZZA TEAM ---");
-        System.out.print("ID Team: ");
-        Long teamId = Long.parseLong(scanner.nextLine());
-
-        Result<Team> result = teamHandler.getDettagliTeam(teamId);
-
-        if (result.isSuccess()) {
-            System.out.println("\n" + result.getData());
-        } else {
-            System.out.println("\nErrore: " + result.getErrorMessage());
-        }
-    }
-
-    private void visualizzaHackathon() {
-        System.out.println("\n--- VISUALIZZA HACKATHON ---");
         System.out.print("ID Hackathon: ");
         Long hackathonId = Long.parseLong(scanner.nextLine());
 
-        Result<Hackathon> result = hackathonHandler.getDettagliHackathon(hackathonId);
+        Result<String> result = iscrizioneHandler.iscriviTeam(teamId, hackathonId);
 
         if (result.isSuccess()) {
             System.out.println("\n" + result.getData());
@@ -253,7 +214,7 @@ public class Main {
         // Crea Organizzatore
         System.out.println("1. Creazione Organizzatore...");
         Utente organizzatore = new Utente("Mario", "Rossi", "mario.rossi@email.com", "password123");
-        organizzatore.addRuolo(Ruolo.ORGANIZZATORE);
+        organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
         organizzatore = utenteRepository.save(organizzatore);
         System.out.println("   Organizzatore creato: " + organizzatore);
 
@@ -265,26 +226,24 @@ public class Main {
 
         // Crea Team
         System.out.println("\n3. Creazione Team...");
-        TeamRequest teamRequest = new TeamRequest("Team Alpha", "Il miglior team", leader.getId());
-        Result<Team> teamResult = teamHandler.creaTeam(teamRequest);
+        Result<Team> teamResult = teamHandler.creaTeam("Team Alpha", leader.getId());
         if (teamResult.isSuccess()) {
             System.out.println("   Team creato: " + teamResult.getData());
         }
 
         // Crea Hackathon
         System.out.println("\n4. Creazione Hackathon...");
-        HackathonRequest hackathonRequest = new HackathonRequest(
+        Result<Hackathon> hackathonResult = hackathonHandler.creaHackathonRequest(
                 "Hackathon 2025",
-                "Grande evento di programmazione",
                 LocalDate.now().plusMonths(2),
                 LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
+                "Grande evento di programmazione",
                 "Nessun uso di AI, codice originale",
+                LocalDate.now().plusMonths(1),
+                5,
                 10000.0,
-                5
+                organizzatore.getId()
         );
-        Result<Hackathon> hackathonResult = hackathonHandler.creaHackathon(hackathonRequest, organizzatore.getId());
         if (hackathonResult.isSuccess()) {
             System.out.println("   Hackathon creato: " + hackathonResult.getData());
         }
@@ -293,9 +252,8 @@ public class Main {
         System.out.println("\n5. Iscrizione Team a Hackathon...");
         if (teamResult.isSuccess() && hackathonResult.isSuccess()) {
             Result<String> iscrizioneResult = iscrizioneHandler.iscriviTeam(
-                    hackathonResult.getData().getId(),
                     teamResult.getData().getId(),
-                    leader.getId()  // Il leader del team effettua l'iscrizione
+                    hackathonResult.getData().getId()
             );
             if (iscrizioneResult.isSuccess()) {
                 System.out.println("   " + iscrizioneResult.getData());
