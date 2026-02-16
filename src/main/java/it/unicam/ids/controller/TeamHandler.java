@@ -1,12 +1,10 @@
 package it.unicam.ids.controller;
 
-import it.unicam.ids.dto.TeamRequest;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.service.TeamService;
 
 /**
  * Handler per le operazioni sui Team.
- * Placeholder per futura integrazione con Spring Boot REST Controller.
  */
 public class TeamHandler {
 
@@ -18,36 +16,57 @@ public class TeamHandler {
 
     /**
      * Crea un nuovo team.
-     * Endpoint futuro: POST /api/team/crea
+     * @param nomeTeam il nome del team
+     * @param leaderId l'ID del leader
      */
-    public Result<Team> creaTeam(TeamRequest request) {
+    public Result<Team> creaTeam(String nomeTeam, Long leaderId) {
         try {
-            Team team = teamService.creaTeam(request);
+            Team team = teamService.createTeam(nomeTeam, leaderId);
             return Result.created(team);
         } catch (IllegalArgumentException e) {
-            return Result.badRequest("Dati non validi per la creazione del team");
+            return Result.badRequest(e.getMessage());
         }
     }
 
     /**
-     * Ottiene i dettagli di un team.
-     * Endpoint futuro: GET /api/team/{id}
+     * Rimuove un membro dal team.
+     * @param membroId l'ID del membro da rimuovere
+     * @param leaderId l'ID del leader che effettua la rimozione
      */
-    public Result<Team> getDettagliTeam(Long id) {
+    public Result<Team> rimuoviMembro(Long membroId, Long leaderId) {
         try {
-            Team team = teamService.getDettagliTeam(id);
+            Team team = teamService.rimuoviMembro(membroId, leaderId);
             return Result.success(team);
         } catch (IllegalArgumentException e) {
-            return Result.notFound("Team non trovato");
+            return Result.badRequest(e.getMessage());
         }
     }
 
     /**
-     * Verifica se esiste un team con il nome specificato.
-     * Endpoint futuro: GET /api/team/esiste/{nome}
+     * Nomina un membro del team come viceleader.
+     * @param leaderId l'ID del leader che effettua la nomina
+     * @param membroId l'ID del membro da nominare viceleader
      */
-    public Result<Boolean> esisteTeam(String nome) {
-        boolean existe = teamService.esisteTeamConNome(nome);
-        return Result.success(existe);
+    public Result<Team> nominaViceleader(Long leaderId, Long membroId) {
+        try {
+            Team team = teamService.nominaViceleader(leaderId, membroId);
+            return Result.success(team);
+        } catch (IllegalArgumentException e) {
+            return Result.badRequest(e.getMessage());
+        }
+    }
+
+    /**
+     * Revoca la nomina di viceleader.
+     * @param leaderId l'ID del leader che effettua la revoca
+     * @param membroId l'ID del membro a cui revocare il ruolo
+     */
+    public Result<Team> revocaViceleader(Long leaderId, Long membroId) {
+        try {
+            Team team = teamService.removeViceleader(leaderId, membroId);
+            return Result.success(team);
+        } catch (IllegalArgumentException e) {
+            return Result.badRequest(e.getMessage());
+        }
     }
 }
