@@ -1,6 +1,5 @@
 package it.unicam.ids.service;
 
-import it.unicam.ids.dto.TeamRequest;
 import it.unicam.ids.model.Invito;
 import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.StatoInvito;
@@ -11,8 +10,6 @@ import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,8 +31,8 @@ class InvitoServiceTest {
         teamRepository = new TeamRepository();
         utenteRepository = new UtenteRepository();
 
-        invitoService = new InvitoService(invitoRepository, teamRepository, utenteRepository);
-        teamService = new TeamService(teamRepository, utenteRepository);
+        invitoService = new InvitoService(utenteRepository, teamRepository, invitoRepository);
+        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
         leader = utenteRepository.save(leader);
@@ -43,18 +40,17 @@ class InvitoServiceTest {
         destinatario = new Utente("Anna", "Bianchi", "anna.bianchi@example.com", "password456");
         destinatario = utenteRepository.save(destinatario);
 
-        TeamRequest teamRequest = new TeamRequest("Team Test", "Descrizione test", leader.getId());
-        team = teamService.creaTeam(teamRequest);
+        team = teamService.createTeam("Team Test", leader.getId());
     }
 
     @Test
     void testInvitaMembroSuccess() {
-        Invito invito = invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com", team.getId(), leader.getId());
 
         assertNotNull(invito);
         assertNotNull(invito.getId());
         assertEquals(team.getId(), invito.getTeam().getId());
-        assertEquals(destinatario.getId(), invito.getDestinatarioId());
+        assertEquals(destinatario.getId(), invito.getDestinatario().getId());
         assertEquals(StatoInvito.IN_ATTESA, invito.getStato());
     }
 
@@ -65,7 +61,7 @@ class InvitoServiceTest {
         final Long nonLeaderId = nonLeader.getId();
 
         assertThrows(IllegalArgumentException.class,
-                () -> invitoService.invitaMembro(team.getId(), destinatario.getId(), nonLeaderId));
+                () -> invitoService.invitaMembro("anna.bianchi@example.com", team.getId(), nonLeaderId));
     }
 
     @Test
@@ -73,177 +69,83 @@ class InvitoServiceTest {
         Long teamIdNonEsistente = 999L;
 
         assertThrows(IllegalArgumentException.class,
-                () -> invitoService.invitaMembro(teamIdNonEsistente, destinatario.getId(), leader.getId()));
+                () -> invitoService.invitaMembro("anna.bianchi@example.com", teamIdNonEsistente, leader.getId()));
     }
 
     @Test
     void testInvitaMembroUtenteNonTrovato() {
-        Long utenteIdNonEsistente = 9999L;
-
         assertThrows(IllegalArgumentException.class,
-                () -> invitoService.invitaMembro(team.getId(), utenteIdNonEsistente, leader.getId()));
+                () -> invitoService.invitaMembro("nonexistent@example.com", team.getId(), leader.getId()));
     }
 
     @Test
     void testInvitaMembroDuplicato() {
-        invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
+        invitoService.invitaMembro("anna.bianchi@example.com", team.getId(), leader.getId());
 
         assertThrows(IllegalArgumentException.class,
-                () -> invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId()));
-    }
-
-    @Test
-    void testGetInvito() {
-        Invito creato = invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
-
-        Invito trovato = invitoService.getInvito(creato.getId());
-
-        assertNotNull(trovato);
-        assertEquals(creato.getId(), trovato.getId());
-    }
-
-    @Test
-    void testGetInvitoNonTrovato() {
-        assertThrows(IllegalArgumentException.class,
-                () -> invitoService.getInvito(999L));
-    }
-
-    @Test
-    void testAccettaInvito() {
-        Invito invito = invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
-
-        invitoService.accettaInvito(invito.getId(), destinatario.getId());
-
-        Invito aggiornato = invitoService.getInvito(invito.getId());
-        assertEquals(StatoInvito.ACCETTATO, aggiornato.getStato());
-
-        // Verifica che il destinatario abbia il ruolo MEMBRO_TEAM
-        assertTrue(destinatario.hasRuolo(Ruolo.MEMBRO_TEAM));
-
-        // Verifica che il membro sia stato aggiunto al team
-        Team teamAggiornato = teamRepository.findById(team.getId()).orElseThrow();
-        assertTrue(teamAggiornato.findById(destinatario.getId()));
-    }
-
-    @Test
-    void testAccettaInvitoNonDestinatario() {
-        Invito invito = invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
-
-        Utente altroUtente = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
-        altroUtente = utenteRepository.save(altroUtente);
-        final Long altroUtenteId = altroUtente.getId();
-
-        assertThrows(IllegalArgumentException.class,
-                () -> invitoService.accettaInvito(invito.getId(), altroUtenteId));
-    }
-
-    @Test
-    void testAccettaInvitoGiaGestito() {
-        Invito invito = invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
-
-        invitoService.accettaInvito(invito.getId(), destinatario.getId());
-
-        assertThrows(IllegalArgumentException.class,
-                () -> invitoService.accettaInvito(invito.getId(), destinatario.getId()));
-    }
-
-    @Test
-    void testRifiutaInvito() {
-        Invito invito = invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
-
-        invitoService.rifiutaInvito(invito.getId(), destinatario.getId());
-
-        Invito aggiornato = invitoService.getInvito(invito.getId());
-        assertEquals(StatoInvito.RIFIUTATO, aggiornato.getStato());
-    }
-
-    @Test
-    void testRifiutaInvitoNonDestinatario() {
-        Invito invito = invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
-
-        Utente altroUtente = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
-        altroUtente = utenteRepository.save(altroUtente);
-        final Long altroUtenteId = altroUtente.getId();
-
-        assertThrows(IllegalArgumentException.class,
-                () -> invitoService.rifiutaInvito(invito.getId(), altroUtenteId));
+                () -> invitoService.invitaMembro("anna.bianchi@example.com", team.getId(), leader.getId()));
     }
 
     @Test
     void testGestisciInvitoAccettato() {
-        Invito invito = invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com", team.getId(), leader.getId());
 
-        invitoService.gestisciInvito(invito.getId(), "ACCETTATO", destinatario.getId());
+        invitoService.gestisciInvito(invito.getId(), "ACCETTATO");
 
-        Invito aggiornato = invitoService.getInvito(invito.getId());
+        Invito aggiornato = invitoRepository.findById(invito.getId()).orElseThrow();
         assertEquals(StatoInvito.ACCETTATO, aggiornato.getStato());
+
+        // Verifica che il destinatario abbia il ruolo MEMBRO_TEAM
+        assertTrue(destinatario.getRuoli().contains(Ruolo.MEMBRO_TEAM));
+
+        // Verifica che il membro sia stato aggiunto al team
+        Team teamAggiornato = teamRepository.findById(team.getId()).orElseThrow();
+        assertTrue(teamAggiornato.getMembri().contains(destinatario.getId()));
     }
 
     @Test
     void testGestisciInvitoRifiutato() {
-        Invito invito = invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com", team.getId(), leader.getId());
 
-        invitoService.gestisciInvito(invito.getId(), "RIFIUTATO", destinatario.getId());
+        invitoService.gestisciInvito(invito.getId(), "RIFIUTATO");
 
-        Invito aggiornato = invitoService.getInvito(invito.getId());
+        Invito aggiornato = invitoRepository.findById(invito.getId()).orElseThrow();
         assertEquals(StatoInvito.RIFIUTATO, aggiornato.getStato());
     }
 
     @Test
     void testGestisciInvitoRispostaNonValida() {
-        Invito invito = invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com", team.getId(), leader.getId());
 
         assertThrows(IllegalArgumentException.class,
-                () -> invitoService.gestisciInvito(invito.getId(), "INVALID", destinatario.getId()));
+                () -> invitoService.gestisciInvito(invito.getId(), "INVALID"));
     }
 
     @Test
-    void testGetInvitiPendentiPerUtente() {
-        invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
+    void testGestisciInvitoGiaGestito() {
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com", team.getId(), leader.getId());
 
-        Utente leader2 = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password789");
-        leader2 = utenteRepository.save(leader2);
-        TeamRequest teamRequest2 = new TeamRequest("Team 2", "Descrizione 2", leader2.getId());
-        Team team2 = teamService.creaTeam(teamRequest2);
-        invitoService.invitaMembro(team2.getId(), destinatario.getId(), leader2.getId());
+        invitoService.gestisciInvito(invito.getId(), "ACCETTATO");
 
-        List<Invito> inviti = invitoService.getInvitiPendentiPerUtente(destinatario.getId());
-
-        assertEquals(2, inviti.size());
+        assertThrows(IllegalArgumentException.class,
+                () -> invitoService.gestisciInvito(invito.getId(), "ACCETTATO"));
     }
 
     @Test
     void testChiudiAltriInvitiQuandoAccettato() {
-        Invito invito1 = invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
+        Invito invito1 = invitoService.invitaMembro("anna.bianchi@example.com", team.getId(), leader.getId());
 
         Utente leader2 = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password789");
         leader2 = utenteRepository.save(leader2);
-        TeamRequest teamRequest2 = new TeamRequest("Team 2", "Descrizione 2", leader2.getId());
-        Team team2 = teamService.creaTeam(teamRequest2);
-        Invito invito2 = invitoService.invitaMembro(team2.getId(), destinatario.getId(), leader2.getId());
+        Team team2 = teamService.createTeam("Team 2", leader2.getId());
+        Invito invito2 = invitoService.invitaMembro("anna.bianchi@example.com", team2.getId(), leader2.getId());
 
-        invitoService.accettaInvito(invito1.getId(), destinatario.getId());
+        invitoService.gestisciInvito(invito1.getId(), "ACCETTATO");
 
-        Invito primoInvito = invitoService.getInvito(invito1.getId());
-        Invito secondoInvito = invitoService.getInvito(invito2.getId());
+        Invito primoInvito = invitoRepository.findById(invito1.getId()).orElseThrow();
+        Invito secondoInvito = invitoRepository.findById(invito2.getId()).orElseThrow();
 
         assertEquals(StatoInvito.ACCETTATO, primoInvito.getStato());
         assertEquals(StatoInvito.RIFIUTATO, secondoInvito.getStato());
-    }
-
-    @Test
-    void testGetInvitiPerTeam() {
-        Utente dest2 = new Utente("Paolo", "Neri", "paolo@example.com", "password");
-        dest2 = utenteRepository.save(dest2);
-        Utente dest3 = new Utente("Marco", "Gialli", "marco@example.com", "password");
-        dest3 = utenteRepository.save(dest3);
-
-        invitoService.invitaMembro(team.getId(), destinatario.getId(), leader.getId());
-        invitoService.invitaMembro(team.getId(), dest2.getId(), leader.getId());
-        invitoService.invitaMembro(team.getId(), dest3.getId(), leader.getId());
-
-        List<Invito> inviti = invitoService.getInvitiPerTeam(team.getId());
-
-        assertEquals(3, inviti.size());
     }
 }

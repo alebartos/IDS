@@ -1,12 +1,12 @@
 package it.unicam.ids.service;
 
-import it.unicam.ids.dto.HackathonRequest;
-import it.unicam.ids.dto.TeamRequest;
 import it.unicam.ids.model.Hackathon;
 import it.unicam.ids.model.Ruolo;
+import it.unicam.ids.model.StatoHackathon;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
 import it.unicam.ids.repository.HackathonRepository;
+import it.unicam.ids.repository.InvitoRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +23,7 @@ class HackathonServiceTest {
     private HackathonRepository hackathonRepository;
     private UtenteRepository utenteRepository;
     private TeamRepository teamRepository;
+    private InvitoRepository invitoRepository;
 
     private Utente organizzatore;
     private Utente leader;
@@ -33,579 +34,212 @@ class HackathonServiceTest {
         hackathonRepository = new HackathonRepository();
         utenteRepository = new UtenteRepository();
         teamRepository = new TeamRepository();
+        invitoRepository = new InvitoRepository();
 
-        hackathonService = new HackathonService(hackathonRepository, utenteRepository);
-        teamService = new TeamService(teamRepository, utenteRepository);
+        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
+        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService);
 
         organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
-        organizzatore.addRuolo(Ruolo.ORGANIZZATORE);
+        organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
         organizzatore = utenteRepository.save(organizzatore);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
         leader = utenteRepository.save(leader);
 
-        TeamRequest teamRequest = new TeamRequest("Team Test", "Descrizione test", leader.getId());
-        team = teamService.creaTeam(teamRequest);
+        team = teamService.createTeam("Team Test", leader.getId());
     }
 
     @Test
     void testCreaHackathonSuccess() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon 2025",
-                "Test event",
-                LocalDate.of(2025, 3, 1),
-                LocalDate.of(2025, 3, 3),
-                LocalDate.of(2025, 2, 15),
-                "Milano",
-                "Rules",
-                1000.0,
-                5
-        );
-
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hackathon 2025", "Test event",
+                LocalDate.of(2025, 3, 1), LocalDate.of(2025, 3, 3),
+                5, 1000.0, organizzatore.getId());
 
         assertNotNull(hackathon);
         assertNotNull(hackathon.getId());
         assertEquals("Hackathon 2025", hackathon.getNome());
-        assertEquals("Milano", hackathon.getLuogo());
         assertEquals(organizzatore.getId(), hackathon.getOrganizzatoreId());
     }
 
     @Test
     void testCreaHackathonDuplicateNome() {
-        HackathonRequest request1 = new HackathonRequest(
-                "Duplicate Hackathon",
-                "First",
-                LocalDate.of(2025, 3, 1),
-                LocalDate.of(2025, 3, 3),
-                LocalDate.of(2025, 2, 15),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        hackathonService.creaHackathon(organizzatore, request1);
-
-        HackathonRequest request2 = new HackathonRequest(
-                "Duplicate Hackathon",
-                "Second",
-                LocalDate.of(2025, 4, 1),
-                LocalDate.of(2025, 4, 3),
-                LocalDate.of(2025, 3, 15),
-                "Roma",
-                "Rules",
-                5000.0,
-                5
-        );
+        hackathonService.createHackathon(
+                "Duplicate Hackathon", "First",
+                LocalDate.of(2025, 3, 1), LocalDate.of(2025, 3, 3),
+                5, 5000.0, organizzatore.getId());
 
         assertThrows(IllegalArgumentException.class,
-                () -> hackathonService.creaHackathon(organizzatore, request2));
+                () -> hackathonService.createHackathon(
+                        "Duplicate Hackathon", "Second",
+                        LocalDate.of(2025, 4, 1), LocalDate.of(2025, 4, 3),
+                        5, 5000.0, organizzatore.getId()));
     }
 
     @Test
     void testCreaHackathonSenzaRuoloOrganizzatore() {
         Utente utenteNonOrganizzatore = new Utente("Anna", "Bianchi", "anna@example.com", "password");
         utenteNonOrganizzatore = utenteRepository.save(utenteNonOrganizzatore);
-        final Utente utente = utenteNonOrganizzatore;
-
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon No Org",
-                "Test",
-                LocalDate.of(2025, 3, 1),
-                LocalDate.of(2025, 3, 3),
-                LocalDate.of(2025, 2, 15),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
+        final Long utenteId = utenteNonOrganizzatore.getId();
 
         assertThrows(IllegalArgumentException.class,
-                () -> hackathonService.creaHackathon(utente, request));
-    }
-
-    @Test
-    void testValidaDate() {
-        LocalDate inizio = LocalDate.of(2025, 3, 1);
-        LocalDate fine = LocalDate.of(2025, 3, 3);
-        LocalDate scadenza = LocalDate.of(2025, 2, 15);
-
-        assertTrue(hackathonService.validaDate(inizio, fine, scadenza));
-
-        assertFalse(hackathonService.validaDate(inizio, fine, LocalDate.of(2025, 3, 2)));
-
-        assertFalse(hackathonService.validaDate(inizio, inizio, scadenza));
-
-        assertFalse(hackathonService.validaDate(fine, inizio, scadenza));
-    }
-
-    @Test
-    void testEsisteHackathonConNome() {
-        HackathonRequest request = new HackathonRequest(
-                "Test Hackathon",
-                "Description",
-                LocalDate.of(2025, 3, 1),
-                LocalDate.of(2025, 3, 3),
-                LocalDate.of(2025, 2, 15),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        hackathonService.creaHackathon(organizzatore, request);
-
-        assertTrue(hackathonService.esisteHackathonConNome("Test Hackathon"));
-        assertFalse(hackathonService.esisteHackathonConNome("NonEsistente"));
-    }
-
-    @Test
-    void testGetDettagliHackathon() {
-        HackathonRequest request = new HackathonRequest(
-                "Details Test",
-                "Description",
-                LocalDate.of(2025, 3, 1),
-                LocalDate.of(2025, 3, 3),
-                LocalDate.of(2025, 2, 15),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon created = hackathonService.creaHackathon(organizzatore, request);
-        Hackathon retrieved = hackathonService.getDettagliHackathon(created.getId());
-
-        assertNotNull(retrieved);
-        assertEquals(created.getId(), retrieved.getId());
-        assertEquals("Details Test", retrieved.getNome());
-    }
-
-    @Test
-    void testGetMaxMembriTeam() {
-        HackathonRequest request = new HackathonRequest(
-                "MaxMembri Test",
-                "Description",
-                LocalDate.of(2025, 3, 1),
-                LocalDate.of(2025, 3, 3),
-                LocalDate.of(2025, 2, 15),
-                "Milano",
-                "Rules",
-                5000.0,
-                7
-        );
-
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
-        int maxMembri = hackathonService.getMaxMembriTeam(hackathon.getId());
-
-        assertEquals(7, maxMembri);
-    }
-
-    @Test
-    void testCheckValiditaHackathon() {
-        HackathonRequest requestFuturo = new HackathonRequest(
-                "Futuro Hackathon",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathonFuturo = hackathonService.creaHackathon(organizzatore, requestFuturo);
-        assertTrue(hackathonService.checkValiditaHackathon(hackathonFuturo.getId()));
-
-        HackathonRequest requestPassato = new HackathonRequest(
-                "Passato Hackathon",
-                "Description",
-                LocalDate.now().minusMonths(1),
-                LocalDate.now().minusMonths(1).plusDays(3),
-                LocalDate.now().minusMonths(2),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathonPassato = hackathonService.creaHackathon(organizzatore, requestPassato);
-        assertFalse(hackathonService.checkValiditaHackathon(hackathonPassato.getId()));
-    }
-
-    @Test
-    void testIscriviTeamSuccess() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Iscrizione",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
-
-        // Il leader del team iscrive il team
-        assertDoesNotThrow(() -> hackathonService.iscriviTeam(hackathon, team, leader.getId()));
-    }
-
-    @Test
-    void testIscriviTeamNonLeader() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Non Leader",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
-
-        Utente nonLeader = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
-        nonLeader = utenteRepository.save(nonLeader);
-        final Long nonLeaderId = nonLeader.getId();
-
-        // Un non-leader tenta di iscrivere il team
-        assertThrows(IllegalArgumentException.class,
-                () -> hackathonService.iscriviTeam(hackathon, team, nonLeaderId));
-    }
-
-    @Test
-    void testIscriviTeamHackathonChiuso() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Chiuso",
-                "Description",
-                LocalDate.now().minusMonths(1),
-                LocalDate.now().minusMonths(1).plusDays(3),
-                LocalDate.now().minusMonths(2),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathonPassato = hackathonService.creaHackathon(organizzatore, request);
-
-        assertThrows(IllegalArgumentException.class,
-                () -> hackathonService.iscriviTeam(hackathonPassato, team, leader.getId()));
-    }
-
-    @Test
-    void testIscriviTeamParametriNull() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Null Test",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
-
-        assertThrows(IllegalArgumentException.class,
-                () -> hackathonService.iscriviTeam(null, team, leader.getId()));
-
-        assertThrows(IllegalArgumentException.class,
-                () -> hackathonService.iscriviTeam(hackathon, null, leader.getId()));
+                () -> hackathonService.createHackathon(
+                        "Hackathon No Org", "Test",
+                        LocalDate.of(2025, 3, 1), LocalDate.of(2025, 3, 3),
+                        5, 5000.0, utenteId));
     }
 
     @Test
     void testAssegnaGiudiceSuccess() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Giudice Test",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hackathon Giudice Test", "Description",
+                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                5, 5000.0, organizzatore.getId());
 
         Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
+        giudice.getRuoli().add(Ruolo.MEMBRO_STAFF);
         giudice = utenteRepository.save(giudice);
 
-        Hackathon aggiornato = hackathonService.assegnaGiudice(hackathon.getId(), giudice.getId(), organizzatore.getId());
+        hackathonService.assegnaGiudice(hackathon.getId(), "paolo@example.com", organizzatore.getId());
 
+        Hackathon aggiornato = hackathonRepository.findById(hackathon.getId()).orElseThrow();
         assertNotNull(aggiornato.getGiudiceId());
         assertEquals(giudice.getId(), aggiornato.getGiudiceId());
-        assertTrue(aggiornato.hasGiudice());
-        assertTrue(giudice.hasRuolo(Ruolo.GIUDICE));
+        assertTrue(giudice.getRuoli().contains(Ruolo.GIUDICE));
     }
 
     @Test
     void testAssegnaGiudiceNonOrganizzatore() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Giudice Non Org",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hackathon Giudice Non Org", "Description",
+                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                5, 5000.0, organizzatore.getId());
 
         Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
+        giudice.getRuoli().add(Ruolo.MEMBRO_STAFF);
         giudice = utenteRepository.save(giudice);
-        final Long giudiceId = giudice.getId();
 
         Utente nonOrganizzatore = new Utente("Anna", "Bianchi", "anna@example.com", "password");
         nonOrganizzatore = utenteRepository.save(nonOrganizzatore);
         final Long nonOrganizzatoreId = nonOrganizzatore.getId();
 
         assertThrows(IllegalArgumentException.class,
-                () -> hackathonService.assegnaGiudice(hackathon.getId(), giudiceId, nonOrganizzatoreId));
+                () -> hackathonService.assegnaGiudice(hackathon.getId(), "paolo@example.com", nonOrganizzatoreId));
     }
 
     @Test
     void testAssegnaGiudiceGiaAssegnato() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Doppio Giudice",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hackathon Doppio Giudice", "Description",
+                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                5, 5000.0, organizzatore.getId());
 
         Utente giudice1 = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
+        giudice1.getRuoli().add(Ruolo.MEMBRO_STAFF);
         giudice1 = utenteRepository.save(giudice1);
         Utente giudice2 = new Utente("Anna", "Bianchi", "anna@example.com", "password");
+        giudice2.getRuoli().add(Ruolo.MEMBRO_STAFF);
         giudice2 = utenteRepository.save(giudice2);
-        final Long giudice2Id = giudice2.getId();
 
-        hackathonService.assegnaGiudice(hackathon.getId(), giudice1.getId(), organizzatore.getId());
+        hackathonService.assegnaGiudice(hackathon.getId(), "paolo@example.com", organizzatore.getId());
 
         assertThrows(IllegalArgumentException.class,
-                () -> hackathonService.assegnaGiudice(hackathon.getId(), giudice2Id, organizzatore.getId()));
+                () -> hackathonService.assegnaGiudice(hackathon.getId(), "anna@example.com", organizzatore.getId()));
     }
 
     @Test
-    void testAssegnaGiudiceIdNull() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Giudice Null",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
+    void testAssegnaGiudiceEmailNull() {
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hackathon Giudice Null", "Description",
+                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                5, 5000.0, organizzatore.getId());
 
         assertThrows(IllegalArgumentException.class,
                 () -> hackathonService.assegnaGiudice(hackathon.getId(), null, organizzatore.getId()));
     }
 
     @Test
-    void testRimuoviGiudiceSuccess() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Rimuovi Giudice",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
+    void testAssegnaMentoreSuccess() {
+        hackathonService.createHackathon(
+                "Hackathon Mentore Test", "Description",
+                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                5, 5000.0, organizzatore.getId());
 
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
+        Utente mentore = new Utente("Marco", "Neri", "marco@example.com", "password");
+        mentore = utenteRepository.save(mentore);
 
-        Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
-        giudice = utenteRepository.save(giudice);
+        hackathonService.assegnaMentore("marco@example.com", organizzatore.getId());
 
-        hackathonService.assegnaGiudice(hackathon.getId(), giudice.getId(), organizzatore.getId());
-
-        Hackathon aggiornato = hackathonService.rimuoviGiudice(hackathon.getId(), organizzatore.getId());
-
-        assertNull(aggiornato.getGiudiceId());
-        assertFalse(aggiornato.hasGiudice());
+        assertTrue(mentore.getRuoli().contains(Ruolo.MENTORE));
     }
 
     @Test
-    void testRimuoviGiudiceNonOrganizzatore() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Rimuovi Giudice Non Org",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
+    void testCheckRuolo() {
+        assertTrue(hackathonService.checkRuolo(Ruolo.ORGANIZZATORE));
+        assertTrue(hackathonService.checkRuolo(Ruolo.LEADER));
+        assertFalse(hackathonService.checkRuolo(null));
+    }
 
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
+    @Test
+    void testCheckId() {
+        assertTrue(hackathonService.checkId(organizzatore.getId()));
+        assertFalse(hackathonService.checkId(null));
+        assertFalse(hackathonService.checkId(9999L));
+    }
 
-        Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
-        giudice = utenteRepository.save(giudice);
-        hackathonService.assegnaGiudice(hackathon.getId(), giudice.getId(), organizzatore.getId());
+    @Test
+    void testFindByTeamId() {
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hackathon Find Test", "Description",
+                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                5, 5000.0, organizzatore.getId());
 
-        Utente nonOrganizzatore = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        nonOrganizzatore = utenteRepository.save(nonOrganizzatore);
-        final Long nonOrganizzatoreId = nonOrganizzatore.getId();
+        hackathon.getTeamIds().add(team.getId());
+        hackathonRepository.save(hackathon);
+
+        assertTrue(hackathonService.findByTeamId(team.getId()));
+        assertFalse(hackathonService.findByTeamId(9999L));
+    }
+
+    @Test
+    void testModifcaStatoInCorso() {
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hackathon Stato Test", "Description",
+                LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
+                5, 5000.0, organizzatore.getId());
+
+        hackathonService.modifcaStato(hackathon.getId(), StatoHackathon.IN_CORSO);
+
+        Hackathon aggiornato = hackathonRepository.findById(hackathon.getId()).orElseThrow();
+        assertEquals(StatoHackathon.IN_CORSO, aggiornato.getStato());
+    }
+
+    @Test
+    void testModifcaStatoTransizioneNonValida() {
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hackathon Stato Invalid", "Description",
+                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                5, 5000.0, organizzatore.getId());
 
         assertThrows(IllegalArgumentException.class,
-                () -> hackathonService.rimuoviGiudice(hackathon.getId(), nonOrganizzatoreId));
+                () -> hackathonService.modifcaStato(hackathon.getId(), StatoHackathon.CONCLUSO));
     }
 
     @Test
-    void testRimuoviGiudiceNonAssegnato() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Senza Giudice",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
+    void testProclamaVincitore() {
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hackathon Vincitore Test", "Description",
+                LocalDate.now().minusDays(5), LocalDate.now().minusDays(1),
+                5, 5000.0, organizzatore.getId());
 
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
+        hackathon.getTeamIds().add(team.getId());
+        hackathon.setStato(StatoHackathon.IN_VALUTAZIONE);
+        hackathonRepository.save(hackathon);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> hackathonService.rimuoviGiudice(hackathon.getId(), organizzatore.getId()));
-    }
+        hackathonService.proclamaVincitore(hackathon.getId(), team.getId());
 
-    @Test
-    void testAggiungiMembroStaffSuccess() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Staff Test",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
-
-        Utente staff = new Utente("Marco", "Neri", "marco@example.com", "password");
-        staff = utenteRepository.save(staff);
-
-        Hackathon aggiornato = hackathonService.aggiungiMembroStaff(hackathon.getId(), staff.getId(), organizzatore.getId());
-
-        assertTrue(aggiornato.checkStaff(staff.getId()));
-        assertTrue(staff.hasRuolo(Ruolo.MEMBRO_STAFF));
-    }
-
-    @Test
-    void testAggiungiMembroStaffNonOrganizzatore() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Staff Non Org",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
-
-        Utente staff = new Utente("Marco", "Neri", "marco@example.com", "password");
-        staff = utenteRepository.save(staff);
-        final Long staffId = staff.getId();
-
-        Utente nonOrganizzatore = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        nonOrganizzatore = utenteRepository.save(nonOrganizzatore);
-        final Long nonOrganizzatoreId = nonOrganizzatore.getId();
-
-        assertThrows(IllegalArgumentException.class,
-                () -> hackathonService.aggiungiMembroStaff(hackathon.getId(), staffId, nonOrganizzatoreId));
-    }
-
-    @Test
-    void testRimuoviMembroStaffSuccess() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Staff Remove",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
-
-        Utente staff = new Utente("Marco", "Neri", "marco@example.com", "password");
-        staff = utenteRepository.save(staff);
-
-        hackathonService.aggiungiMembroStaff(hackathon.getId(), staff.getId(), organizzatore.getId());
-        Hackathon aggiornato = hackathonService.rimuoviMembroStaff(hackathon.getId(), staff.getId(), organizzatore.getId());
-
-        assertFalse(aggiornato.checkStaff(staff.getId()));
-    }
-
-    @Test
-    void testRimuoviMembroStaffNonOrganizzatore() {
-        HackathonRequest request = new HackathonRequest(
-                "Hackathon Staff Remove Non Org",
-                "Description",
-                LocalDate.now().plusMonths(2),
-                LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                "Milano",
-                "Rules",
-                5000.0,
-                5
-        );
-
-        Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
-
-        Utente staff = new Utente("Marco", "Neri", "marco@example.com", "password");
-        staff = utenteRepository.save(staff);
-        final Long staffId = staff.getId();
-
-        hackathonService.aggiungiMembroStaff(hackathon.getId(), staffId, organizzatore.getId());
-
-        Utente nonOrganizzatore = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        nonOrganizzatore = utenteRepository.save(nonOrganizzatore);
-        final Long nonOrganizzatoreId = nonOrganizzatore.getId();
-
-        assertThrows(IllegalArgumentException.class,
-                () -> hackathonService.rimuoviMembroStaff(hackathon.getId(), staffId, nonOrganizzatoreId));
+        Hackathon aggiornato = hackathonRepository.findById(hackathon.getId()).orElseThrow();
+        assertEquals(team.getId(), aggiornato.getTeamVincitoreId());
+        assertEquals(StatoHackathon.CONCLUSO, aggiornato.getStato());
     }
 }
