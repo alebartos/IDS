@@ -4,10 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Rappresenta un Utente nel sistema.
- * Implementa il pattern CompositeRoleStrategy: un utente può avere più ruoli contemporaneamente.
- */
 public class Utente {
 
     private Long id;
@@ -71,7 +67,7 @@ public class Utente {
     }
 
     public List<Ruolo> getRuoli() {
-        return new ArrayList<>(ruoli);
+        return ruoli;
     }
 
     public void setRuoli(List<Ruolo> ruoli) {
@@ -79,65 +75,6 @@ public class Utente {
         if (!this.ruoli.contains(Ruolo.BASE)) {
             this.ruoli.add(Ruolo.BASE);
         }
-    }
-
-    /**
-     * Aggiunge un ruolo all'utente.
-     * @param ruolo il ruolo da aggiungere
-     */
-    public void addRuolo(Ruolo ruolo) {
-        if (ruolo != null && !this.ruoli.contains(ruolo)) {
-            this.ruoli.add(ruolo);
-        }
-    }
-
-    /**
-     * Rimuove un ruolo dall'utente.
-     * Il ruolo BASE non può essere rimosso.
-     * @param ruolo il ruolo da rimuovere
-     * @return true se il ruolo è stato rimosso, false altrimenti
-     */
-    public boolean deleteRuolo(Ruolo ruolo) {
-        if (ruolo == Ruolo.BASE) {
-            return false;
-        }
-        return this.ruoli.remove(ruolo);
-    }
-
-    /**
-     * Verifica se l'utente ha un determinato ruolo.
-     * @param ruolo il ruolo da verificare
-     * @return true se l'utente ha il ruolo, false altrimenti
-     */
-    public boolean hasRuolo(Ruolo ruolo) {
-        return this.ruoli.contains(ruolo);
-    }
-
-    /**
-     * Alias per hasRuolo per compatibilità con il diagramma.
-     */
-    public boolean checkRuolo(Ruolo ruolo) {
-        return hasRuolo(ruolo);
-    }
-
-    public boolean isOrganizzatore() {
-        return hasRuolo(Ruolo.ORGANIZZATORE);
-    }
-
-    public boolean isGiudice() {
-        return hasRuolo(Ruolo.GIUDICE);
-    }
-
-    public boolean isLeader() {
-        return hasRuolo(Ruolo.LEADER);
-    }
-
-    public boolean isMembroTeam() {
-        return hasRuolo(Ruolo.MEMBRO_TEAM);
-    }
-
-    public boolean isMembroStaff() {
-        return hasRuolo(Ruolo.MEMBRO_STAFF);
     }
 
     @Override
