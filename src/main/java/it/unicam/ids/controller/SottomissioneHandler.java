@@ -8,11 +8,11 @@ import it.unicam.ids.service.SottomissioneService;
 /**
  * Handler per le operazioni sulle Sottomissioni.
  */
-public class SottomissioniHandler {
+public class SottomissioneHandler {
 
     private final SottomissioneService sottomissioneService;
 
-    public SottomissioniHandler(SottomissioneService sottomissioneService) {
+    public SottomissioneHandler(SottomissioneService sottomissioneService) {
         this.sottomissioneService = sottomissioneService;
     }
 
