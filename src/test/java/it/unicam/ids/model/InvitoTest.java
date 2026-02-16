@@ -17,7 +17,7 @@ class InvitoTest {
     void setUp() {
         leader = new Utente("Mario", "Rossi", "mario@example.com", "password");
         leader.setId(1L);
-        leader.addRuolo(Ruolo.LEADER);
+        leader.getRuoli().add(Ruolo.LEADER);
 
         team = new Team();
         team.setId(1L);
@@ -43,7 +43,7 @@ class InvitoTest {
 
         assertEquals(team, invito.getTeam());
         assertEquals(destinatario, invito.getDestinatario());
-        assertEquals(destinatario.getId(), invito.getDestinatarioId());
+        assertEquals(destinatario.getId(), invito.getDestinatario().getId());
         assertEquals(LocalDate.now(), invito.getDataInvio());
         assertEquals(StatoInvito.IN_ATTESA, invito.getStato());
     }
@@ -52,7 +52,8 @@ class InvitoTest {
     void testAccetta() {
         Invito invito = new Invito(team, destinatario);
 
-        invito.accetta();
+        invito.setStato(StatoInvito.ACCETTATO);
+        invito.setDataRisposta(LocalDate.now());
 
         assertEquals(StatoInvito.ACCETTATO, invito.getStato());
         assertEquals(LocalDate.now(), invito.getDataRisposta());
@@ -62,7 +63,8 @@ class InvitoTest {
     void testRifiuta() {
         Invito invito = new Invito(team, destinatario);
 
-        invito.rifiuta();
+        invito.setStato(StatoInvito.RIFIUTATO);
+        invito.setDataRisposta(LocalDate.now());
 
         assertEquals(StatoInvito.RIFIUTATO, invito.getStato());
         assertEquals(LocalDate.now(), invito.getDataRisposta());
@@ -72,10 +74,10 @@ class InvitoTest {
     void testIsInAttesa() {
         Invito invito = new Invito(team, destinatario);
 
-        assertTrue(invito.isInAttesa());
+        assertEquals(StatoInvito.IN_ATTESA, invito.getStato());
 
-        invito.accetta();
-        assertFalse(invito.isInAttesa());
+        invito.setStato(StatoInvito.ACCETTATO);
+        assertNotEquals(StatoInvito.IN_ATTESA, invito.getStato());
     }
 
     @Test
@@ -91,7 +93,7 @@ class InvitoTest {
         assertEquals(1L, invito.getId());
         assertEquals(team, invito.getTeam());
         assertEquals(destinatario, invito.getDestinatario());
-        assertEquals(destinatario.getId(), invito.getDestinatarioId());
+        assertEquals(destinatario.getId(), invito.getDestinatario().getId());
         assertEquals(LocalDate.of(2025, 1, 15), invito.getDataInvio());
         assertEquals(LocalDate.of(2025, 1, 16), invito.getDataRisposta());
         assertEquals(StatoInvito.ACCETTATO, invito.getStato());

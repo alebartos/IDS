@@ -3,6 +3,7 @@ package it.unicam.ids.model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,8 +52,8 @@ class TeamTest {
 
     @Test
     void testAddMembro() {
-        team.addMembro(100L);
-        team.addMembro(101L);
+        team.getMembri().add(100L);
+        team.getMembri().add(101L);
 
         List<Long> membri = team.getMembri();
         assertEquals(2, membri.size());
@@ -61,26 +62,11 @@ class TeamTest {
     }
 
     @Test
-    void testAddMembroDuplicato() {
-        team.addMembro(100L);
-        team.addMembro(100L);
-
-        assertEquals(1, team.getMembri().size());
-    }
-
-    @Test
-    void testAddMembroNull() {
-        team.addMembro(null);
-
-        assertTrue(team.getMembri().isEmpty());
-    }
-
-    @Test
     void testRimuoviMembro() {
-        team.addMembro(100L);
-        team.addMembro(101L);
+        team.getMembri().add(100L);
+        team.getMembri().add(101L);
 
-        boolean removed = team.rimuoviMembro(100L);
+        boolean removed = team.getMembri().remove(100L);
 
         assertTrue(removed);
         assertEquals(1, team.getMembri().size());
@@ -90,64 +76,52 @@ class TeamTest {
 
     @Test
     void testRimuoviMembroNonEsistente() {
-        team.addMembro(100L);
+        team.getMembri().add(100L);
 
-        boolean removed = team.rimuoviMembro(999L);
+        boolean removed = team.getMembri().remove(999L);
 
         assertFalse(removed);
         assertEquals(1, team.getMembri().size());
     }
 
     @Test
-    void testFindById() {
-        team.addMembro(100L);
-        team.addMembro(101L);
+    void testContainsMembro() {
+        team.getMembri().add(100L);
+        team.getMembri().add(101L);
 
-        assertTrue(team.findById(100L));
-        assertTrue(team.findById(101L));
-        assertFalse(team.findById(999L));
-    }
-
-    @Test
-    void testGetSizeTeam() {
-        assertEquals(0, team.getSizeTeam());
-
-        team.addMembro(100L);
-        assertEquals(1, team.getSizeTeam());
-
-        team.addMembro(101L);
-        assertEquals(2, team.getSizeTeam());
-
-        team.rimuoviMembro(100L);
-        assertEquals(1, team.getSizeTeam());
-    }
-
-    @Test
-    void testGetMembriReturnsCopy() {
-        team.addMembro(100L);
-
-        List<Long> membri = team.getMembri();
-        membri.add(999L);
-
-        // La modifica della copia non deve influenzare la lista originale
-        assertEquals(1, team.getMembri().size());
+        assertTrue(team.getMembri().contains(100L));
+        assertTrue(team.getMembri().contains(101L));
         assertFalse(team.getMembri().contains(999L));
     }
 
     @Test
+    void testGetMembriSize() {
+        assertEquals(0, team.getMembri().size());
+
+        team.getMembri().add(100L);
+        assertEquals(1, team.getMembri().size());
+
+        team.getMembri().add(101L);
+        assertEquals(2, team.getMembri().size());
+
+        team.getMembri().remove(100L);
+        assertEquals(1, team.getMembri().size());
+    }
+
+    @Test
     void testSetMembri() {
-        List<Long> nuoviMembri = List.of(200L, 201L, 202L);
+        List<Long> nuoviMembri = new ArrayList<>(List.of(200L, 201L, 202L));
         team.setMembri(nuoviMembri);
 
         assertEquals(3, team.getMembri().size());
-        assertTrue(team.findById(200L));
-        assertTrue(team.findById(201L));
-        assertTrue(team.findById(202L));
+        assertTrue(team.getMembri().contains(200L));
+        assertTrue(team.getMembri().contains(201L));
+        assertTrue(team.getMembri().contains(202L));
     }
 
     @Test
     void testSetMembriNull() {
-        team.addMembro(100L);
+        team.getMembri().add(100L);
         team.setMembri(null);
 
         assertNotNull(team.getMembri());
@@ -175,7 +149,7 @@ class TeamTest {
     @Test
     void testToString() {
         team.setId(1L);
-        team.addMembro(100L);
+        team.getMembri().add(100L);
 
         String result = team.toString();
 

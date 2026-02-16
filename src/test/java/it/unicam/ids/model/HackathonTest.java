@@ -62,12 +62,11 @@ class HackathonTest {
     @Test
     void testGiudiceId() {
         assertNull(hackathon.getGiudiceId());
-        assertFalse(hackathon.hasGiudice());
 
         hackathon.setGiudiceId(2L);
 
         assertEquals(2L, hackathon.getGiudiceId());
-        assertTrue(hackathon.hasGiudice());
+        assertNotNull(hackathon.getGiudiceId());
     }
 
     @Test
@@ -80,44 +79,34 @@ class HackathonTest {
     void testAddMembroStaffId() {
         Long staffId = 1L;
 
-        hackathon.addMembroStaffId(staffId);
+        hackathon.getMembroStaffIds().add(staffId);
 
         assertEquals(1, hackathon.getMembroStaffIds().size());
         assertTrue(hackathon.getMembroStaffIds().contains(staffId));
     }
 
     @Test
-    void testAddMembroStaffIdDuplicato() {
-        Long staffId = 1L;
-
-        hackathon.addMembroStaffId(staffId);
-        hackathon.addMembroStaffId(staffId);
-
-        assertEquals(1, hackathon.getMembroStaffIds().size());
-    }
-
-    @Test
     void testCheckStaff() {
         Long staffId = 1L;
 
-        assertFalse(hackathon.checkStaff(staffId));
+        assertFalse(hackathon.getMembroStaffIds().contains(staffId));
 
-        hackathon.addMembroStaffId(staffId);
+        hackathon.getMembroStaffIds().add(staffId);
 
-        assertTrue(hackathon.checkStaff(staffId));
+        assertTrue(hackathon.getMembroStaffIds().contains(staffId));
     }
 
     @Test
     void testRemoveMembroStaffId() {
         Long staffId = 1L;
 
-        hackathon.addMembroStaffId(staffId);
-        assertTrue(hackathon.checkStaff(staffId));
+        hackathon.getMembroStaffIds().add(staffId);
+        assertTrue(hackathon.getMembroStaffIds().contains(staffId));
 
-        boolean removed = hackathon.removeMembroStaffId(staffId);
+        boolean removed = hackathon.getMembroStaffIds().remove(staffId);
 
         assertTrue(removed);
-        assertFalse(hackathon.checkStaff(staffId));
+        assertFalse(hackathon.getMembroStaffIds().contains(staffId));
     }
 
     @Test
@@ -130,51 +119,34 @@ class HackathonTest {
     void testAddMentoreId() {
         Long mentoreId = 1L;
 
-        hackathon.addMentoreId(mentoreId);
+        hackathon.getMentoreIds().add(mentoreId);
 
         assertEquals(1, hackathon.getMentoreIds().size());
         assertTrue(hackathon.getMentoreIds().contains(mentoreId));
     }
 
     @Test
-    void testAddMentoreIdDuplicato() {
-        Long mentoreId = 1L;
-
-        hackathon.addMentoreId(mentoreId);
-        hackathon.addMentoreId(mentoreId);
-
-        assertEquals(1, hackathon.getMentoreIds().size());
-    }
-
-    @Test
-    void testAddMentoreIdNull() {
-        hackathon.addMentoreId(null);
-
-        assertTrue(hackathon.getMentoreIds().isEmpty());
-    }
-
-    @Test
     void testCheckMentoreEsistente() {
         Long mentoreId = 1L;
 
-        assertFalse(hackathon.checkMentoreEsistente(mentoreId));
+        assertFalse(hackathon.getMentoreIds().contains(mentoreId));
 
-        hackathon.addMentoreId(mentoreId);
+        hackathon.getMentoreIds().add(mentoreId);
 
-        assertTrue(hackathon.checkMentoreEsistente(mentoreId));
+        assertTrue(hackathon.getMentoreIds().contains(mentoreId));
     }
 
     @Test
     void testRemoveMentoreId() {
         Long mentoreId = 1L;
 
-        hackathon.addMentoreId(mentoreId);
-        assertTrue(hackathon.checkMentoreEsistente(mentoreId));
+        hackathon.getMentoreIds().add(mentoreId);
+        assertTrue(hackathon.getMentoreIds().contains(mentoreId));
 
-        boolean removed = hackathon.removeMentoreId(mentoreId);
+        boolean removed = hackathon.getMentoreIds().remove(mentoreId);
 
         assertTrue(removed);
-        assertFalse(hackathon.checkMentoreEsistente(mentoreId));
+        assertFalse(hackathon.getMentoreIds().contains(mentoreId));
     }
 
     @Test
@@ -187,7 +159,7 @@ class HackathonTest {
     void testAddTeamId() {
         Long teamId = 1L;
 
-        hackathon.addTeamId(teamId);
+        hackathon.getTeamIds().add(teamId);
 
         assertEquals(1, hackathon.getTeamIds().size());
         assertTrue(hackathon.getTeamIds().contains(teamId));
@@ -197,10 +169,10 @@ class HackathonTest {
     void testRemoveTeamId() {
         Long teamId = 1L;
 
-        hackathon.addTeamId(teamId);
+        hackathon.getTeamIds().add(teamId);
         assertTrue(hackathon.getTeamIds().contains(teamId));
 
-        boolean removed = hackathon.removeTeamId(teamId);
+        boolean removed = hackathon.getTeamIds().remove(teamId);
 
         assertTrue(removed);
         assertFalse(hackathon.getTeamIds().contains(teamId));

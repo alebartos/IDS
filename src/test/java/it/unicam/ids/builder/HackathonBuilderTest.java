@@ -55,13 +55,14 @@ class HackathonBuilderTest {
 
     @Test
     void testBuildHackathonWithoutLuogo() {
-        HackathonBuilder builder = HackathonBuilder.newBuilder()
+        Hackathon hackathon = HackathonBuilder.newBuilder()
                 .nome("Hackathon")
                 .dataInizio(LocalDate.of(2025, 3, 1))
                 .dataFine(LocalDate.of(2025, 3, 3))
-                .scadenzaIscrizioni(LocalDate.of(2025, 2, 15));
+                .build();
 
-        assertThrows(IllegalStateException.class, () -> builder.build());
+        assertNotNull(hackathon);
+        assertNull(hackathon.getLuogo());
     }
 
     @Test

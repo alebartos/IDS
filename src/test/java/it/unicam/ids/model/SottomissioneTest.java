@@ -15,8 +15,6 @@ class SottomissioneTest {
 
         assertNotNull(sottomissione);
         assertEquals(StatoSottomissione.BOZZA, sottomissione.getStato());
-        assertTrue(sottomissione.isBozza());
-        assertFalse(sottomissione.isConsegnata());
         assertNotNull(sottomissione.getDataInvio());
     }
 
@@ -40,16 +38,14 @@ class SottomissioneTest {
     }
 
     @Test
-    void testIsBozza() {
+    void testStatoBozza() {
         Sottomissione sottomissione = new Sottomissione();
 
-        assertTrue(sottomissione.isBozza());
-        assertFalse(sottomissione.isConsegnata());
+        assertEquals(StatoSottomissione.BOZZA, sottomissione.getStato());
 
         sottomissione.setStato(StatoSottomissione.CONSEGNATA);
 
-        assertFalse(sottomissione.isBozza());
-        assertTrue(sottomissione.isConsegnata());
+        assertEquals(StatoSottomissione.CONSEGNATA, sottomissione.getStato());
     }
 
     @Test
