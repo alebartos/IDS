@@ -1,11 +1,9 @@
 package it.unicam.ids.model;
 
 import it.unicam.ids.dto.DatiProgetto;
+import it.unicam.ids.dto.DatiValutazione;
 import java.time.LocalDate;
 
-/**
- * Rappresenta una sottomissione di un progetto da parte di un team per un hackathon.
- */
 public class Sottomissione {
 
     private Long id;
@@ -14,75 +12,33 @@ public class Sottomissione {
     private StatoSottomissione stato;
     private Long teamId;
     private Long hackathonId;
+    private DatiValutazione datiValutazione;
 
     public Sottomissione() {
         this.stato = StatoSottomissione.BOZZA;
         this.dataInvio = LocalDate.now();
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public DatiProgetto getDatiProgetto() { return datiProgetto; }
+    public void setDatiProgetto(DatiProgetto datiProgetto) { this.datiProgetto = datiProgetto; }
 
-    public DatiProgetto getDatiProgetto() {
-        return datiProgetto;
-    }
+    public LocalDate getDataInvio() { return dataInvio; }
+    public void setDataInvio(LocalDate dataInvio) { this.dataInvio = dataInvio; }
 
-    public void setDatiProgetto(DatiProgetto datiProgetto) {
-        this.datiProgetto = datiProgetto;
-        this.dataInvio = LocalDate.now();
-    }
+    public StatoSottomissione getStato() { return stato; }
+    public void setStato(StatoSottomissione stato) { this.stato = stato; }
 
-    public LocalDate getDataInvio() {
-        return dataInvio;
-    }
+    public Long getTeamId() { return teamId; }
+    public void setTeamId(Long teamId) { this.teamId = teamId; }
 
-    public void setDataInvio(LocalDate dataInvio) {
-        this.dataInvio = dataInvio;
-    }
+    public Long getHackathonId() { return hackathonId; }
+    public void setHackathonId(Long hackathonId) { this.hackathonId = hackathonId; }
 
-    public StatoSottomissione getStato() {
-        return stato;
-    }
-
-    public void setStato(StatoSottomissione stato) {
-        this.stato = stato;
-        this.dataInvio = LocalDate.now();
-    }
-
-    public Long getTeamId() {
-        return teamId;
-    }
-
-    public void setTeamId(Long teamId) {
-        this.teamId = teamId;
-    }
-
-    public Long getHackathonId() {
-        return hackathonId;
-    }
-
-    public void setHackathonId(Long hackathonId) {
-        this.hackathonId = hackathonId;
-    }
-
-    /**
-     * Verifica se la sottomissione è in stato bozza.
-     */
-    public boolean isBozza() {
-        return this.stato == StatoSottomissione.BOZZA;
-    }
-
-    /**
-     * Verifica se la sottomissione è stata consegnata.
-     */
-    public boolean isConsegnata() {
-        return this.stato == StatoSottomissione.CONSEGNATA;
-    }
+    public DatiValutazione getDatiValutazione() { return datiValutazione; }
+    public void setDatiValutazione(DatiValutazione datiValutazione) { this.datiValutazione = datiValutazione; }
 
     @Override
     public String toString() {
