@@ -45,7 +45,7 @@ public class UtenteRepository {
 
     public List<Utente> findByRuolo(Ruolo ruolo) {
         return storage.values().stream()
-                .filter(u -> u.hasRuolo(ruolo))
+                .filter(u -> u.getRuoli().contains(ruolo))
                 .collect(Collectors.toList());
     }
 

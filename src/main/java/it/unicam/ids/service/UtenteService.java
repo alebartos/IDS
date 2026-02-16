@@ -52,11 +52,11 @@ public class UtenteService {
     public Utente addRuolo(Long utenteId, Ruolo ruolo) {
         Utente utente = getUtente(utenteId);
 
-        if (utente.hasRuolo(ruolo)) {
+        if (utente.getRuoli().contains(ruolo)) {
             throw new IllegalArgumentException("L'utente ha già questo ruolo");
         }
 
-        utente.addRuolo(ruolo);
+        utente.getRuoli().add(ruolo);
         return utenteRepository.save(utente);
     }
 
@@ -66,7 +66,7 @@ public class UtenteService {
     public Utente deleteRuolo(Long utenteId, Ruolo ruolo) {
         Utente utente = getUtente(utenteId);
 
-        if (!utente.hasRuolo(ruolo)) {
+        if (!utente.getRuoli().contains(ruolo)) {
             throw new IllegalArgumentException("L'utente non ha questo ruolo");
         }
 
@@ -74,7 +74,7 @@ public class UtenteService {
             throw new IllegalArgumentException("Non è possibile rimuovere il ruolo BASE");
         }
 
-        utente.deleteRuolo(ruolo);
+        utente.getRuoli().remove(ruolo);
         return utenteRepository.save(utente);
     }
 
@@ -83,7 +83,7 @@ public class UtenteService {
      */
     public boolean checkRuolo(Long utenteId, Ruolo ruolo) {
         Utente utente = getUtente(utenteId);
-        return utente.hasRuolo(ruolo);
+        return utente.getRuoli().contains(ruolo);
     }
 
     /**
