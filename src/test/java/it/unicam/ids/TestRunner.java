@@ -11,7 +11,7 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectPacka
 
 /**
  * Classe principale per eseguire tutti i test del progetto.
- * Esegue automaticamente tutti i test presenti nel package com.ids.
+ * Esegue automaticamente tutti i test presenti nel package it.unicam.ids
  */
 public class TestRunner {
 
@@ -21,7 +21,7 @@ public class TestRunner {
         System.out.println("========================================\n");
 
         LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
-                .selectors(selectPackage("com.ids"))
+                .selectors(selectPackage("it.unicam.ids"))
                 .build();
 
         Launcher launcher = LauncherFactory.create();

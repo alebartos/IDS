@@ -58,8 +58,7 @@ class SottomissioneBuilderTest {
 
         assertNotNull(sottomissione);
         assertEquals(StatoSottomissione.CONSEGNATA, sottomissione.getStato());
-        assertTrue(sottomissione.isConsegnata());
-        assertFalse(sottomissione.isBozza());
+        assertNotEquals(StatoSottomissione.BOZZA, sottomissione.getStato());
     }
 
     @Test
