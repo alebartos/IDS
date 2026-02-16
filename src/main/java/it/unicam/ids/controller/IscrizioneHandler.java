@@ -1,39 +1,65 @@
 package it.unicam.ids.controller;
 
-import it.unicam.ids.model.Hackathon;
-import it.unicam.ids.model.Team;
-import it.unicam.ids.service.HackathonService;
-import it.unicam.ids.service.TeamService;
+import it.unicam.ids.service.IscrizioneService;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Handler per le operazioni di iscrizione.
- * Placeholder per futura integrazione con Spring Boot REST Controller.
  */
 public class IscrizioneHandler {
 
-    private final HackathonService hackathonService;
-    private final TeamService teamService;
+    private final IscrizioneService iscrizioneService;
 
-    public IscrizioneHandler(HackathonService hackathonService, TeamService teamService) {
-        this.hackathonService = hackathonService;
-        this.teamService = teamService;
+    public IscrizioneHandler(IscrizioneService iscrizioneService) {
+        this.iscrizioneService = iscrizioneService;
     }
 
     /**
-     * Iscrive un team a un hackathon. Solo il leader del team può iscriverlo.
-     * Endpoint futuro: POST /api/iscrizioni/iscriviTeam
-     * @param hackathonId ID dell'hackathon
+     * Iscrive un team a un hackathon.
      * @param teamId ID del team
-     * @param richiedenteId ID dell'utente che effettua l'iscrizione (deve essere il leader del team)
+     * @param hackathonId ID dell'hackathon
+     * @return Result con l'esito dell'operazione
      */
-    public Result<String> iscriviTeam(Long hackathonId, Long teamId, Long richiedenteId) {
+    @SuppressWarnings("unchecked")
+    public Result<String> iscriviTeam(Long teamId, Long hackathonId) {
         try {
-            Hackathon hackathon = hackathonService.getDettagliHackathon(hackathonId);
-            Team team = teamService.getDettagliTeam(teamId);
-
-            hackathonService.iscriviTeam(hackathon, team, richiedenteId);
-
+            Map<String, Object> dati = iscrizioneService.selezionaPartecipanti(teamId, hackathonId);
+            List<Long> membri = (List<Long>) dati.get("membri");
+            iscrizioneService.iscriviTeam(teamId, hackathonId, membri);
             return Result.success("Team iscritto con successo");
+        } catch (IllegalArgumentException e) {
+            return Result.badRequest(e.getMessage());
+        }
+    }
+
+    /**
+     * Recupera la lista dei membri del team e il limite massimo per la selezione dei partecipanti.
+     * @param teamId ID del team
+     * @param hackathonId ID dell'hackathon
+     * @return Result con la mappa contenente "membri" e "maxMembriTeam"
+     */
+    public Result<Map<String, Object>> selezionaPartecipanti(Long teamId, Long hackathonId) {
+        try {
+            Map<String, Object> dati = iscrizioneService.selezionaPartecipanti(teamId, hackathonId);
+            return Result.success(dati);
+        } catch (IllegalArgumentException e) {
+            return Result.badRequest(e.getMessage());
+        }
+    }
+
+    /**
+     * Valida la selezione dei partecipanti e iscrive il team all'hackathon.
+     * @param teamId ID del team
+     * @param selected lista degli ID dei membri selezionati
+     * @param hackathonId ID dell'hackathon
+     * @return Result con l'esito dell'operazione
+     */
+    public Result<String> selezionaPartecipanti(Long teamId, List<Long> selected, Long hackathonId) {
+        try {
+            iscrizioneService.iscriviTeam(teamId, hackathonId, selected);
+            return Result.success("Partecipanti selezionati e team iscritto con successo");
         } catch (IllegalArgumentException e) {
             return Result.badRequest(e.getMessage());
         }
