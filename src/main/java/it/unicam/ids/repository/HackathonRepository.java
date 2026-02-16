@@ -55,4 +55,17 @@ public class HackathonRepository {
         return storage.values().stream()
                 .anyMatch(hackathon -> hackathon.getNome() != null && hackathon.getNome().equals(nome));
     }
+
+    public Optional<Hackathon> findByNome(String nome) {
+        return storage.values().stream()
+                .filter(hackathon -> hackathon.getNome() != null && hackathon.getNome().equals(nome))
+                .findFirst();
+    }
+
+    public Optional<Hackathon> findByOrganizzatoreId(Long organizzatoreId) {
+        return storage.values().stream()
+                .filter(hackathon -> hackathon.getOrganizzatoreId() != null
+                        && hackathon.getOrganizzatoreId().equals(organizzatoreId))
+                .findFirst();
+    }
 }
