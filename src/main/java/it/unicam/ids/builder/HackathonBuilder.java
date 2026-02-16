@@ -79,13 +79,6 @@ public class HackathonBuilder {
         if (dataFine == null) {
             throw new IllegalStateException("La data di fine è obbligatoria");
         }
-        if (scadenzaIscrizioni == null) {
-            throw new IllegalStateException("La scadenza iscrizioni è obbligatoria");
-        }
-        if (luogo == null || luogo.isEmpty()) {
-            throw new IllegalStateException("Il luogo è obbligatorio");
-        }
-
         Hackathon hackathon = new Hackathon();
         hackathon.setNome(nome);
         hackathon.setDescrizione(descrizione);

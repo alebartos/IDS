@@ -1,40 +1,40 @@
 package it.unicam.ids.controller;
 
-import it.unicam.ids.dto.HackathonRequest;
 import it.unicam.ids.model.Hackathon;
-import it.unicam.ids.model.Ruolo;
-import it.unicam.ids.model.Utente;
-import it.unicam.ids.repository.UtenteRepository;
+import it.unicam.ids.model.StatoHackathon;
 import it.unicam.ids.service.HackathonService;
+
+import java.time.LocalDate;
 
 /**
  * Handler per le operazioni sugli Hackathon.
- * Placeholder per futura integrazione con Spring Boot REST Controller.
  */
 public class HackathonHandler {
 
     private final HackathonService hackathonService;
-    private final UtenteRepository utenteRepository;
 
-    public HackathonHandler(HackathonService hackathonService, UtenteRepository utenteRepository) {
+    public HackathonHandler(HackathonService hackathonService) {
         this.hackathonService = hackathonService;
-        this.utenteRepository = utenteRepository;
     }
 
     /**
      * Crea un nuovo hackathon.
-     * Endpoint futuro: POST /api/hackathon/crea
+     * @param nome il nome
+     * @param dataInizio la data di inizio
+     * @param dataFine la data di fine
+     * @param descrizione la descrizione
+     * @param regolamento il regolamento
+     * @param scadenzaIscrizioni la scadenza delle iscrizioni
+     * @param maxPartecipanti il numero massimo di partecipanti
+     * @param premio il premio
+     * @return Result con l'hackathon creato
      */
-    public Result<Hackathon> creaHackathon(HackathonRequest request, Long organizzatoreId) {
+    public Result<Hackathon> creaHackathonRequest(String nome, LocalDate dataInizio, LocalDate dataFine,
+                                                  String descrizione, String regolamento,
+                                                  LocalDate scadenzaIscrizioni, int maxPartecipanti,
+                                                  double premio, Long organizzatoreId) {
         try {
-            Utente organizzatore = utenteRepository.findById(organizzatoreId)
-                    .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
-
-            if (!organizzatore.hasRuolo(Ruolo.ORGANIZZATORE)) {
-                return Result.badRequest("L'utente deve avere il ruolo ORGANIZZATORE");
-            }
-
-            Hackathon hackathon = hackathonService.creaHackathon(organizzatore, request);
+            Hackathon hackathon = hackathonService.createHackathon(nome, descrizione, dataInizio, dataFine, maxPartecipanti, premio, organizzatoreId);
             return Result.created(hackathon);
         } catch (IllegalArgumentException e) {
             return Result.badRequest(e.getMessage());
@@ -42,107 +42,64 @@ public class HackathonHandler {
     }
 
     /**
-     * Ottiene i dettagli di un hackathon.
-     * Endpoint futuro: GET /api/hackathon/{id}
-     */
-    public Result<Hackathon> getDettagliHackathon(Long id) {
-        try {
-            Hackathon hackathon = hackathonService.getDettagliHackathon(id);
-            return Result.success(hackathon);
-        } catch (IllegalArgumentException e) {
-            return Result.notFound("Hackathon non trovato");
-        }
-    }
-
-    /**
-     * Ottiene il numero massimo di membri per team.
-     * Endpoint futuro: GET /api/hackathon/{id}/max-membri
-     */
-    public Result<Integer> getMaxMembriTeam(Long id) {
-        try {
-            int maxMembri = hackathonService.getMaxMembriTeam(id);
-            return Result.success(maxMembri);
-        } catch (IllegalArgumentException e) {
-            return Result.notFound("Hackathon non trovato");
-        }
-    }
-
-    /**
-     * Verifica la validità di un hackathon.
-     * Endpoint futuro: GET /api/hackathon/{id}/validita
-     */
-    public Result<Boolean> checkValidita(Long id) {
-        boolean valido = hackathonService.checkValiditaHackathon(id);
-        return Result.success(valido);
-    }
-
-    /**
-     * Verifica se esiste un hackathon con il nome specificato.
-     * Endpoint futuro: GET /api/hackathon/esiste/{nome}
-     */
-    public Result<Boolean> esisteHackathon(String nome) {
-        boolean existe = hackathonService.esisteHackathonConNome(nome);
-        return Result.success(existe);
-    }
-
-    /**
-     * Assegna un giudice a un hackathon. Solo un organizzatore può assegnare giudici.
-     * Endpoint futuro: POST /api/hackathon/{id}/giudice
+     * Assegna un giudice a un hackathon tramite email.
      * @param hackathonId ID dell'hackathon
-     * @param giudiceId ID dell'utente da assegnare come giudice
-     * @param richiedenteId ID dell'utente che effettua l'operazione (deve essere ORGANIZZATORE)
+     * @param email email dell'utente da assegnare come giudice
+     * @param organizzatoreId ID dell'organizzatore
      */
-    public Result<Hackathon> assegnaGiudice(Long hackathonId, Long giudiceId, Long richiedenteId) {
+    public Result<String> assegnaGiudice(Long hackathonId, String email, Long organizzatoreId) {
         try {
-            Hackathon hackathon = hackathonService.assegnaGiudice(hackathonId, giudiceId, richiedenteId);
-            return Result.success(hackathon);
+            hackathonService.assegnaGiudice(hackathonId, email, organizzatoreId);
+            return Result.success("Giudice assegnato con successo");
         } catch (IllegalArgumentException e) {
             return Result.badRequest(e.getMessage());
         }
     }
 
     /**
-     * Rimuove il giudice da un hackathon. Solo un organizzatore può rimuovere giudici.
-     * Endpoint futuro: DELETE /api/hackathon/{id}/giudice
-     * @param hackathonId ID dell'hackathon
-     * @param richiedenteId ID dell'utente che effettua l'operazione (deve essere ORGANIZZATORE)
+     * Assegna un mentore tramite email.
+     * @param email email dell'utente da assegnare come mentore
+     * @param organizzatoreId ID dell'organizzatore
      */
-    public Result<Hackathon> rimuoviGiudice(Long hackathonId, Long richiedenteId) {
+    public Result<String> assegnaMentore(String email, Long organizzatoreId) {
         try {
-            Hackathon hackathon = hackathonService.rimuoviGiudice(hackathonId, richiedenteId);
-            return Result.success(hackathon);
+            hackathonService.assegnaMentore(email, organizzatoreId);
+            return Result.success("Mentore assegnato con successo");
         } catch (IllegalArgumentException e) {
             return Result.badRequest(e.getMessage());
         }
     }
 
     /**
-     * Aggiunge un membro allo staff. Solo un organizzatore può aggiungere staff.
-     * Endpoint futuro: POST /api/hackathon/{id}/staff
-     * @param hackathonId ID dell'hackathon
-     * @param utenteId ID dell'utente da aggiungere allo staff
-     * @param richiedenteId ID dell'utente che effettua l'operazione (deve essere ORGANIZZATORE)
+     * Aggiorna i dettagli dell'hackathon.
      */
-    public Result<Hackathon> aggiungiMembroStaff(Long hackathonId, Long utenteId, Long richiedenteId) {
+    public Result<String> refreshDettagli() {
+        return Result.success("Dettagli aggiornati");
+    }
+
+    /**
+     * Cambia lo stato di un hackathon.
+     * @param hackathonId ID dell'hackathon
+     * @param nuovoStato il nuovo stato
+     */
+    public Result<String> cambiaStato(Long hackathonId, StatoHackathon nuovoStato) {
         try {
-            Hackathon hackathon = hackathonService.aggiungiMembroStaff(hackathonId, utenteId, richiedenteId);
-            return Result.success(hackathon);
+            hackathonService.modifcaStato(hackathonId, nuovoStato);
+            return Result.success("Stato aggiornato con successo");
         } catch (IllegalArgumentException e) {
             return Result.badRequest(e.getMessage());
         }
     }
 
     /**
-     * Rimuove un membro dallo staff. Solo un organizzatore può rimuovere staff.
-     * Endpoint futuro: DELETE /api/hackathon/{id}/staff/{utenteId}
+     * Proclama il team vincitore di un hackathon.
      * @param hackathonId ID dell'hackathon
-     * @param utenteId ID dell'utente da rimuovere dallo staff
-     * @param richiedenteId ID dell'utente che effettua l'operazione (deve essere ORGANIZZATORE)
+     * @param teamId ID del team vincitore
      */
-    public Result<Hackathon> rimuoviMembroStaff(Long hackathonId, Long utenteId, Long richiedenteId) {
+    public Result<String> proclamaVincitore(Long hackathonId, Long teamId) {
         try {
-            Hackathon hackathon = hackathonService.rimuoviMembroStaff(hackathonId, utenteId, richiedenteId);
-            return Result.success(hackathon);
+            hackathonService.proclamaVincitore(hackathonId, teamId);
+            return Result.success("Vincitore proclamato con successo");
         } catch (IllegalArgumentException e) {
             return Result.badRequest(e.getMessage());
         }
