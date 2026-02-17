@@ -29,7 +29,7 @@ class TeamHandlerTest {
         teamHandler = new TeamHandler(teamService);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
-        leader = utenteRepository.save(leader);
+        leader = utenteRepository.add(leader);
     }
 
     @Test

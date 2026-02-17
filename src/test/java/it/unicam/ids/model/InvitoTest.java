@@ -39,18 +39,17 @@ class InvitoTest {
 
     @Test
     void testCostruttoreConParametri() {
-        Invito invito = new Invito(team, destinatario);
+        Invito invito = new Invito(team.getId(), destinatario.getId());
 
-        assertEquals(team, invito.getTeam());
-        assertEquals(destinatario, invito.getDestinatario());
-        assertEquals(destinatario.getId(), invito.getDestinatario().getId());
+        assertEquals(team.getId(), invito.getTeamId());
+        assertEquals(destinatario.getId(), invito.getDestinatario());
         assertEquals(LocalDate.now(), invito.getDataInvio());
         assertEquals(StatoInvito.IN_ATTESA, invito.getStato());
     }
 
     @Test
     void testAccetta() {
-        Invito invito = new Invito(team, destinatario);
+        Invito invito = new Invito(team.getId(), destinatario.getId());
 
         invito.setStato(StatoInvito.ACCETTATO);
         invito.setDataRisposta(LocalDate.now());
@@ -61,7 +60,7 @@ class InvitoTest {
 
     @Test
     void testRifiuta() {
-        Invito invito = new Invito(team, destinatario);
+        Invito invito = new Invito(team.getId(), destinatario.getId());
 
         invito.setStato(StatoInvito.RIFIUTATO);
         invito.setDataRisposta(LocalDate.now());
@@ -72,7 +71,7 @@ class InvitoTest {
 
     @Test
     void testIsInAttesa() {
-        Invito invito = new Invito(team, destinatario);
+        Invito invito = new Invito(team.getId(), destinatario.getId());
 
         assertEquals(StatoInvito.IN_ATTESA, invito.getStato());
 
@@ -84,16 +83,15 @@ class InvitoTest {
     void testSettersGetters() {
         Invito invito = new Invito();
         invito.setId(1L);
-        invito.setTeam(team);
-        invito.setDestinatario(destinatario);
+        invito.setTeamId(team.getId());
+        invito.setDestinatario(destinatario.getId());
         invito.setDataInvio(LocalDate.of(2025, 1, 15));
         invito.setDataRisposta(LocalDate.of(2025, 1, 16));
         invito.setStato(StatoInvito.ACCETTATO);
 
         assertEquals(1L, invito.getId());
-        assertEquals(team, invito.getTeam());
-        assertEquals(destinatario, invito.getDestinatario());
-        assertEquals(destinatario.getId(), invito.getDestinatario().getId());
+        assertEquals(team.getId(), invito.getTeamId());
+        assertEquals(destinatario.getId(), invito.getDestinatario());
         assertEquals(LocalDate.of(2025, 1, 15), invito.getDataInvio());
         assertEquals(LocalDate.of(2025, 1, 16), invito.getDataRisposta());
         assertEquals(StatoInvito.ACCETTATO, invito.getStato());
@@ -101,10 +99,10 @@ class InvitoTest {
 
     @Test
     void testEquals() {
-        Invito invito1 = new Invito(team, destinatario);
+        Invito invito1 = new Invito(team.getId(), destinatario.getId());
         invito1.setId(1L);
 
-        Invito invito2 = new Invito(team, destinatario);
+        Invito invito2 = new Invito(team.getId(), destinatario.getId());
         invito2.setId(1L);
 
         assertEquals(invito1, invito2);
@@ -115,10 +113,10 @@ class InvitoTest {
         Utente altroDestinatario = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
         altroDestinatario.setId(200L);
 
-        Invito invito1 = new Invito(team, destinatario);
+        Invito invito1 = new Invito(team.getId(), destinatario.getId());
         invito1.setId(1L);
 
-        Invito invito2 = new Invito(team, altroDestinatario);
+        Invito invito2 = new Invito(team.getId(), altroDestinatario.getId());
         invito2.setId(2L);
 
         assertNotEquals(invito1, invito2);
@@ -126,10 +124,10 @@ class InvitoTest {
 
     @Test
     void testHashCode() {
-        Invito invito1 = new Invito(team, destinatario);
+        Invito invito1 = new Invito(team.getId(), destinatario.getId());
         invito1.setId(1L);
 
-        Invito invito2 = new Invito(team, destinatario);
+        Invito invito2 = new Invito(team.getId(), destinatario.getId());
         invito2.setId(1L);
 
         assertEquals(invito1.hashCode(), invito2.hashCode());
@@ -137,7 +135,7 @@ class InvitoTest {
 
     @Test
     void testToString() {
-        Invito invito = new Invito(team, destinatario);
+        Invito invito = new Invito(team.getId(), destinatario.getId());
         invito.setId(1L);
 
         String toString = invito.toString();
