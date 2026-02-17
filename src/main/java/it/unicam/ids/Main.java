@@ -1,42 +1,68 @@
 package it.unicam.ids;
 
 import it.unicam.ids.controller.HackathonHandler;
+import it.unicam.ids.controller.InvitoHandler;
 import it.unicam.ids.controller.IscrizioneHandler;
 import it.unicam.ids.controller.Result;
+import it.unicam.ids.controller.SegnalazioneHandler;
+import it.unicam.ids.controller.SottomissioneHandler;
+import it.unicam.ids.controller.SupportoHandler;
 import it.unicam.ids.controller.TeamHandler;
+import it.unicam.ids.controller.ValutazioneHandler;
 import it.unicam.ids.model.Hackathon;
 import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
 import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.InvitoRepository;
+import it.unicam.ids.repository.SegnalazioneRepository;
+import it.unicam.ids.repository.SottomissioneRepository;
+import it.unicam.ids.repository.SupportoRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
+import it.unicam.ids.service.CalendarService;
+import it.unicam.ids.service.ConsoleService;
 import it.unicam.ids.service.HackathonService;
+import it.unicam.ids.service.InvitoService;
 import it.unicam.ids.service.IscrizioneService;
+import it.unicam.ids.service.NotificationService;
+import it.unicam.ids.service.ObserverSupporto;
+import it.unicam.ids.service.SegnalazioneService;
+import it.unicam.ids.service.SottomissioneService;
+import it.unicam.ids.service.SupportoService;
 import it.unicam.ids.service.TeamService;
+import it.unicam.ids.service.ValutazioneService;
 
 import java.time.LocalDate;
 import java.util.Scanner;
 
-/**
- * Classe principale per l'esecuzione dell'applicazione da console.
- * Permette di testare manualmente le funzionalita' del sistema.
- */
 public class Main {
 
     private final UtenteRepository utenteRepository;
     private final TeamRepository teamRepository;
     private final HackathonRepository hackathonRepository;
     private final InvitoRepository invitoRepository;
+    private final SottomissioneRepository sottomissioneRepository;
+    private final SupportoRepository supportoRepository;
+    private final SegnalazioneRepository segnalazioneRepository;
 
     private final TeamService teamService;
     private final HackathonService hackathonService;
     private final IscrizioneService iscrizioneService;
+    private final InvitoService invitoService;
+    private final SottomissioneService sottomissioneService;
+    private final ValutazioneService valutazioneService;
+    private final SupportoService supportoService;
+    private final SegnalazioneService segnalazioneService;
 
     private final TeamHandler teamHandler;
     private final HackathonHandler hackathonHandler;
     private final IscrizioneHandler iscrizioneHandler;
+    private final InvitoHandler invitoHandler;
+    private final SottomissioneHandler sottomissioneHandler;
+    private final ValutazioneHandler valutazioneHandler;
+    private final SupportoHandler supportoHandler;
+    private final SegnalazioneHandler segnalazioneHandler;
 
     private final Scanner scanner;
 
@@ -46,16 +72,36 @@ public class Main {
         teamRepository = new TeamRepository();
         hackathonRepository = new HackathonRepository();
         invitoRepository = new InvitoRepository();
+        sottomissioneRepository = new SottomissioneRepository();
+        supportoRepository = new SupportoRepository();
+        segnalazioneRepository = new SegnalazioneRepository();
+
+        // Inizializzazione Observer
+        ObserverSupporto observerSupporto = new ObserverSupporto();
+        observerSupporto.addSubscriber(new NotificationService());
+        observerSupporto.addSubscriber(new ConsoleService());
 
         // Inizializzazione Service
         teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
         hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService);
         iscrizioneService = new IscrizioneService(teamRepository, hackathonRepository);
+        invitoService = new InvitoService(utenteRepository, teamRepository, invitoRepository);
+        sottomissioneService = new SottomissioneService(sottomissioneRepository);
+        valutazioneService = new ValutazioneService(sottomissioneRepository);
+        CalendarService calendarService = new CalendarService();
+        supportoService = new SupportoService(supportoRepository, hackathonRepository,
+                utenteRepository, teamRepository, calendarService, observerSupporto);
+        segnalazioneService = new SegnalazioneService(segnalazioneRepository, hackathonRepository, utenteRepository);
 
         // Inizializzazione Handler (Controller)
         teamHandler = new TeamHandler(teamService);
         hackathonHandler = new HackathonHandler(hackathonService);
         iscrizioneHandler = new IscrizioneHandler(iscrizioneService);
+        invitoHandler = new InvitoHandler(invitoService);
+        sottomissioneHandler = new SottomissioneHandler(sottomissioneService);
+        valutazioneHandler = new ValutazioneHandler(valutazioneService);
+        supportoHandler = new SupportoHandler(supportoService);
+        segnalazioneHandler = new SegnalazioneHandler(segnalazioneService);
 
         scanner = new Scanner(System.in);
     }
@@ -117,7 +163,7 @@ public class Main {
 
         Utente organizzatore = new Utente(nome, cognome, email, password);
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
-        organizzatore = utenteRepository.save(organizzatore);
+        organizzatore = utenteRepository.add(organizzatore);
 
         System.out.println("\nOrganizzatore creato con ID: " + organizzatore.getId());
         System.out.println(organizzatore);
@@ -135,7 +181,7 @@ public class Main {
         String password = scanner.nextLine();
 
         Utente leader = new Utente(nome, cognome, email, password);
-        leader = utenteRepository.save(leader);
+        leader = utenteRepository.add(leader);
 
         System.out.println("\nUtente creato con ID: " + leader.getId() + " (diventerà Leader quando crea un team)");
         System.out.println(leader);
@@ -215,13 +261,13 @@ public class Main {
         System.out.println("1. Creazione Organizzatore...");
         Utente organizzatore = new Utente("Mario", "Rossi", "mario.rossi@email.com", "password123");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
-        organizzatore = utenteRepository.save(organizzatore);
+        organizzatore = utenteRepository.add(organizzatore);
         System.out.println("   Organizzatore creato: " + organizzatore);
 
         // Crea Leader (utente che diventerà leader)
         System.out.println("\n2. Creazione Utente (futuro Leader)...");
         Utente leader = new Utente("Luigi", "Verdi", "luigi.verdi@email.com", "password456");
-        leader = utenteRepository.save(leader);
+        leader = utenteRepository.add(leader);
         System.out.println("   Utente creato: " + leader);
 
         // Crea Team
