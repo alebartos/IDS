@@ -52,29 +52,29 @@ class IscrizioneHandlerTest {
 
         Utente organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
-        organizzatore = utenteRepository.save(organizzatore);
+        organizzatore = utenteRepository.add(organizzatore);
 
         hackathon = hackathonService.createHackathon(
                 "Test Hackathon", "Description",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
                 5, 5000.0, organizzatore.getId());
         hackathon.setScadenzaIscrizioni(LocalDate.now().plusMonths(1));
-        hackathonRepository.save(hackathon);
+        hackathonRepository.modifyRecord(hackathon);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
-        leader = utenteRepository.save(leader);
+        leader = utenteRepository.add(leader);
 
         membro1 = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        membro1 = utenteRepository.save(membro1);
+        membro1 = utenteRepository.add(membro1);
 
         membro2 = new Utente("Paolo", "Neri", "paolo@example.com", "password");
-        membro2 = utenteRepository.save(membro2);
+        membro2 = utenteRepository.add(membro2);
 
         team = teamService.createTeam("Team Alpha", leader.getId());
 
         team.getMembri().add(membro1.getId());
         team.getMembri().add(membro2.getId());
-        teamRepository.save(team);
+        teamRepository.modifyRecord(team);
     }
 
     @Test
@@ -93,14 +93,14 @@ class IscrizioneHandlerTest {
     void testIscriviTeamHackathonNonValido() {
         Utente org = new Utente("Paolo", "Bianchi", "paolo.bianchi@example.com", "pass");
         org.getRuoli().add(Ruolo.ORGANIZZATORE);
-        org = utenteRepository.save(org);
+        org = utenteRepository.add(org);
 
         Hackathon hackathonPassato = hackathonService.createHackathon(
                 "Passato Hackathon", "Description",
                 LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusDays(3),
                 5, 5000.0, org.getId());
         hackathonPassato.setScadenzaIscrizioni(LocalDate.now().minusMonths(2));
-        hackathonRepository.save(hackathonPassato);
+        hackathonRepository.modifyRecord(hackathonPassato);
 
         Result<String> response = iscrizioneHandler.iscriviTeam(team.getId(), hackathonPassato.getId());
 
@@ -155,14 +155,14 @@ class IscrizioneHandlerTest {
     void testSelezionaPartecipantiSuperaMax() {
         Utente org = new Utente("Marco", "Blu", "marco.blu@example.com", "pass");
         org.getRuoli().add(Ruolo.ORGANIZZATORE);
-        org = utenteRepository.save(org);
+        org = utenteRepository.add(org);
 
         Hackathon hackathonPiccolo = hackathonService.createHackathon(
                 "Hackathon Piccolo", "Description",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
                 1, 5000.0, org.getId());
         hackathonPiccolo.setScadenzaIscrizioni(LocalDate.now().plusMonths(1));
-        hackathonRepository.save(hackathonPiccolo);
+        hackathonRepository.modifyRecord(hackathonPiccolo);
 
         List<Long> selected = Arrays.asList(membro1.getId(), membro2.getId());
 

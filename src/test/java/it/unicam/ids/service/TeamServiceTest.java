@@ -27,7 +27,7 @@ class TeamServiceTest {
         teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
-        leader = utenteRepository.save(leader);
+        leader = utenteRepository.add(leader);
     }
 
     @Test
@@ -38,7 +38,6 @@ class TeamServiceTest {
         assertNotNull(team.getId());
         assertEquals("Team Alpha", team.getNome());
         assertEquals(leader.getId(), team.getLeaderId());
-        // Verifica che il leader abbia il ruolo LEADER
         assertTrue(leader.getRuoli().contains(Ruolo.LEADER));
     }
 
@@ -47,7 +46,7 @@ class TeamServiceTest {
         teamService.createTeam("Team Duplicate", leader.getId());
 
         Utente leader2 = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
-        leader2 = utenteRepository.save(leader2);
+        leader2 = utenteRepository.add(leader2);
         final Long leader2Id = leader2.getId();
 
         assertThrows(IllegalArgumentException.class,
@@ -73,9 +72,9 @@ class TeamServiceTest {
         Team team = teamService.createTeam("Team FindById", leader.getId());
 
         Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        membro = utenteRepository.save(membro);
+        membro = utenteRepository.add(membro);
         team.getMembri().add(membro.getId());
-        teamRepository.save(team);
+        teamRepository.modifyRecord(team);
 
         assertTrue(teamService.findById(membro.getId()));
         assertFalse(teamService.findById(9999L));

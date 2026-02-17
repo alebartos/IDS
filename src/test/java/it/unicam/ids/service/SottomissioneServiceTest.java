@@ -48,25 +48,21 @@ class SottomissioneServiceTest {
         hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService);
         sottomissioneService = new SottomissioneService(sottomissioneRepository);
 
-        // Crea organizzatore
         organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
-        organizzatore = utenteRepository.save(organizzatore);
+        organizzatore = utenteRepository.add(organizzatore);
 
-        // Crea leader del team
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
-        leader = utenteRepository.save(leader);
+        leader = utenteRepository.add(leader);
 
-        // Crea team
         team = teamService.createTeam("Team Alpha", leader.getId());
 
-        // Crea hackathon IN_CORSO
         hackathon = hackathonService.createHackathon(
                 "Hackathon Test", "Description",
                 LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
                 5, 1000.0, organizzatore.getId());
         hackathon.setStato(StatoHackathon.IN_CORSO);
-        hackathonRepository.save(hackathon);
+        hackathonRepository.modifyRecord(hackathon);
     }
 
     @Test
@@ -92,7 +88,7 @@ class SottomissioneServiceTest {
     void testGestisciBozzeDopoConsegna() {
         Sottomissione bozza = sottomissioneService.gestisciBozze(team.getId(), hackathon.getId());
         bozza.setStato(StatoSottomissione.CONSEGNATA);
-        sottomissioneRepository.save(bozza);
+        sottomissioneRepository.modifyRecord(bozza);
 
         assertThrows(IllegalArgumentException.class,
                 () -> sottomissioneService.gestisciBozze(team.getId(), hackathon.getId()));

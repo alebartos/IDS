@@ -40,7 +40,7 @@ class HackathonHandlerTest {
 
         organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
-        organizzatore = utenteRepository.save(organizzatore);
+        organizzatore = utenteRepository.add(organizzatore);
     }
 
     @Test
@@ -66,7 +66,7 @@ class HackathonHandlerTest {
     @Test
     void testCreaHackathonSenzaRuoloOrganizzatore() {
         Utente utenteNonOrganizzatore = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        utenteNonOrganizzatore = utenteRepository.save(utenteNonOrganizzatore);
+        utenteNonOrganizzatore = utenteRepository.add(utenteNonOrganizzatore);
 
         Result<Hackathon> response = hackathonHandler.creaHackathonRequest(
                 "Hackathon No Org",
