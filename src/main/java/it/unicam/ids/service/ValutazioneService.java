@@ -7,9 +7,6 @@ import it.unicam.ids.repository.SottomissioneRepository;
 
 import java.time.LocalDate;
 
-/**
- * Service per la gestione delle valutazioni delle sottomissioni.
- */
 public class ValutazioneService {
 
     private final SottomissioneRepository sottomissioneRepo;
@@ -18,20 +15,10 @@ public class ValutazioneService {
         this.sottomissioneRepo = sottomissioneRepo;
     }
 
-    /**
-     * Crea un DTO di valutazione a partire da punteggio e giudizio.
-     * @param punteggio il punteggio assegnato
-     * @param giudizio il giudizio testuale
-     * @return il DTO con i dati della valutazione
-     */
     public DatiValutazione creaDTO(int punteggio, String giudizio) {
         return new DatiValutazione(punteggio, giudizio, LocalDate.now());
     }
 
-    /**
-     * Verifica la validità dei dati di valutazione.
-     * @param datiValutazione i dati da validare
-     */
     public void checkValidità(DatiValutazione datiValutazione) {
         if (datiValutazione == null) {
             throw new IllegalArgumentException("I parametri non sono validi");
@@ -41,13 +28,6 @@ public class ValutazioneService {
         }
     }
 
-    /**
-     * Valuta una sottomissione.
-     * @param giudiceId l'ID del giudice che valuta
-     * @param sottomissioneId l'ID della sottomissione da valutare
-     * @param datiValutazione i dati della valutazione
-     * @return la sottomissione aggiornata con la valutazione
-     */
     public Sottomissione valutaSottomissione(Long giudiceId, Long sottomissioneId, DatiValutazione datiValutazione) {
         if (giudiceId == null || sottomissioneId == null) {
             throw new IllegalArgumentException("I parametri non sono validi");
@@ -68,7 +48,7 @@ public class ValutazioneService {
 
         sottomissione.setDatiValutazione(datiValutazione);
         sottomissione.setStato(StatoSottomissione.VALUTATA);
-        sottomissioneRepo.save(sottomissione);
+        sottomissioneRepo.modifyRecord(sottomissione);
 
         return sottomissione;
     }
