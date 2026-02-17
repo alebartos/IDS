@@ -11,9 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Service per la gestione delle iscrizioni ai hackathon.
- */
 public class IscrizioneService {
 
     private final TeamRepository teamRepo;
@@ -24,21 +21,11 @@ public class IscrizioneService {
         this.hackathonRepo = hackathonRepo;
     }
 
-    /**
-     * Recupera i dettagli di un hackathon.
-     * @param hackathonId ID dell'hackathon
-     * @return l'hackathon trovato
-     */
     public Hackathon getDettagliHackathon(Long hackathonId) {
         return hackathonRepo.findById(hackathonId)
                 .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
     }
 
-    /**
-     * Verifica che il team non sia già iscritto all'hackathon.
-     * @param teamId ID del team
-     * @param hackathonId ID dell'hackathon
-     */
     public void checkMaxTeam(Long teamId, Long hackathonId) {
         Hackathon hackathon = getDettagliHackathon(hackathonId);
         if (hackathon.getTeamIds().contains(teamId)) {
@@ -46,22 +33,10 @@ public class IscrizioneService {
         }
     }
 
-    /**
-     * Verifica che il numero di partecipanti selezionati non superi il massimo consentito.
-     * @param maxMembriTeam il numero massimo di membri
-     * @param size il numero di partecipanti selezionati
-     * @return true se il numero è valido, false altrimenti
-     */
     public boolean verificaMaxMembri(int maxMembriTeam, int size) {
         return size <= maxMembriTeam;
     }
 
-    /**
-     * Recupera la lista dei membri del team e il numero massimo di partecipanti consentiti.
-     * @param teamId ID del team
-     * @param hackathonId ID dell'hackathon
-     * @return una mappa con "membri" (List di Long) e "maxMembriTeam" (int)
-     */
     public Map<String, Object> selezionaPartecipanti(Long teamId, Long hackathonId) {
         Hackathon hackathon = getDettagliHackathon(hackathonId);
         int maxMembriTeam = hackathon.getMaxMembriTeam();
@@ -77,12 +52,6 @@ public class IscrizioneService {
         return result;
     }
 
-    /**
-     * Iscrive un team a un hackathon con i partecipanti selezionati.
-     * @param teamId ID del team
-     * @param hackathonId ID dell'hackathon
-     * @param partecipanti lista degli ID degli utenti selezionati come partecipanti
-     */
     public void iscriviTeam(Long teamId, Long hackathonId, List<Long> partecipanti) {
         Hackathon hackathon = getDettagliHackathon(hackathonId);
 
@@ -97,13 +66,9 @@ public class IscrizioneService {
         }
 
         hackathon.getTeamIds().add(teamId);
-        hackathonRepo.save(hackathon);
+        hackathonRepo.modifyRecord(hackathon);
     }
 
-    /**
-     * Verifica la validità dell'hackathon per le iscrizioni.
-     * @param hackathon l'hackathon da verificare
-     */
     public void checkValidità(Hackathon hackathon) {
         if (hackathon.getStato() != StatoHackathon.IN_ISCRIZIONE) {
             throw new IllegalArgumentException("L'hackathon non è in fase di iscrizione");
