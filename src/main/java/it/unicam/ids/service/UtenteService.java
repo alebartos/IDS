@@ -27,7 +27,7 @@ public class UtenteService {
         }
 
         Utente utente = new Utente(nome, cognome, email, password);
-        return utenteRepository.save(utente);
+        return utenteRepository.add(utente);
     }
 
     /**
@@ -57,7 +57,8 @@ public class UtenteService {
         }
 
         utente.getRuoli().add(ruolo);
-        return utenteRepository.save(utente);
+        utenteRepository.modifyRecord(utente);
+        return utente;
     }
 
     /**
@@ -75,7 +76,8 @@ public class UtenteService {
         }
 
         utente.getRuoli().remove(ruolo);
-        return utenteRepository.save(utente);
+        utenteRepository.modifyRecord(utente);
+        return utente;
     }
 
     /**
