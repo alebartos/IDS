@@ -12,7 +12,11 @@ import it.unicam.ids.service.TeamService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import it.unicam.ids.model.StatoHackathon;
+import it.unicam.ids.model.Team;
+
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -81,5 +85,156 @@ class HackathonHandlerTest {
 
         assertEquals(400, response.getStatusCode());
         assertFalse(response.isSuccess());
+    }
+
+    @Test
+    void testAssegnaGiudiceSuccess() {
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hack Giudice", "Desc",
+                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                5, 5000.0, organizzatore.getId());
+
+        Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
+        giudice.getRuoli().add(Ruolo.MEMBRO_STAFF);
+        utenteRepository.add(giudice);
+
+        Result<String> result = hackathonHandler.assegnaGiudice(
+                hackathon.getId(), "paolo@example.com", organizzatore.getId());
+        assertTrue(result.isSuccess());
+        assertEquals(200, result.getStatusCode());
+    }
+
+    @Test
+    void testAssegnaGiudiceNonOrganizzatore() {
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hack Giudice NO", "Desc",
+                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                5, 5000.0, organizzatore.getId());
+
+        Utente nonOrg = new Utente("Test", "User", "test@example.com", "pass");
+        nonOrg = utenteRepository.add(nonOrg);
+
+        Result<String> result = hackathonHandler.assegnaGiudice(
+                hackathon.getId(), "test@example.com", nonOrg.getId());
+        assertFalse(result.isSuccess());
+        assertEquals(400, result.getStatusCode());
+    }
+
+    @Test
+    void testAssegnaMentoreSuccess() {
+        hackathonService.createHackathon(
+                "Hack Mentore", "Desc",
+                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                5, 5000.0, organizzatore.getId());
+
+        Utente mentore = new Utente("Marco", "Neri", "marco@example.com", "password");
+        utenteRepository.add(mentore);
+
+        Result<String> result = hackathonHandler.assegnaMentore(
+                "marco@example.com", organizzatore.getId());
+        assertTrue(result.isSuccess());
+        assertEquals(200, result.getStatusCode());
+    }
+
+    @Test
+    void testAssegnaMentoreNonOrganizzatore() {
+        Utente nonOrg = new Utente("Test", "User", "test@example.com", "pass");
+        nonOrg = utenteRepository.add(nonOrg);
+
+        Result<String> result = hackathonHandler.assegnaMentore(
+                "test@example.com", nonOrg.getId());
+        assertFalse(result.isSuccess());
+        assertEquals(400, result.getStatusCode());
+    }
+
+    @Test
+    void testRefreshDettagli() {
+        Result<String> result = hackathonHandler.refreshDettagli();
+        assertTrue(result.isSuccess());
+        assertEquals(200, result.getStatusCode());
+    }
+
+    @Test
+    void testCambiaStatoSuccess() {
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hack Stato", "Desc",
+                LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
+                5, 5000.0, organizzatore.getId());
+
+        Result<String> result = hackathonHandler.cambiaStato(
+                hackathon.getId(), StatoHackathon.IN_CORSO);
+        assertTrue(result.isSuccess());
+        assertEquals(200, result.getStatusCode());
+    }
+
+    @Test
+    void testCambiaStatoTransizioneNonValida() {
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hack Stato NV", "Desc",
+                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                5, 5000.0, organizzatore.getId());
+
+        Result<String> result = hackathonHandler.cambiaStato(
+                hackathon.getId(), StatoHackathon.CONCLUSO);
+        assertFalse(result.isSuccess());
+        assertEquals(400, result.getStatusCode());
+    }
+
+    @Test
+    void testProclamaVincitoreSuccess() {
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hack Vincitore", "Desc",
+                LocalDate.now().minusDays(5), LocalDate.now().minusDays(1),
+                5, 5000.0, organizzatore.getId());
+
+        Utente leaderTeam = new Utente("Mario", "Rossi", "mario@example.com", "password");
+        leaderTeam = utenteRepository.add(leaderTeam);
+        Team team = teamService.createTeam("Team Vincitore", leaderTeam.getId());
+
+        hackathon.getTeamIds().add(team.getId());
+        hackathon.setStato(StatoHackathon.IN_VALUTAZIONE);
+        hackathonRepository.modifyRecord(hackathon);
+
+        Result<String> result = hackathonHandler.proclamaVincitore(
+                hackathon.getId(), team.getId());
+        assertTrue(result.isSuccess());
+        assertEquals(200, result.getStatusCode());
+    }
+
+    @Test
+    void testProclamaVincitoreHackathonNonInValutazione() {
+        Hackathon hackathon = hackathonService.createHackathon(
+                "Hack Vincitore NV", "Desc",
+                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                5, 5000.0, organizzatore.getId());
+
+        Result<String> result = hackathonHandler.proclamaVincitore(
+                hackathon.getId(), 1L);
+        assertFalse(result.isSuccess());
+        assertEquals(400, result.getStatusCode());
+    }
+
+    @Test
+    void testGetHackathons() {
+        hackathonService.createHackathon(
+                "Hack Get 1", "Desc",
+                LocalDate.of(2025, 5, 1), LocalDate.of(2025, 5, 3),
+                5, 1000.0, organizzatore.getId());
+        hackathonService.createHackathon(
+                "Hack Get 2", "Desc",
+                LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 3),
+                5, 2000.0, organizzatore.getId());
+
+        Result<List<Hackathon>> result = hackathonHandler.getHackathons();
+        assertTrue(result.isSuccess());
+        assertEquals(200, result.getStatusCode());
+        assertEquals(2, result.getData().size());
+    }
+
+    @Test
+    void testGetHackathonsVuota() {
+        Result<List<Hackathon>> result = hackathonHandler.getHackathons();
+        assertTrue(result.isSuccess());
+        assertTrue(result.getData().isEmpty());
     }
 }
