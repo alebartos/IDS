@@ -11,22 +11,21 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-/**
- * Repository per la gestione degli Utenti.
- * Utilizza HashMap per lo storage in-memory.
- * Pronto per futura integrazione con Spring Data JPA.
- */
 public class UtenteRepository {
 
     private final Map<Long, Utente> storage = new HashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
 
-    public Utente save(Utente utente) {
+    public Utente add(Utente utente) {
         if (utente.getId() == null) {
             utente.setId(idGenerator.getAndIncrement());
         }
         storage.put(utente.getId(), utente);
         return utente;
+    }
+
+    public void modifyRecord(Utente utente) {
+        storage.put(utente.getId(), utente);
     }
 
     public Optional<Utente> findById(Long id) {

@@ -10,22 +10,21 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-/**
- * Repository per la gestione delle Sottomissioni.
- * Utilizza HashMap per lo storage in-memory.
- * Pronto per futura integrazione con Spring Data JPA.
- */
 public class SottomissioneRepository {
 
     private final Map<Long, Sottomissione> storage = new HashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
 
-    public Sottomissione save(Sottomissione sottomissione) {
+    public Sottomissione add(Sottomissione sottomissione) {
         if (sottomissione.getId() == null) {
             sottomissione.setId(idGenerator.getAndIncrement());
         }
         storage.put(sottomissione.getId(), sottomissione);
         return sottomissione;
+    }
+
+    public void modifyRecord(Sottomissione sottomissione) {
+        storage.put(sottomissione.getId(), sottomissione);
     }
 
     public Optional<Sottomissione> findById(Long id) {
@@ -52,9 +51,6 @@ public class SottomissioneRepository {
         return storage.size();
     }
 
-    /**
-     * Trova una sottomissione per team e hackathon.
-     */
     public Optional<Sottomissione> findByTeamAndHackathon(Long teamId, Long hackathonId) {
         return storage.values().stream()
                 .filter(s -> s.getTeamId() != null &&
@@ -64,18 +60,12 @@ public class SottomissioneRepository {
                 .findFirst();
     }
 
-    /**
-     * Trova tutte le sottomissioni di un team.
-     */
     public List<Sottomissione> findByTeamId(Long teamId) {
         return storage.values().stream()
                 .filter(s -> s.getTeamId() != null && s.getTeamId().equals(teamId))
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Trova tutte le sottomissioni per un hackathon.
-     */
     public List<Sottomissione> findByHackathonId(Long hackathonId) {
         return storage.values().stream()
                 .filter(s -> s.getHackathonId() != null && s.getHackathonId().equals(hackathonId))

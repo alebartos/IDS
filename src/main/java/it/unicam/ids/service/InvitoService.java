@@ -1,5 +1,6 @@
 package it.unicam.ids.service;
 
+import it.unicam.ids.builder.InvitoBuilder;
 import it.unicam.ids.model.Invito;
 import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.StatoInvito;
@@ -11,9 +12,6 @@ import it.unicam.ids.repository.UtenteRepository;
 
 import java.time.LocalDate;
 
-/**
- * Service per la gestione degli Inviti.
- */
 public class InvitoService {
 
     private final UtenteRepository utenteRepo;
@@ -26,13 +24,6 @@ public class InvitoService {
         this.invitoRepo = invitoRepo;
     }
 
-    /**
-     * Invita un membro al team tramite email.
-     * @param email email dell'utente da invitare
-     * @param teamId ID del team
-     * @param richiedenteId ID dell'utente che sta effettuando l'invito (deve essere il leader)
-     * @return l'invito creato
-     */
     public Invito invitaMembro(String email, Long teamId, Long richiedenteId) {
         Team team = teamRepo.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
@@ -48,15 +39,14 @@ public class InvitoService {
             throw new IllegalArgumentException("Esiste già un invito pendente per questo utente in questo team");
         }
 
-        Invito invito = new Invito(team, destinatario);
-        return invitoRepo.save(invito);
+        Invito invito = InvitoBuilder.newBuilder()
+                .team(teamId)
+                .destinatario(destinatario.getId())
+                .build();
+
+        return invitoRepo.add(invito);
     }
 
-    /**
-     * Gestisce un invito (accetta o rifiuta).
-     * @param invitoId ID dell'invito
-     * @param risposta "ACCETTATO" o "RIFIUTATO"
-     */
     public void gestisciInvito(Long invitoId, String risposta) {
         Invito invito = invitoRepo.findById(invitoId)
                 .orElseThrow(() -> new IllegalArgumentException("Invito non trovato"));
@@ -68,25 +58,27 @@ public class InvitoService {
         if ("ACCETTATO".equalsIgnoreCase(risposta)) {
             invito.setStato(StatoInvito.ACCETTATO);
             invito.setDataRisposta(LocalDate.now());
-            invitoRepo.save(invito);
+            invitoRepo.modifyRecord(invito);
 
-            Team team = invito.getTeam();
+            Team team = teamRepo.findById(invito.getTeamId())
+                    .orElse(null);
             if (team != null) {
-                team.getMembri().add(invito.getDestinatario().getId());
-                teamRepo.save(team);
+                team.getMembri().add(invito.getDestinatario());
+                teamRepo.modifyRecord(team);
             }
 
-            Utente destinatario = invito.getDestinatario();
+            Utente destinatario = utenteRepo.findById(invito.getDestinatario())
+                    .orElse(null);
             if (destinatario != null) {
                 destinatario.getRuoli().add(Ruolo.MEMBRO_TEAM);
-                utenteRepo.save(destinatario);
+                utenteRepo.modifyRecord(destinatario);
             }
 
-            invitoRepo.chiudiAltriInviti(invito.getDestinatario().getId(), invitoId);
+            invitoRepo.rifiutaAltriInviti(invito.getDestinatario(), invitoId);
         } else if ("RIFIUTATO".equalsIgnoreCase(risposta)) {
             invito.setStato(StatoInvito.RIFIUTATO);
             invito.setDataRisposta(LocalDate.now());
-            invitoRepo.save(invito);
+            invitoRepo.modifyRecord(invito);
         } else {
             throw new IllegalArgumentException("Risposta non valida. Usare ACCETTATO o RIFIUTATO");
         }

@@ -9,17 +9,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Repository per la gestione dei Team.
- * Utilizza HashMap per lo storage in-memory.
- * Pronto per futura integrazione con Spring Data JPA.
- */
 public class TeamRepository {
 
     private final Map<Long, Team> storage = new HashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
 
-    public Team save(Team team) {
+    public Team add(Team team) {
         if (team.getId() == null) {
             team.setId(idGenerator.getAndIncrement());
         }
@@ -27,8 +22,25 @@ public class TeamRepository {
         return team;
     }
 
+    public void modifyRecord(Team team) {
+        storage.put(team.getId(), team);
+    }
+
     public Optional<Team> findById(Long id) {
         return Optional.ofNullable(storage.get(id));
+    }
+
+    public Optional<Team> findByName(String nome) {
+        return storage.values().stream()
+                .filter(team -> team.getNome() != null && team.getNome().equals(nome))
+                .findFirst();
+    }
+
+    public Optional<Team> findByUtenteId(Long utenteId) {
+        return storage.values().stream()
+                .filter(team -> team.getMembri().contains(utenteId) ||
+                        (team.getLeaderId() != null && team.getLeaderId().equals(utenteId)))
+                .findFirst();
     }
 
     public List<Team> findAll() {
@@ -49,11 +61,6 @@ public class TeamRepository {
 
     public long count() {
         return storage.size();
-    }
-
-    public boolean existsByNome(String nome) {
-        return storage.values().stream()
-                .anyMatch(team -> team.getNome() != null && team.getNome().equals(nome));
     }
 
     public Optional<Team> findByLeaderId(Long leaderId) {

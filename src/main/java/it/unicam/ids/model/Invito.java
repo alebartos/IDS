@@ -9,18 +9,18 @@ public class Invito {
     private LocalDate dataInvio;
     private LocalDate dataRisposta;
     private StatoInvito stato;
-    private Team team;
-    private Utente destinatario;
+    private Long teamId;
+    private Long destinatario;
 
     public Invito() {
         this.dataInvio = LocalDate.now();
         this.stato = StatoInvito.IN_ATTESA;
     }
 
-    public Invito(Team team, Utente destinatario) {
+    public Invito(Long teamId, Long destinatario) {
         this.dataInvio = LocalDate.now();
         this.stato = StatoInvito.IN_ATTESA;
-        this.team = team;
+        this.teamId = teamId;
         this.destinatario = destinatario;
     }
 
@@ -36,11 +36,11 @@ public class Invito {
     public StatoInvito getStato() { return stato; }
     public void setStato(StatoInvito stato) { this.stato = stato; }
 
-    public Team getTeam() { return team; }
-    public void setTeam(Team team) { this.team = team; }
+    public Long getTeamId() { return teamId; }
+    public void setTeamId(Long teamId) { this.teamId = teamId; }
 
-    public Utente getDestinatario() { return destinatario; }
-    public void setDestinatario(Utente destinatario) { this.destinatario = destinatario; }
+    public Long getDestinatario() { return destinatario; }
+    public void setDestinatario(Long destinatario) { this.destinatario = destinatario; }
 
     @Override
     public boolean equals(Object o) {
@@ -48,13 +48,13 @@ public class Invito {
         if (o == null || getClass() != o.getClass()) return false;
         Invito invito = (Invito) o;
         return Objects.equals(id, invito.id) &&
-                Objects.equals(team, invito.team) &&
+                Objects.equals(teamId, invito.teamId) &&
                 Objects.equals(destinatario, invito.destinatario);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, team, destinatario);
+        return Objects.hash(id, teamId, destinatario);
     }
 
     @Override
@@ -64,8 +64,8 @@ public class Invito {
                 ", dataInvio=" + dataInvio +
                 ", dataRisposta=" + dataRisposta +
                 ", stato=" + stato +
-                ", teamId=" + (team != null ? team.getId() : null) +
-                ", destinatarioId=" + (destinatario != null ? destinatario.getId() : null) +
+                ", teamId=" + teamId +
+                ", destinatarioId=" + destinatario +
                 '}';
     }
 }

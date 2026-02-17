@@ -9,17 +9,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Repository per la gestione degli Hackathon.
- * Utilizza HashMap per lo storage in-memory.
- * Pronto per futura integrazione con Spring Data JPA.
- */
 public class HackathonRepository {
 
     private final Map<Long, Hackathon> storage = new HashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
 
-    public Hackathon save(Hackathon hackathon) {
+    public Hackathon add(Hackathon hackathon) {
         if (hackathon.getId() == null) {
             hackathon.setId(idGenerator.getAndIncrement());
         }
@@ -27,11 +22,19 @@ public class HackathonRepository {
         return hackathon;
     }
 
+    public void modifyRecord(Hackathon hackathon) {
+        storage.put(hackathon.getId(), hackathon);
+    }
+
     public Optional<Hackathon> findById(Long id) {
         return Optional.ofNullable(storage.get(id));
     }
 
     public List<Hackathon> findAll() {
+        return new ArrayList<>(storage.values());
+    }
+
+    public List<Hackathon> getAllHackathon() {
         return new ArrayList<>(storage.values());
     }
 
@@ -51,18 +54,13 @@ public class HackathonRepository {
         return storage.size();
     }
 
-    public boolean existsByNome(String nome) {
-        return storage.values().stream()
-                .anyMatch(hackathon -> hackathon.getNome() != null && hackathon.getNome().equals(nome));
-    }
-
-    public Optional<Hackathon> findByNome(String nome) {
+    public Optional<Hackathon> findByName(String nome) {
         return storage.values().stream()
                 .filter(hackathon -> hackathon.getNome() != null && hackathon.getNome().equals(nome))
                 .findFirst();
     }
 
-    public Optional<Hackathon> findByOrganizzatoreId(Long organizzatoreId) {
+    public Optional<Hackathon> findByIdOrganizzatore(Long organizzatoreId) {
         return storage.values().stream()
                 .filter(hackathon -> hackathon.getOrganizzatoreId() != null
                         && hackathon.getOrganizzatoreId().equals(organizzatoreId))
