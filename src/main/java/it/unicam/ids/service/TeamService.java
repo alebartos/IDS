@@ -8,9 +8,6 @@ import it.unicam.ids.repository.InvitoRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 
-/**
- * Service per la gestione dei Team.
- */
 public class TeamService {
 
     private final TeamRepository teamRepo;
@@ -23,12 +20,6 @@ public class TeamService {
         this.utenteRepo = utenteRepo;
     }
 
-    /**
-     * Crea un nuovo team.
-     * @param nomeTeam il nome del team
-     * @param leaderId l'ID del leader del team
-     * @return il team creato
-     */
     public Team createTeam(String nomeTeam, Long leaderId) {
         if (teamEsiste(nomeTeam)) {
             throw new IllegalArgumentException("Esiste già un team con questo nome");
@@ -42,31 +33,20 @@ public class TeamService {
         }
 
         leader.getRuoli().add(Ruolo.LEADER);
-        utenteRepo.save(leader);
+        utenteRepo.modifyRecord(leader);
 
         Team team = TeamBuilder.newBuilder()
                 .nome(nomeTeam)
                 .leaderId(leaderId)
                 .build();
 
-        return teamRepo.save(team);
+        return teamRepo.add(team);
     }
 
-    /**
-     * Verifica se esiste un team con il nome specificato.
-     * @param nomeTeam il nome da verificare
-     * @return true se esiste, false altrimenti
-     */
     private boolean teamEsiste(String nomeTeam) {
-        return teamRepo.existsByNome(nomeTeam);
+        return teamRepo.findByName(nomeTeam).isPresent();
     }
 
-    /**
-     * Rimuove un membro dal team. Solo il leader può rimuovere membri.
-     * @param membroId l'ID del membro da rimuovere
-     * @param leaderId l'ID del leader che effettua la rimozione
-     * @return il team aggiornato
-     */
     public Team rimuoviMembro(Long membroId, Long leaderId) {
         Team team = teamRepo.findByLeaderId(leaderId)
                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
@@ -87,18 +67,13 @@ public class TeamService {
         }
 
         membro.getRuoli().remove(Ruolo.MEMBRO_TEAM);
-        utenteRepo.save(membro);
+        utenteRepo.modifyRecord(membro);
 
         team.getMembri().remove(membroId);
-        return teamRepo.save(team);
+        teamRepo.modifyRecord(team);
+        return team;
     }
 
-    /**
-     * Nomina un membro del team come viceleader.
-     * @param leaderId l'ID del leader che effettua la nomina
-     * @param membroId l'ID del membro da nominare viceleader
-     * @return il team aggiornato
-     */
     public Team nominaViceleader(Long leaderId, Long membroId) {
         Team team = teamRepo.findByLeaderId(leaderId)
                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
@@ -115,18 +90,13 @@ public class TeamService {
         }
 
         membro.getRuoli().add(Ruolo.VICELEADER);
-        utenteRepo.save(membro);
+        utenteRepo.modifyRecord(membro);
 
         team.setViceleaderId(membroId);
-        return teamRepo.save(team);
+        teamRepo.modifyRecord(team);
+        return team;
     }
 
-    /**
-     * Rimuove la nomina di viceleader di un membro del team.
-     * @param leaderId l'ID del leader che effettua la revoca
-     * @param membroId l'ID del membro a cui revocare il ruolo
-     * @return il team aggiornato
-     */
     public Team removeViceleader(Long leaderId, Long membroId) {
         Team team = teamRepo.findByLeaderId(leaderId)
                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
@@ -139,17 +109,13 @@ public class TeamService {
         }
 
         membro.getRuoli().remove(Ruolo.VICELEADER);
-        utenteRepo.save(membro);
+        utenteRepo.modifyRecord(membro);
 
         team.setViceleaderId(null);
-        return teamRepo.save(team);
+        teamRepo.modifyRecord(team);
+        return team;
     }
 
-    /**
-     * Verifica se un utente è membro di qualche team.
-     * @param utenteId l'ID dell'utente da verificare
-     * @return true se l'utente è membro di almeno un team, false altrimenti
-     */
     public boolean findById(Long utenteId) {
         return teamRepo.findAll().stream()
                 .anyMatch(t -> t.getMembri().contains(utenteId));
