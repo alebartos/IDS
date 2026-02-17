@@ -41,10 +41,10 @@ class HackathonServiceTest {
 
         organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
-        organizzatore = utenteRepository.save(organizzatore);
+        organizzatore = utenteRepository.add(organizzatore);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
-        leader = utenteRepository.save(leader);
+        leader = utenteRepository.add(leader);
 
         team = teamService.createTeam("Team Test", leader.getId());
     }
@@ -79,7 +79,7 @@ class HackathonServiceTest {
     @Test
     void testCreaHackathonSenzaRuoloOrganizzatore() {
         Utente utenteNonOrganizzatore = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        utenteNonOrganizzatore = utenteRepository.save(utenteNonOrganizzatore);
+        utenteNonOrganizzatore = utenteRepository.add(utenteNonOrganizzatore);
         final Long utenteId = utenteNonOrganizzatore.getId();
 
         assertThrows(IllegalArgumentException.class,
@@ -98,7 +98,7 @@ class HackathonServiceTest {
 
         Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
         giudice.getRuoli().add(Ruolo.MEMBRO_STAFF);
-        giudice = utenteRepository.save(giudice);
+        giudice = utenteRepository.add(giudice);
 
         hackathonService.assegnaGiudice(hackathon.getId(), "paolo@example.com", organizzatore.getId());
 
@@ -117,10 +117,10 @@ class HackathonServiceTest {
 
         Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
         giudice.getRuoli().add(Ruolo.MEMBRO_STAFF);
-        giudice = utenteRepository.save(giudice);
+        giudice = utenteRepository.add(giudice);
 
         Utente nonOrganizzatore = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        nonOrganizzatore = utenteRepository.save(nonOrganizzatore);
+        nonOrganizzatore = utenteRepository.add(nonOrganizzatore);
         final Long nonOrganizzatoreId = nonOrganizzatore.getId();
 
         assertThrows(IllegalArgumentException.class,
@@ -136,10 +136,10 @@ class HackathonServiceTest {
 
         Utente giudice1 = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
         giudice1.getRuoli().add(Ruolo.MEMBRO_STAFF);
-        giudice1 = utenteRepository.save(giudice1);
+        giudice1 = utenteRepository.add(giudice1);
         Utente giudice2 = new Utente("Anna", "Bianchi", "anna@example.com", "password");
         giudice2.getRuoli().add(Ruolo.MEMBRO_STAFF);
-        giudice2 = utenteRepository.save(giudice2);
+        giudice2 = utenteRepository.add(giudice2);
 
         hackathonService.assegnaGiudice(hackathon.getId(), "paolo@example.com", organizzatore.getId());
 
@@ -166,7 +166,7 @@ class HackathonServiceTest {
                 5, 5000.0, organizzatore.getId());
 
         Utente mentore = new Utente("Marco", "Neri", "marco@example.com", "password");
-        mentore = utenteRepository.save(mentore);
+        mentore = utenteRepository.add(mentore);
 
         hackathonService.assegnaMentore("marco@example.com", organizzatore.getId());
 
@@ -195,7 +195,7 @@ class HackathonServiceTest {
                 5, 5000.0, organizzatore.getId());
 
         hackathon.getTeamIds().add(team.getId());
-        hackathonRepository.save(hackathon);
+        hackathonRepository.modifyRecord(hackathon);
 
         assertTrue(hackathonService.findByTeamId(team.getId()));
         assertFalse(hackathonService.findByTeamId(9999L));
@@ -234,7 +234,7 @@ class HackathonServiceTest {
 
         hackathon.getTeamIds().add(team.getId());
         hackathon.setStato(StatoHackathon.IN_VALUTAZIONE);
-        hackathonRepository.save(hackathon);
+        hackathonRepository.modifyRecord(hackathon);
 
         hackathonService.proclamaVincitore(hackathon.getId(), team.getId());
 

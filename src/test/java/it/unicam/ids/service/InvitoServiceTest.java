@@ -35,10 +35,10 @@ class InvitoServiceTest {
         teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
-        leader = utenteRepository.save(leader);
+        leader = utenteRepository.add(leader);
 
         destinatario = new Utente("Anna", "Bianchi", "anna.bianchi@example.com", "password456");
-        destinatario = utenteRepository.save(destinatario);
+        destinatario = utenteRepository.add(destinatario);
 
         team = teamService.createTeam("Team Test", leader.getId());
     }
@@ -49,15 +49,15 @@ class InvitoServiceTest {
 
         assertNotNull(invito);
         assertNotNull(invito.getId());
-        assertEquals(team.getId(), invito.getTeam().getId());
-        assertEquals(destinatario.getId(), invito.getDestinatario().getId());
+        assertEquals(team.getId(), invito.getTeamId());
+        assertEquals(destinatario.getId(), invito.getDestinatario());
         assertEquals(StatoInvito.IN_ATTESA, invito.getStato());
     }
 
     @Test
     void testInvitaMembroNonLeader() {
         Utente nonLeader = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
-        nonLeader = utenteRepository.save(nonLeader);
+        nonLeader = utenteRepository.add(nonLeader);
         final Long nonLeaderId = nonLeader.getId();
 
         assertThrows(IllegalArgumentException.class,
@@ -136,7 +136,7 @@ class InvitoServiceTest {
         Invito invito1 = invitoService.invitaMembro("anna.bianchi@example.com", team.getId(), leader.getId());
 
         Utente leader2 = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password789");
-        leader2 = utenteRepository.save(leader2);
+        leader2 = utenteRepository.add(leader2);
         Team team2 = teamService.createTeam("Team 2", leader2.getId());
         Invito invito2 = invitoService.invitaMembro("anna.bianchi@example.com", team2.getId(), leader2.getId());
 
