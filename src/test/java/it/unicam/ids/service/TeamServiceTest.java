@@ -68,6 +68,117 @@ class TeamServiceTest {
     }
 
     @Test
+    void testRimuoviMembroSuccess() {
+        Team team = teamService.createTeam("Team Rimuovi", leader.getId());
+
+        Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
+        membro = utenteRepository.add(membro);
+        membro.getRuoli().add(Ruolo.MEMBRO_TEAM);
+        utenteRepository.modifyRecord(membro);
+        team.getMembri().add(membro.getId());
+        teamRepository.modifyRecord(team);
+
+        Team aggiornato = teamService.rimuoviMembro(membro.getId(), leader.getId());
+        assertFalse(aggiornato.getMembri().contains(membro.getId()));
+    }
+
+    @Test
+    void testRimuoviMembroSeStesso() {
+        teamService.createTeam("Team Self", leader.getId());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> teamService.rimuoviMembro(leader.getId(), leader.getId()));
+    }
+
+    @Test
+    void testRimuoviMembroNonAppartenente() {
+        teamService.createTeam("Team No Member", leader.getId());
+
+        Utente estraneo = new Utente("Test", "User", "test@example.com", "pass");
+        estraneo = utenteRepository.add(estraneo);
+        final Long estraneoId = estraneo.getId();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> teamService.rimuoviMembro(estraneoId, leader.getId()));
+    }
+
+    @Test
+    void testNominaViceleaderSuccess() {
+        Team team = teamService.createTeam("Team Vice", leader.getId());
+
+        Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
+        membro = utenteRepository.add(membro);
+        team.getMembri().add(membro.getId());
+        teamRepository.modifyRecord(team);
+
+        Team aggiornato = teamService.nominaViceleader(leader.getId(), membro.getId());
+        assertEquals(membro.getId(), aggiornato.getViceleaderId());
+        assertTrue(membro.getRuoli().contains(Ruolo.VICELEADER));
+    }
+
+    @Test
+    void testNominaViceleaderGiaEsistente() {
+        Team team = teamService.createTeam("Team Vice Dup", leader.getId());
+
+        Utente m1 = new Utente("Anna", "Bianchi", "anna@example.com", "password");
+        m1 = utenteRepository.add(m1);
+        team.getMembri().add(m1.getId());
+
+        Utente m2 = new Utente("Luigi", "Verdi", "luigi@example.com", "password");
+        m2 = utenteRepository.add(m2);
+        team.getMembri().add(m2.getId());
+        teamRepository.modifyRecord(team);
+
+        teamService.nominaViceleader(leader.getId(), m1.getId());
+        final Long m2Id = m2.getId();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> teamService.nominaViceleader(leader.getId(), m2Id));
+    }
+
+    @Test
+    void testNominaViceleaderNonMembro() {
+        teamService.createTeam("Team Vice NM", leader.getId());
+
+        Utente estraneo = new Utente("Test", "User", "test@example.com", "pass");
+        estraneo = utenteRepository.add(estraneo);
+        final Long estraneoId = estraneo.getId();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> teamService.nominaViceleader(leader.getId(), estraneoId));
+    }
+
+    @Test
+    void testRemoveViceleaderSuccess() {
+        Team team = teamService.createTeam("Team RemVice", leader.getId());
+
+        Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
+        membro = utenteRepository.add(membro);
+        team.getMembri().add(membro.getId());
+        teamRepository.modifyRecord(team);
+
+        teamService.nominaViceleader(leader.getId(), membro.getId());
+        Team aggiornato = teamService.removeViceleader(leader.getId(), membro.getId());
+
+        assertNull(aggiornato.getViceleaderId());
+        assertFalse(membro.getRuoli().contains(Ruolo.VICELEADER));
+    }
+
+    @Test
+    void testRemoveViceleaderNonViceleader() {
+        Team team = teamService.createTeam("Team RemVice NV", leader.getId());
+
+        Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
+        membro = utenteRepository.add(membro);
+        team.getMembri().add(membro.getId());
+        teamRepository.modifyRecord(team);
+        final Long membroId = membro.getId();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> teamService.removeViceleader(leader.getId(), membroId));
+    }
+
+    @Test
     void testFindById() {
         Team team = teamService.createTeam("Team FindById", leader.getId());
 

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -241,5 +242,38 @@ class HackathonServiceTest {
         Hackathon aggiornato = hackathonRepository.findById(hackathon.getId()).orElseThrow();
         assertEquals(team.getId(), aggiornato.getTeamVincitoreId());
         assertEquals(StatoHackathon.CONCLUSO, aggiornato.getStato());
+    }
+
+    @Test
+    void testCreaListaHackathon() {
+        hackathonService.createHackathon(
+                "Hack Lista 1", "Description",
+                LocalDate.of(2025, 3, 1), LocalDate.of(2025, 3, 3),
+                5, 1000.0, organizzatore.getId());
+        hackathonService.createHackathon(
+                "Hack Lista 2", "Description",
+                LocalDate.of(2025, 4, 1), LocalDate.of(2025, 4, 3),
+                5, 2000.0, organizzatore.getId());
+
+        List<Hackathon> lista = hackathonService.creaListaHackathon();
+        assertEquals(2, lista.size());
+    }
+
+    @Test
+    void testCreaListaHackathonVuota() {
+        List<Hackathon> lista = hackathonService.creaListaHackathon();
+        assertTrue(lista.isEmpty());
+    }
+
+    @Test
+    void testGetHackathons() {
+        hackathonService.createHackathon(
+                "Hack Get 1", "Description",
+                LocalDate.of(2025, 5, 1), LocalDate.of(2025, 5, 3),
+                5, 1000.0, organizzatore.getId());
+
+        List<Hackathon> hackathons = hackathonService.getHackathons();
+        assertEquals(1, hackathons.size());
+        assertEquals("Hack Get 1", hackathons.get(0).getNome());
     }
 }
