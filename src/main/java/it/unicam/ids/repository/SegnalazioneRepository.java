@@ -2,7 +2,9 @@ package it.unicam.ids.repository;
 
 import it.unicam.ids.model.Segnalazione;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
@@ -22,6 +24,20 @@ public class SegnalazioneRepository {
 
     public Optional<Segnalazione> findById(Long id) {
         return Optional.ofNullable(storage.get(id));
+    }
+
+    public void modifyRecord(Segnalazione segnalazione) {
+        storage.put(segnalazione.getId(), segnalazione);
+    }
+
+    public List<Segnalazione> getAllSegnalazioniByHackathon(Long hackathonId) {
+        List<Segnalazione> result = new ArrayList<>();
+        for (Segnalazione s : storage.values()) {
+            if (s.getHackathonId().equals(hackathonId)) {
+                result.add(s);
+            }
+        }
+        return result;
     }
 
     public void deleteAll() {
