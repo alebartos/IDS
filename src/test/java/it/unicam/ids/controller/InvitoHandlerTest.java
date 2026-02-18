@@ -2,6 +2,7 @@ package it.unicam.ids.controller;
 
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
+import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.InvitoRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
@@ -30,7 +31,8 @@ class InvitoHandlerTest {
         teamRepository = new TeamRepository();
         invitoRepository = new InvitoRepository();
 
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
+        HackathonRepository hackathonRepository = new HackathonRepository();
+        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
         InvitoService invitoService = new InvitoService(utenteRepository, teamRepository, invitoRepository);
         invitoHandler = new InvitoHandler(invitoService);
 

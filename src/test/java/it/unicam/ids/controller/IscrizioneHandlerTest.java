@@ -45,9 +45,9 @@ class IscrizioneHandlerTest {
         utenteRepository = new UtenteRepository();
         invitoRepository = new InvitoRepository();
 
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
-        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService);
-        iscrizioneService = new IscrizioneService(teamRepository, hackathonRepository);
+        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
+        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
+        iscrizioneService = new IscrizioneService(teamRepository, hackathonRepository, utenteRepository);
         iscrizioneHandler = new IscrizioneHandler(iscrizioneService);
 
         Utente organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
@@ -57,9 +57,8 @@ class IscrizioneHandlerTest {
         hackathon = hackathonService.createHackathon(
                 "Test Hackathon", "Description",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 5, 5000.0, organizzatore.getId());
-        hackathon.setScadenzaIscrizioni(LocalDate.now().plusMonths(1));
-        hackathonRepository.modifyRecord(hackathon);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
         leader = utenteRepository.add(leader);
@@ -98,9 +97,8 @@ class IscrizioneHandlerTest {
         Hackathon hackathonPassato = hackathonService.createHackathon(
                 "Passato Hackathon", "Description",
                 LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusDays(3),
+                LocalDate.now().minusMonths(2),
                 5, 5000.0, org.getId());
-        hackathonPassato.setScadenzaIscrizioni(LocalDate.now().minusMonths(2));
-        hackathonRepository.modifyRecord(hackathonPassato);
 
         Result<String> response = iscrizioneHandler.iscriviTeam(team.getId(), hackathonPassato.getId());
 
@@ -160,9 +158,8 @@ class IscrizioneHandlerTest {
         Hackathon hackathonPiccolo = hackathonService.createHackathon(
                 "Hackathon Piccolo", "Description",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 1, 5000.0, org.getId());
-        hackathonPiccolo.setScadenzaIscrizioni(LocalDate.now().plusMonths(1));
-        hackathonRepository.modifyRecord(hackathonPiccolo);
 
         List<Long> selected = Arrays.asList(membro1.getId(), membro2.getId());
 

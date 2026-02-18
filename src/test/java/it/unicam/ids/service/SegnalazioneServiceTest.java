@@ -35,9 +35,9 @@ class SegnalazioneServiceTest {
         TeamRepository teamRepository = new TeamRepository();
         InvitoRepository invitoRepository = new InvitoRepository();
 
-        TeamService teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
-        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService);
-        segnalazioneService = new SegnalazioneService(segnalazioneRepository, hackathonRepository, utenteRepository);
+        TeamService teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
+        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
+        segnalazioneService = new SegnalazioneService(segnalazioneRepository, hackathonRepository, utenteRepository, teamRepository);
 
         organizzatore = new Utente("Luigi", "Verdi", "luigi@example.com", "password");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
@@ -46,6 +46,7 @@ class SegnalazioneServiceTest {
         hackathon = hackathonService.createHackathon(
                 "Hackathon Test", "Description",
                 LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
+                LocalDate.now().plusDays(1),
                 5, 1000.0, organizzatore.getId());
     }
 
