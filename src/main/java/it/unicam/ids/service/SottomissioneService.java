@@ -1,20 +1,62 @@
 package it.unicam.ids.service;
 
 import it.unicam.ids.dto.DatiProgetto;
+import it.unicam.ids.model.Hackathon;
+import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Sottomissione;
+import it.unicam.ids.model.StatoHackathon;
 import it.unicam.ids.model.StatoSottomissione;
+import it.unicam.ids.model.Utente;
 import it.unicam.ids.builder.SottomissioneBuilder;
+import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.SottomissioneRepository;
+import it.unicam.ids.repository.UtenteRepository;
+
+import java.time.LocalDate;
 
 public class SottomissioneService {
 
     private final SottomissioneRepository sottomissioneRepo;
+    private final HackathonRepository hackathonRepo;
+    private final UtenteRepository utenteRepo;
 
-    public SottomissioneService(SottomissioneRepository sottomissioneRepo) {
+    public SottomissioneService(SottomissioneRepository sottomissioneRepo,
+                                HackathonRepository hackathonRepo,
+                                UtenteRepository utenteRepo) {
         this.sottomissioneRepo = sottomissioneRepo;
+        this.hackathonRepo = hackathonRepo;
+        this.utenteRepo = utenteRepo;
+    }
+
+    public void checkRuoloPartecipante(Long utenteId) {
+        Utente utente = utenteRepo.findById(utenteId)
+                .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
+        if (!utente.getRuoli().contains(Ruolo.PARTECIPANTE)
+                && !utente.getRuoli().contains(Ruolo.MEMBRO_TEAM)
+                && !utente.getRuoli().contains(Ruolo.LEADER)) {
+            throw new IllegalArgumentException("Non sei un partecipante");
+        }
+    }
+
+    public void checkHackathonAttivo(Long hackathonId) {
+        Hackathon hackathon = hackathonRepo.findById(hackathonId)
+                .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
+        if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
+            throw new IllegalArgumentException("Hackathon non attivo");
+        }
+    }
+
+    public void checkTeamIscritto(Long teamId, Long hackathonId) {
+        Hackathon hackathon = hackathonRepo.findById(hackathonId)
+                .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
+        if (!hackathon.getTeamIds().contains(teamId)) {
+            throw new IllegalArgumentException("Team non iscritto a questo hackathon");
+        }
     }
 
     public Sottomissione gestisciBozze(Long teamId, Long hackathonId) {
+        checkHackathonAttivo(hackathonId);
+
         Sottomissione sottomissione = sottomissioneRepo
                 .findByTeamAndHackathon(teamId, hackathonId)
                 .orElse(null);
@@ -31,6 +73,36 @@ public class SottomissioneService {
                 .hackathonId(hackathonId)
                 .stato(StatoSottomissione.BOZZA)
                 .build();
+
+        return sottomissioneRepo.add(sottomissione);
+    }
+
+    public Sottomissione elaboraSottomissione(Long teamId, Long hackathonId, DatiProgetto datiProgetto) {
+        checkHackathonAttivo(hackathonId);
+        checkTeamIscritto(teamId, hackathonId);
+
+        Sottomissione sottomissione = sottomissioneRepo
+                .findByTeamAndHackathon(teamId, hackathonId)
+                .orElse(null);
+
+        if (sottomissione != null) {
+            if (sottomissione.getStato() == StatoSottomissione.CONSEGNATA) {
+                throw new IllegalArgumentException("Sottomissione definitiva già inviata");
+            }
+            sottomissione.setDatiProgetto(datiProgetto);
+            sottomissione.setStato(StatoSottomissione.CONSEGNATA);
+            sottomissione.setDataInvio(LocalDate.now());
+            sottomissioneRepo.modifyRecord(sottomissione);
+            return sottomissione;
+        }
+
+        sottomissione = SottomissioneBuilder.newBuilder()
+                .teamId(teamId)
+                .hackathonId(hackathonId)
+                .datiProgetto(datiProgetto)
+                .stato(StatoSottomissione.CONSEGNATA)
+                .build();
+        sottomissione.setDataInvio(LocalDate.now());
 
         return sottomissioneRepo.add(sottomissione);
     }
