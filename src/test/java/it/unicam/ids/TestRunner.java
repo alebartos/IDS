@@ -17,7 +17,7 @@ public class TestRunner {
         SummaryGeneratingListener listener = new SummaryGeneratingListener();
 
         LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
-                .selectors(DiscoverySelectors.selectPackage("com.ids"))
+                .selectors(DiscoverySelectors.selectPackage("it.unicam.ids"))
                 .build();
 
         Launcher launcher = LauncherFactory.create();
