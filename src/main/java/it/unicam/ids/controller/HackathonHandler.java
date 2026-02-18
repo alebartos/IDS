@@ -2,6 +2,7 @@ package it.unicam.ids.controller;
 
 import it.unicam.ids.model.Hackathon;
 import it.unicam.ids.model.StatoHackathon;
+import it.unicam.ids.model.Team;
 import it.unicam.ids.service.HackathonService;
 
 import java.time.LocalDate;
@@ -20,7 +21,7 @@ public class HackathonHandler {
                                                   LocalDate scadenzaIscrizioni, int maxPartecipanti,
                                                   double premio, Long organizzatoreId) {
         try {
-            Hackathon hackathon = hackathonService.createHackathon(nome, descrizione, dataInizio, dataFine, maxPartecipanti, premio, organizzatoreId);
+            Hackathon hackathon = hackathonService.createHackathon(nome, descrizione, dataInizio, dataFine, scadenzaIscrizioni, maxPartecipanti, premio, organizzatoreId);
             return Result.created(hackathon);
         } catch (IllegalArgumentException e) {
             return Result.badRequest(e.getMessage());
@@ -71,6 +72,15 @@ public class HackathonHandler {
         try {
             List<Hackathon> hackathons = hackathonService.getHackathons();
             return Result.success(hackathons);
+        } catch (IllegalArgumentException e) {
+            return Result.badRequest(e.getMessage());
+        }
+    }
+
+    public Result<List<Team>> getTeams(Long hackathonId) {
+        try {
+            List<Team> teams = hackathonService.getTeams(hackathonId);
+            return Result.success(teams);
         } catch (IllegalArgumentException e) {
             return Result.badRequest(e.getMessage());
         }
