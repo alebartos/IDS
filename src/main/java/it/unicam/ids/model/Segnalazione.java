@@ -52,11 +52,11 @@ public class Segnalazione {
     @Override
     public String toString() {
         return "Segnalazione{" +
-               "id=" + id +
-               ", descrizione='" + descrizione + '\'' +
-               ", teamId=" + teamId +
-               ", hackathonId=" + hackathonId +
-               ", gestita=" + gestita +
-               '}';
+                "id=" + id +
+                ", descrizione='" + descrizione + '\'' +
+                ", teamId=" + teamId +
+                ", hackathonId=" + hackathonId +
+                ", gestita=" + gestita +
+                '}';
     }
 }
