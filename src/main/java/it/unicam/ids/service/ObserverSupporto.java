@@ -1,23 +1,28 @@
 package it.unicam.ids.service;
 
+import it.unicam.ids.model.Utente;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class ObserverSupporto {
 
-    private final List<Subscriber> subscribers = new ArrayList<>();
+    private final List<Utente> subscribers = new ArrayList<>();
+    private final NotificationService notificationService;
 
-    public void addSubscriber(Subscriber subscriber) {
-        subscribers.add(subscriber);
+    public ObserverSupporto(NotificationService notificationService) {
+        this.notificationService = notificationService;
     }
 
-    public void removeSubscriber(Subscriber subscriber) {
-        subscribers.remove(subscriber);
+    public void iscrivi(Utente utente) {
+        subscribers.add(utente);
     }
 
-    public void notify(String contesto) {
-        for (Subscriber subscriber : subscribers) {
-            subscriber.update(contesto);
+    public void notifica() {
+        for (Utente utente : subscribers) {
+            String email = utente.getEmail();
+            Long utenteId = utente.getId();
+            notificationService.update("Il mentore " + utenteId + " (" + email + ") ha una nuova richiesta di supporto");
         }
     }
 }

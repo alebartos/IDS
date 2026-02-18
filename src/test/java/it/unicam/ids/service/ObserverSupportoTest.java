@@ -1,50 +1,34 @@
 package it.unicam.ids.service;
 
+import it.unicam.ids.model.Utente;
+import it.unicam.ids.repository.UtenteRepository;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ObserverSupportoTest {
 
     @Test
-    void testNotifySubscribers() {
-        ObserverSupporto observer = new ObserverSupporto();
-        List<String> messaggi = new ArrayList<>();
+    void testIscriviENotify() {
+        NotificationService notificationService = new NotificationService();
+        ObserverSupporto observer = new ObserverSupporto(notificationService);
 
-        Subscriber sub1 = messaggi::add;
-        Subscriber sub2 = messaggi::add;
+        UtenteRepository utenteRepo = new UtenteRepository();
+        Utente mentore1 = utenteRepo.add(new Utente("Mario", "Rossi", "mario@example.com", "pass"));
+        Utente mentore2 = utenteRepo.add(new Utente("Luigi", "Verdi", "luigi@example.com", "pass"));
 
-        observer.addSubscriber(sub1);
-        observer.addSubscriber(sub2);
+        observer.iscrivi(mentore1);
+        observer.iscrivi(mentore2);
 
-        observer.notify("Test messaggio");
-
-        assertEquals(2, messaggi.size());
-        assertEquals("Test messaggio", messaggi.get(0));
-        assertEquals("Test messaggio", messaggi.get(1));
-    }
-
-    @Test
-    void testRemoveSubscriber() {
-        ObserverSupporto observer = new ObserverSupporto();
-        List<String> messaggi = new ArrayList<>();
-
-        Subscriber sub = messaggi::add;
-        observer.addSubscriber(sub);
-        observer.removeSubscriber(sub);
-
-        observer.notify("Non dovrebbe arrivare");
-
-        assertTrue(messaggi.isEmpty());
+        assertDoesNotThrow(() -> observer.notifica());
     }
 
     @Test
     void testNotifyWithNoSubscribers() {
-        ObserverSupporto observer = new ObserverSupporto();
-        assertDoesNotThrow(() -> observer.notify("Nessun subscriber"));
+        NotificationService notificationService = new NotificationService();
+        ObserverSupporto observer = new ObserverSupporto(notificationService);
+
+        assertDoesNotThrow(() -> observer.notifica());
     }
 
     @Test
@@ -54,17 +38,8 @@ class ObserverSupportoTest {
     }
 
     @Test
-    void testConsoleServiceImplementation() {
-        ConsoleService consoleService = new ConsoleService();
-        assertDoesNotThrow(() -> consoleService.update("Test console"));
-    }
-
-    @Test
-    void testObserverConImplementazioniReali() {
-        ObserverSupporto observer = new ObserverSupporto();
-        observer.addSubscriber(new NotificationService());
-        observer.addSubscriber(new ConsoleService());
-
-        assertDoesNotThrow(() -> observer.notify("Nuova richiesta di supporto"));
+    void testNotificationServiceImplementsSubscriber() {
+        NotificationService notificationService = new NotificationService();
+        assertTrue(notificationService instanceof Subscriber);
     }
 }
