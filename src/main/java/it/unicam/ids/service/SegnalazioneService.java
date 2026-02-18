@@ -99,4 +99,21 @@ public class SegnalazioneService {
     public void inviaMail(String email, String oggetto) {
         System.out.println("[EMAIL] Invio mail a: " + email + " - Oggetto: " + oggetto);
     }
+
+    public void removeTeam(Long teamId) {
+        for (Hackathon h : hackathonRepo.findAll()) {
+            if (h.getTeamIds().contains(teamId)) {
+                h.getTeamIds().remove(teamId);
+                hackathonRepo.save(h);
+            }
+        }
+    }
+
+    public void removeRuolo(Ruolo ruolo) {
+        List<Utente> utenti = utenteRepo.findByRuoliContaining(ruolo);
+        for (Utente u : utenti) {
+            u.getRuoli().remove(ruolo);
+            utenteRepo.save(u);
+        }
+    }
 }

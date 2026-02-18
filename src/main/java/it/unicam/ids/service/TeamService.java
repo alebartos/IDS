@@ -110,4 +110,8 @@ public class TeamService {
     public boolean findById(Long utenteId) {
         return teamRepo.findAll().stream().anyMatch(t -> t.getMembri().contains(utenteId));
     }
+
+    public boolean checkRuolo(Ruolo ruolo) {
+        return ruolo != null;
+    }
 }
