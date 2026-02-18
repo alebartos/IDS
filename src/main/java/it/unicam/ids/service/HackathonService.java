@@ -4,8 +4,10 @@ import it.unicam.ids.builder.HackathonBuilder;
 import it.unicam.ids.model.Hackathon;
 import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.StatoHackathon;
+import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
 import it.unicam.ids.repository.HackathonRepository;
+import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 
 import java.time.LocalDate;
@@ -17,15 +19,19 @@ public class HackathonService {
     private final HackathonRepository hackathonRepo;
     private final UtenteRepository utenteRepo;
     private final TeamService teamService;
+    private final TeamRepository teamRepo;
 
-    public HackathonService(HackathonRepository hackathonRepo, UtenteRepository utenteRepo, TeamService teamService) {
+    public HackathonService(HackathonRepository hackathonRepo, UtenteRepository utenteRepo,
+                            TeamService teamService, TeamRepository teamRepo) {
         this.hackathonRepo = hackathonRepo;
         this.utenteRepo = utenteRepo;
         this.teamService = teamService;
+        this.teamRepo = teamRepo;
     }
 
     public Hackathon createHackathon(String nome, String descrizione, LocalDate dataInizio,
-                                     LocalDate dataFine, int maxPartecipanti, double premio,
+                                     LocalDate dataFine, LocalDate scadenzaIscrizioni,
+                                     int maxPartecipanti, double premio,
                                      Long organizzatoreId) {
         checkId(organizzatoreId);
 
@@ -49,6 +55,7 @@ public class HackathonService {
                 .descrizione(descrizione)
                 .dataInizio(dataInizio)
                 .dataFine(dataFine)
+                .scadenzaIscrizioni(scadenzaIscrizioni)
                 .premio(premio)
                 .maxMembriTeam(maxPartecipanti)
                 .build();
@@ -184,6 +191,8 @@ public class HackathonService {
                 if (statoCorrente == StatoHackathon.CONCLUSO) {
                     throw new IllegalArgumentException("Un hackathon concluso non può essere annullato");
                 }
+                // Rimuovi ruolo PARTECIPANTE da tutti i membri dei team iscritti
+                rimuoviPartecipantiDaHackathon(hackathon);
                 break;
             default:
                 throw new IllegalArgumentException("Transizione di stato non valida");
@@ -220,5 +229,36 @@ public class HackathonService {
 
     public List<Hackathon> getHackathons() {
         return creaListaHackathon();
+    }
+
+    public List<Team> getTeams(Long hackathonId) {
+        Hackathon hackathon = hackathonRepo.findById(hackathonId)
+                .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
+
+        List<Team> teams = new ArrayList<>();
+        for (Long teamId : hackathon.getTeamIds()) {
+            teamRepo.findById(teamId).ifPresent(teams::add);
+        }
+        return teams;
+    }
+
+    private void rimuoviPartecipantiDaHackathon(Hackathon hackathon) {
+        for (Long teamId : hackathon.getTeamIds()) {
+            Team team = teamRepo.findById(teamId).orElse(null);
+            if (team == null) continue;
+
+            for (Long membroId : team.getMembri()) {
+                Utente utente = utenteRepo.findById(membroId).orElse(null);
+                if (utente != null) {
+                    utente.getRuoli().remove(Ruolo.PARTECIPANTE);
+                    utenteRepo.modifyRecord(utente);
+                }
+            }
+            Utente leader = utenteRepo.findById(team.getLeaderId()).orElse(null);
+            if (leader != null) {
+                leader.getRuoli().remove(Ruolo.PARTECIPANTE);
+                utenteRepo.modifyRecord(leader);
+            }
+        }
     }
 }
