@@ -42,7 +42,7 @@ public class SegnalazioneHandler {
     }
 
     @PutMapping("/{id}/archivia")
-    public ResponseEntity<?> archiviaSegnalazione(@PathVariable Long id) {
+    public ResponseEntity<?> gestisciSegnalazione(@PathVariable Long id) {
         try {
             segnalazioneService.archiviaSegnalazione(id);
             return ResponseEntity.ok(Map.of("message", "Segnalazione archiviata con successo"));
@@ -52,7 +52,7 @@ public class SegnalazioneHandler {
     }
 
     @PutMapping("/{id}/squalifica")
-    public ResponseEntity<?> squalificaTeam(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> gestisciSegnalazione(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         try {
             Long teamId = ((Number) body.get("teamId")).longValue();
             Long hackathonId = ((Number) body.get("hackathonId")).longValue();

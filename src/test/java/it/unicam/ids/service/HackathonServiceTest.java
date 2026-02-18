@@ -6,25 +6,37 @@ import it.unicam.ids.model.StatoHackathon;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
 import it.unicam.ids.repository.HackathonRepository;
-import it.unicam.ids.repository.InvitoRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
+@Transactional
 class HackathonServiceTest {
 
+    @Autowired
     private HackathonService hackathonService;
+
+    @Autowired
     private TeamService teamService;
+
+    @Autowired
     private HackathonRepository hackathonRepository;
+
+    @Autowired
     private UtenteRepository utenteRepository;
+
+    @Autowired
     private TeamRepository teamRepository;
-    private InvitoRepository invitoRepository;
 
     private Utente organizzatore;
     private Utente leader;
@@ -32,20 +44,12 @@ class HackathonServiceTest {
 
     @BeforeEach
     void setUp() {
-        hackathonRepository = new HackathonRepository();
-        utenteRepository = new UtenteRepository();
-        teamRepository = new TeamRepository();
-        invitoRepository = new InvitoRepository();
-
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
-        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
-
         organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
-        organizzatore = utenteRepository.add(organizzatore);
+        organizzatore = utenteRepository.save(organizzatore);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
-        leader = utenteRepository.add(leader);
+        leader = utenteRepository.save(leader);
 
         team = teamService.createTeam("Team Test", leader.getId());
     }
@@ -83,7 +87,7 @@ class HackathonServiceTest {
     @Test
     void testCreaHackathonSenzaRuoloOrganizzatore() {
         Utente utenteNonOrganizzatore = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        utenteNonOrganizzatore = utenteRepository.add(utenteNonOrganizzatore);
+        utenteNonOrganizzatore = utenteRepository.save(utenteNonOrganizzatore);
         final Long utenteId = utenteNonOrganizzatore.getId();
 
         assertThrows(IllegalArgumentException.class,
@@ -104,7 +108,7 @@ class HackathonServiceTest {
 
         Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
         giudice.getRuoli().add(Ruolo.MEMBRO_STAFF);
-        giudice = utenteRepository.add(giudice);
+        giudice = utenteRepository.save(giudice);
 
         hackathonService.assegnaGiudice(hackathon.getId(), "paolo@example.com", organizzatore.getId());
 
@@ -124,10 +128,10 @@ class HackathonServiceTest {
 
         Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
         giudice.getRuoli().add(Ruolo.MEMBRO_STAFF);
-        giudice = utenteRepository.add(giudice);
+        giudice = utenteRepository.save(giudice);
 
         Utente nonOrganizzatore = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        nonOrganizzatore = utenteRepository.add(nonOrganizzatore);
+        nonOrganizzatore = utenteRepository.save(nonOrganizzatore);
         final Long nonOrganizzatoreId = nonOrganizzatore.getId();
 
         assertThrows(IllegalArgumentException.class,
@@ -144,10 +148,10 @@ class HackathonServiceTest {
 
         Utente giudice1 = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
         giudice1.getRuoli().add(Ruolo.MEMBRO_STAFF);
-        giudice1 = utenteRepository.add(giudice1);
+        giudice1 = utenteRepository.save(giudice1);
         Utente giudice2 = new Utente("Anna", "Bianchi", "anna@example.com", "password");
         giudice2.getRuoli().add(Ruolo.MEMBRO_STAFF);
-        giudice2 = utenteRepository.add(giudice2);
+        giudice2 = utenteRepository.save(giudice2);
 
         hackathonService.assegnaGiudice(hackathon.getId(), "paolo@example.com", organizzatore.getId());
 
@@ -176,7 +180,7 @@ class HackathonServiceTest {
                 5, 5000.0, organizzatore.getId());
 
         Utente mentore = new Utente("Marco", "Neri", "marco@example.com", "password");
-        mentore = utenteRepository.add(mentore);
+        mentore = utenteRepository.save(mentore);
 
         hackathonService.assegnaMentore("marco@example.com", organizzatore.getId());
 
@@ -206,7 +210,7 @@ class HackathonServiceTest {
                 5, 5000.0, organizzatore.getId());
 
         hackathon.getTeamIds().add(team.getId());
-        hackathonRepository.modifyRecord(hackathon);
+        hackathonRepository.save(hackathon);
 
         assertTrue(hackathonService.findByTeamId(team.getId()));
         assertFalse(hackathonService.findByTeamId(9999L));
@@ -248,7 +252,7 @@ class HackathonServiceTest {
 
         hackathon.getTeamIds().add(team.getId());
         hackathon.setStato(StatoHackathon.IN_VALUTAZIONE);
-        hackathonRepository.modifyRecord(hackathon);
+        hackathonRepository.save(hackathon);
 
         hackathonService.proclamaVincitore(hackathon.getId(), team.getId());
 

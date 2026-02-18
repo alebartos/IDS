@@ -6,18 +6,24 @@ import it.unicam.ids.model.StatoSottomissione;
 import it.unicam.ids.repository.SottomissioneRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
+@Transactional
 class ValutazioneServiceTest {
 
+    @Autowired
     private ValutazioneService valutazioneService;
+
+    @Autowired
     private SottomissioneRepository sottomissioneRepository;
 
     @BeforeEach
     void setUp() {
-        sottomissioneRepository = new SottomissioneRepository();
-        valutazioneService = new ValutazioneService(sottomissioneRepository);
     }
 
     @Test
@@ -60,7 +66,7 @@ class ValutazioneServiceTest {
         s.setTeamId(1L);
         s.setHackathonId(1L);
         s.setStato(StatoSottomissione.CONSEGNATA);
-        s = sottomissioneRepository.add(s);
+        s = sottomissioneRepository.save(s);
 
         DatiValutazione dv = valutazioneService.creaDTO(90, "Eccellente");
         Sottomissione valutata = valutazioneService.valutaSottomissione(1L, s.getId(), dv);
@@ -74,7 +80,7 @@ class ValutazioneServiceTest {
     void testValutaSottomissioneGiaValutata() {
         Sottomissione s = new Sottomissione();
         s.setStato(StatoSottomissione.VALUTATA);
-        s = sottomissioneRepository.add(s);
+        s = sottomissioneRepository.save(s);
 
         DatiValutazione dv = valutazioneService.creaDTO(80, "Buono");
         Long sId = s.getId();
@@ -87,7 +93,7 @@ class ValutazioneServiceTest {
     void testValutaSottomissioneNonConsegnata() {
         Sottomissione s = new Sottomissione();
         s.setStato(StatoSottomissione.BOZZA);
-        s = sottomissioneRepository.add(s);
+        s = sottomissioneRepository.save(s);
 
         DatiValutazione dv = valutazioneService.creaDTO(70, "Sufficiente");
         Long sId = s.getId();

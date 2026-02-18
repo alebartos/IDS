@@ -13,7 +13,7 @@ public class HackathonBuilder {
     private LocalDate scadenzaIscrizioni;
     private String luogo;
     private String regolamento;
-    private double premio;
+    private String premio;
     private Integer maxMembriTeam;
 
     private HackathonBuilder() {
@@ -59,7 +59,7 @@ public class HackathonBuilder {
         return this;
     }
 
-    public HackathonBuilder premio(double premio) {
+    public HackathonBuilder premio(String premio) {
         this.premio = premio;
         return this;
     }
@@ -87,7 +87,7 @@ public class HackathonBuilder {
         hackathon.setScadenzaIscrizioni(scadenzaIscrizioni);
         hackathon.setLuogo(luogo);
         hackathon.setRegolamento(regolamento);
-        hackathon.setPremio(premio);
+        hackathon.setPremio(premio != null ? Double.parseDouble(premio) : 0);
         hackathon.setMaxMembriTeam(maxMembriTeam);
         return hackathon;
     }
