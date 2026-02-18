@@ -9,27 +9,43 @@ import it.unicam.ids.model.StatoSottomissione;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
 import it.unicam.ids.repository.HackathonRepository;
-import it.unicam.ids.repository.InvitoRepository;
 import it.unicam.ids.repository.SottomissioneRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
+@Transactional
 class SottomissioneServiceTest {
 
+    @Autowired
     private SottomissioneService sottomissioneService;
-    private SottomissioneRepository sottomissioneRepository;
-    private TeamRepository teamRepository;
-    private HackathonRepository hackathonRepository;
-    private UtenteRepository utenteRepository;
-    private InvitoRepository invitoRepository;
-    private TeamService teamService;
+
+    @Autowired
     private HackathonService hackathonService;
+
+    @Autowired
+    private TeamService teamService;
+
+    @Autowired
+    private SottomissioneRepository sottomissioneRepository;
+
+    @Autowired
+    private HackathonRepository hackathonRepository;
+
+    @Autowired
+    private TeamRepository teamRepository;
+
+    @Autowired
+    private UtenteRepository utenteRepository;
 
     private Team team;
     private Hackathon hackathon;
@@ -38,22 +54,12 @@ class SottomissioneServiceTest {
 
     @BeforeEach
     void setUp() {
-        sottomissioneRepository = new SottomissioneRepository();
-        teamRepository = new TeamRepository();
-        hackathonRepository = new HackathonRepository();
-        utenteRepository = new UtenteRepository();
-        invitoRepository = new InvitoRepository();
-
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
-        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
-        sottomissioneService = new SottomissioneService(sottomissioneRepository, hackathonRepository, utenteRepository);
-
         organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
-        organizzatore = utenteRepository.add(organizzatore);
+        organizzatore = utenteRepository.save(organizzatore);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
-        leader = utenteRepository.add(leader);
+        leader = utenteRepository.save(leader);
 
         team = teamService.createTeam("Team Alpha", leader.getId());
 
@@ -63,12 +69,12 @@ class SottomissioneServiceTest {
                 LocalDate.now().plusDays(1),
                 5, 1000.0, organizzatore.getId());
         hackathon.setStato(StatoHackathon.IN_CORSO);
-        hackathonRepository.modifyRecord(hackathon);
+        hackathonRepository.save(hackathon);
     }
 
     @Test
     void testGestisciBozzeSuccess() {
-        Sottomissione sottomissione = sottomissioneService.gestisciBozze(team.getId(), hackathon.getId());
+        Sottomissione sottomissione = sottomissioneService.gestisciBozze(team.getId(), hackathon.getId(), leader.getId());
 
         assertNotNull(sottomissione);
         assertNotNull(sottomissione.getId());
@@ -79,20 +85,20 @@ class SottomissioneServiceTest {
 
     @Test
     void testGestisciBozzeRestituisceBozzaEsistente() {
-        Sottomissione bozza = sottomissioneService.gestisciBozze(team.getId(), hackathon.getId());
-        Sottomissione stessa = sottomissioneService.gestisciBozze(team.getId(), hackathon.getId());
+        Sottomissione bozza = sottomissioneService.gestisciBozze(team.getId(), hackathon.getId(), leader.getId());
+        Sottomissione stessa = sottomissioneService.gestisciBozze(team.getId(), hackathon.getId(), leader.getId());
 
         assertEquals(bozza.getId(), stessa.getId());
     }
 
     @Test
     void testGestisciBozzeDopoConsegna() {
-        Sottomissione bozza = sottomissioneService.gestisciBozze(team.getId(), hackathon.getId());
+        Sottomissione bozza = sottomissioneService.gestisciBozze(team.getId(), hackathon.getId(), leader.getId());
         bozza.setStato(StatoSottomissione.CONSEGNATA);
-        sottomissioneRepository.modifyRecord(bozza);
+        sottomissioneRepository.save(bozza);
 
         assertThrows(IllegalArgumentException.class,
-                () -> sottomissioneService.gestisciBozze(team.getId(), hackathon.getId()));
+                () -> sottomissioneService.gestisciBozze(team.getId(), hackathon.getId(), leader.getId()));
     }
 
     @Test
