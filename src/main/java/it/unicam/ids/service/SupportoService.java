@@ -81,9 +81,10 @@ public class SupportoService {
         for (Long mentoreId : hackathon.getMentoreIds()) {
             Utente mentore = utenteRepo.findById(mentoreId).orElse(null);
             if (mentore != null) {
-                observerSupporto.notify("Il mentore " + mentoreId + " ha una nuova richiesta di supporto");
+                observerSupporto.iscrivi(mentore);
             }
         }
+        observerSupporto.notifica();
     }
 
     public void prenotaCall(Long richiestaId, LocalDate data, LocalTime oraInizio, LocalTime oraFine) {

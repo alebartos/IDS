@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -46,11 +47,11 @@ class SupportoHandlerTest {
         InvitoRepository invitoRepository = new InvitoRepository();
 
         CalendarService calendarService = new CalendarService();
-        ObserverSupporto observerSupporto = new ObserverSupporto();
-        observerSupporto.addSubscriber(new NotificationService());
+        NotificationService notificationService = new NotificationService();
+        ObserverSupporto observerSupporto = new ObserverSupporto(notificationService);
 
-        TeamService teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
-        HackathonService hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService);
+        TeamService teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
+        HackathonService hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
         SupportoService supportoService = new SupportoService(supportoRepository, hackathonRepository,
                 utenteRepository, teamRepository, calendarService, observerSupporto);
         supportoHandler = new SupportoHandler(supportoService);
@@ -73,6 +74,7 @@ class SupportoHandlerTest {
         hackathon = hackathonService.createHackathon(
                 "Hackathon Test", "Description",
                 LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
+                LocalDate.now().plusDays(1),
                 5, 1000.0, organizzatore.getId());
         hackathon.setStato(StatoHackathon.IN_CORSO);
         hackathonRepository.modifyRecord(hackathon);
@@ -115,7 +117,7 @@ class SupportoHandlerTest {
         RichiestaSupporto richiesta = supportoRepository.getAllRichieste(hackathon.getId()).get(0);
 
         Result<String> result = supportoHandler.prenotaCall(
-                richiesta.getId(), LocalDate.now().plusDays(1), LocalDate.now().plusDays(2));
+                richiesta.getId(), LocalDate.now().plusDays(1), LocalTime.of(10, 0), LocalTime.of(11, 0));
 
         assertTrue(result.isSuccess());
         assertEquals(200, result.getStatusCode());
@@ -123,7 +125,7 @@ class SupportoHandlerTest {
 
     @Test
     void testPrenotaCallDateNulle() {
-        Result<String> result = supportoHandler.prenotaCall(1L, null, LocalDate.now());
+        Result<String> result = supportoHandler.prenotaCall(1L, null, LocalTime.of(10, 0), LocalTime.of(11, 0));
 
         assertFalse(result.isSuccess());
         assertEquals(400, result.getStatusCode());

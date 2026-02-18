@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,11 +45,11 @@ class SupportoServiceTest {
         InvitoRepository invitoRepository = new InvitoRepository();
 
         CalendarService calendarService = new CalendarService();
-        ObserverSupporto observerSupporto = new ObserverSupporto();
-        observerSupporto.addSubscriber(new NotificationService());
+        NotificationService notificationService = new NotificationService();
+        ObserverSupporto observerSupporto = new ObserverSupporto(notificationService);
 
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
-        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService);
+        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
+        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
         supportoService = new SupportoService(supportoRepository, hackathonRepository,
                 utenteRepository, teamRepository, calendarService, observerSupporto);
 
@@ -73,6 +74,7 @@ class SupportoServiceTest {
         hackathon = hackathonService.createHackathon(
                 "Hackathon Test", "Description",
                 LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
+                LocalDate.now().plusDays(1),
                 5, 1000.0, organizzatore.getId());
         hackathon.setStato(StatoHackathon.IN_CORSO);
         hackathonRepository.modifyRecord(hackathon);
@@ -113,6 +115,7 @@ class SupportoServiceTest {
         Hackathon altro = hackathonService.createHackathon(
                 "Altro Hackathon", "Desc",
                 LocalDate.now().plusMonths(1), LocalDate.now().plusMonths(2),
+                LocalDate.now().plusDays(15),
                 5, 1000.0, organizzatore.getId());
 
         assertFalse(supportoService.checkStato(altro.getId()));
@@ -139,6 +142,7 @@ class SupportoServiceTest {
         Hackathon nonAttivo = hackathonService.createHackathon(
                 "Non Attivo", "Desc",
                 LocalDate.now().plusMonths(1), LocalDate.now().plusMonths(2),
+                LocalDate.now().plusDays(15),
                 5, 1000.0, organizzatore.getId());
 
         assertThrows(IllegalArgumentException.class,
@@ -164,10 +168,11 @@ class SupportoServiceTest {
         supportoService.elaboraRichiestaSupporto("Problema", membro.getId(), hackathon.getId());
         RichiestaSupporto richiesta = supportoService.creaListaRichieste(hackathon.getId()).get(0);
 
-        LocalDate inizio = LocalDate.now().plusDays(1);
-        LocalDate fine = LocalDate.now().plusDays(2);
+        LocalDate data = LocalDate.now().plusDays(1);
+        LocalTime oraInizio = LocalTime.of(10, 0);
+        LocalTime oraFine = LocalTime.of(11, 0);
 
-        assertDoesNotThrow(() -> supportoService.prenotaCall(richiesta.getId(), inizio, fine));
+        assertDoesNotThrow(() -> supportoService.prenotaCall(richiesta.getId(), data, oraInizio, oraFine));
 
         RichiestaSupporto aggiornata = supportoRepository.findById(richiesta.getId()).orElseThrow();
         assertTrue(aggiornata.isRisolta());
@@ -176,25 +181,25 @@ class SupportoServiceTest {
     @Test
     void testPrenotaCallDateNulle() {
         assertThrows(IllegalArgumentException.class,
-                () -> supportoService.prenotaCall(1L, null, LocalDate.now()));
+                () -> supportoService.prenotaCall(1L, null, LocalTime.of(10, 0), LocalTime.of(11, 0)));
     }
 
     @Test
-    void testPrenotaCallDateInvertite() {
+    void testPrenotaCallOrariInvertiti() {
         assertThrows(IllegalArgumentException.class,
-                () -> supportoService.prenotaCall(1L, LocalDate.now().plusDays(2), LocalDate.now()));
+                () -> supportoService.prenotaCall(1L, LocalDate.now(), LocalTime.of(15, 0), LocalTime.of(10, 0)));
     }
 
     @Test
     void testCheckDateValide() {
         assertDoesNotThrow(() ->
-                supportoService.checkDate(LocalDate.now(), LocalDate.now().plusDays(1)));
+                supportoService.checkDate(LocalDate.now(), LocalTime.of(10, 0), LocalTime.of(11, 0)));
     }
 
     @Test
-    void testCheckDateStessoGiorno() {
+    void testCheckDateStessoOrario() {
         assertDoesNotThrow(() ->
-                supportoService.checkDate(LocalDate.now(), LocalDate.now()));
+                supportoService.checkDate(LocalDate.now(), LocalTime.of(10, 0), LocalTime.of(10, 0)));
     }
 
     @Test
