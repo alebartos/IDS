@@ -11,9 +11,13 @@ import it.unicam.ids.builder.SottomissioneBuilder;
 import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.SottomissioneRepository;
 import it.unicam.ids.repository.UtenteRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
+@Service
+@Transactional
 public class SottomissioneService {
 
     private final SottomissioneRepository sottomissioneRepo;
@@ -21,8 +25,7 @@ public class SottomissioneService {
     private final UtenteRepository utenteRepo;
 
     public SottomissioneService(SottomissioneRepository sottomissioneRepo,
-                                HackathonRepository hackathonRepo,
-                                UtenteRepository utenteRepo) {
+                                HackathonRepository hackathonRepo, UtenteRepository utenteRepo) {
         this.sottomissioneRepo = sottomissioneRepo;
         this.hackathonRepo = hackathonRepo;
         this.utenteRepo = utenteRepo;
@@ -56,35 +59,22 @@ public class SottomissioneService {
 
     public Sottomissione gestisciBozze(Long teamId, Long hackathonId) {
         checkHackathonAttivo(hackathonId);
-
-        Sottomissione sottomissione = sottomissioneRepo
-                .findByTeamAndHackathon(teamId, hackathonId)
-                .orElse(null);
-
+        Sottomissione sottomissione = sottomissioneRepo.findByTeamIdAndHackathonId(teamId, hackathonId).orElse(null);
         if (sottomissione != null) {
             if (sottomissione.getStato() == StatoSottomissione.CONSEGNATA) {
                 throw new IllegalArgumentException("Sottomissione definitiva già inviata, non è possibile modificarla");
             }
             return sottomissione;
         }
-
         sottomissione = SottomissioneBuilder.newBuilder()
-                .teamId(teamId)
-                .hackathonId(hackathonId)
-                .stato(StatoSottomissione.BOZZA)
-                .build();
-
-        return sottomissioneRepo.add(sottomissione);
+                .teamId(teamId).hackathonId(hackathonId).stato(StatoSottomissione.BOZZA).build();
+        return sottomissioneRepo.save(sottomissione);
     }
 
     public Sottomissione elaboraSottomissione(Long teamId, Long hackathonId, DatiProgetto datiProgetto) {
         checkHackathonAttivo(hackathonId);
         checkTeamIscritto(teamId, hackathonId);
-
-        Sottomissione sottomissione = sottomissioneRepo
-                .findByTeamAndHackathon(teamId, hackathonId)
-                .orElse(null);
-
+        Sottomissione sottomissione = sottomissioneRepo.findByTeamIdAndHackathonId(teamId, hackathonId).orElse(null);
         if (sottomissione != null) {
             if (sottomissione.getStato() == StatoSottomissione.CONSEGNATA) {
                 throw new IllegalArgumentException("Sottomissione definitiva già inviata");
@@ -92,19 +82,13 @@ public class SottomissioneService {
             sottomissione.setDatiProgetto(datiProgetto);
             sottomissione.setStato(StatoSottomissione.CONSEGNATA);
             sottomissione.setDataInvio(LocalDate.now());
-            sottomissioneRepo.modifyRecord(sottomissione);
+            sottomissioneRepo.save(sottomissione);
             return sottomissione;
         }
-
         sottomissione = SottomissioneBuilder.newBuilder()
-                .teamId(teamId)
-                .hackathonId(hackathonId)
-                .datiProgetto(datiProgetto)
-                .stato(StatoSottomissione.CONSEGNATA)
-                .build();
+                .teamId(teamId).hackathonId(hackathonId).datiProgetto(datiProgetto).stato(StatoSottomissione.CONSEGNATA).build();
         sottomissione.setDataInvio(LocalDate.now());
-
-        return sottomissioneRepo.add(sottomissione);
+        return sottomissioneRepo.save(sottomissione);
     }
 
     public void checkValiditàLink(String linkRepository) {

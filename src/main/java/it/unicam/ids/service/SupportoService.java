@@ -10,12 +10,16 @@ import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.SupportoRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
+@Transactional
 public class SupportoService {
 
     private final SupportoRepository supportoRepo;
@@ -52,83 +56,54 @@ public class SupportoService {
     }
 
     public List<RichiestaSupporto> creaListaRichieste(Long hackathonId) {
-        List<RichiestaSupporto> richieste = supportoRepo.getAllRichieste(hackathonId);
-        List<RichiestaSupporto> lista = new ArrayList<>();
-        for (RichiestaSupporto r : richieste) {
-            lista.add(r);
-        }
-        return lista;
+        return new ArrayList<>(supportoRepo.findByHackathonId(hackathonId));
     }
 
     public void elaboraRichiestaSupporto(String descrizione, Long utenteId, Long hackathonId) {
-        if (!checkRuolo(utenteId)) {
-            throw new IllegalArgumentException("L'utente non è un partecipante");
-        }
-
-        if (!checkStato(hackathonId)) {
-            throw new IllegalArgumentException("L'hackathon non è attivo");
-        }
-
+        if (!checkRuolo(utenteId)) throw new IllegalArgumentException("L'utente non è un partecipante");
+        if (!checkStato(hackathonId)) throw new IllegalArgumentException("L'hackathon non è attivo");
         Team team = teamRepo.findByUtenteId(utenteId)
                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato per l'utente"));
-
         RichiestaSupporto richiesta = new RichiestaSupporto(descrizione, team.getId(), hackathonId);
-        supportoRepo.add(richiesta);
-
+        supportoRepo.save(richiesta);
         Hackathon hackathon = hackathonRepo.findById(hackathonId)
                 .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
-
         for (Long mentoreId : hackathon.getMentoreIds()) {
             Utente mentore = utenteRepo.findById(mentoreId).orElse(null);
-            if (mentore != null) {
-                observerSupporto.iscrivi(mentore);
-            }
+            if (mentore != null) { observerSupporto.iscrivi(mentore); }
         }
         observerSupporto.notifica();
     }
 
     public void prenotaCall(Long richiestaId, LocalDate data, LocalTime oraInizio, LocalTime oraFine) {
         checkDate(data, oraInizio, oraFine);
-
         RichiestaSupporto richiesta = supportoRepo.findById(richiestaId)
                 .orElseThrow(() -> new IllegalArgumentException("Richiesta non trovata"));
-
         Team team = teamRepo.findById(richiesta.getTeamId())
                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
-
         List<String> listaMail = creaListaMail(team);
-
         calendarService.prenotaCall(richiesta.getDescrizione(), data, oraInizio, oraFine, listaMail);
-
         richiesta.setRisolta(true);
-        supportoRepo.modifyRecord(richiesta);
+        supportoRepo.save(richiesta);
     }
 
     public void checkDate(LocalDate data, LocalTime oraInizio, LocalTime oraFine) {
-        if (data == null || oraInizio == null || oraFine == null) {
+        if (data == null || oraInizio == null || oraFine == null)
             throw new IllegalArgumentException("La data e gli orari non possono essere nulli");
-        }
-        if (oraInizio.isAfter(oraFine)) {
+        if (oraInizio.isAfter(oraFine))
             throw new IllegalArgumentException("L'orario di inizio non può essere dopo l'orario di fine");
-        }
     }
 
-    public void confermaPartecipazione(String eventId) {
-        calendarService.confermaPartecipazione(eventId);
-    }
+    public void confermaPartecipazione(String eventId) { calendarService.confermaPartecipazione(eventId); }
 
     public List<String> creaListaMail(Team team) {
         List<String> listaMail = new ArrayList<>();
         for (Long membroId : team.getMembri()) {
             Utente utente = utenteRepo.findById(membroId).orElse(null);
-            if (utente != null) {
-                listaMail.add(utente.getEmail());
-            }
+            if (utente != null) listaMail.add(utente.getEmail());
         }
         Utente leader = utenteRepo.findById(team.getLeaderId()).orElse(null);
-        if (leader != null) {
-            listaMail.add(leader.getEmail());
-        }
+        if (leader != null) listaMail.add(leader.getEmail());
         return listaMail;
     }
 }
