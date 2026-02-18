@@ -5,6 +5,7 @@ package it.unicam.ids.model;
  */
 public enum Ruolo {
     BASE,
+    LOGGATO,
     MEMBRO_TEAM,
     MEMBRO_STAFF,
     ORGANIZZATORE,
