@@ -2,9 +2,14 @@ package it.unicam.ids.controller;
 
 import it.unicam.ids.model.Segnalazione;
 import it.unicam.ids.service.SegnalazioneService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
+@RestController
+@RequestMapping("/api/segnalazioni")
 public class SegnalazioneHandler {
 
     private final SegnalazioneService segnalazioneService;
@@ -13,39 +18,48 @@ public class SegnalazioneHandler {
         this.segnalazioneService = segnalazioneService;
     }
 
-    public Result<String> segnala(Long teamId, String descrizione, Long hackathonId) {
+    @PostMapping
+    public ResponseEntity<?> segnala(@RequestBody Map<String, Object> body) {
         try {
+            Long teamId = ((Number) body.get("teamId")).longValue();
+            String descrizione = (String) body.get("descrizione");
+            Long hackathonId = ((Number) body.get("hackathonId")).longValue();
             segnalazioneService.segnala(teamId, descrizione, hackathonId);
-            return Result.success("Segnalazione inviata con successo");
+            return ResponseEntity.ok(Map.of("message", "Segnalazione inviata con successo"));
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    public Result<List<Segnalazione>> getSegnalazioni(Long hackathonId) {
+    @GetMapping("/hackathon/{hackathonId}")
+    public ResponseEntity<?> getSegnalazioni(@PathVariable Long hackathonId) {
         try {
             List<Segnalazione> segnalazioni = segnalazioneService.getSegnalazioni(hackathonId);
-            return Result.success(segnalazioni);
+            return ResponseEntity.ok(segnalazioni);
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    public Result<String> archiviaSegnalazione(Long segnalazioneId) {
+    @PutMapping("/{id}/archivia")
+    public ResponseEntity<?> archiviaSegnalazione(@PathVariable Long id) {
         try {
-            segnalazioneService.archiviaSegnalazione(segnalazioneId);
-            return Result.success("Segnalazione archiviata con successo");
+            segnalazioneService.archiviaSegnalazione(id);
+            return ResponseEntity.ok(Map.of("message", "Segnalazione archiviata con successo"));
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    public Result<String> squalificaTeam(Long segnalazioneId, Long teamId, Long hackathonId) {
+    @PutMapping("/{id}/squalifica")
+    public ResponseEntity<?> squalificaTeam(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         try {
-            segnalazioneService.squalificaTeam(segnalazioneId, teamId, hackathonId);
-            return Result.success("Team squalificato con successo");
+            Long teamId = ((Number) body.get("teamId")).longValue();
+            Long hackathonId = ((Number) body.get("hackathonId")).longValue();
+            segnalazioneService.squalificaTeam(id, teamId, hackathonId);
+            return ResponseEntity.ok(Map.of("message", "Team squalificato con successo"));
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }
