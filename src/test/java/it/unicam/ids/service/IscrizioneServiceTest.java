@@ -38,9 +38,9 @@ class IscrizioneServiceTest {
         utenteRepository = new UtenteRepository();
         InvitoRepository invitoRepository = new InvitoRepository();
 
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
-        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService);
-        iscrizioneService = new IscrizioneService(teamRepository, hackathonRepository);
+        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
+        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
+        iscrizioneService = new IscrizioneService(teamRepository, hackathonRepository, utenteRepository);
 
         organizzatore = new Utente("Luigi", "Verdi", "luigi@example.com", "password");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
@@ -58,10 +58,8 @@ class IscrizioneServiceTest {
         hackathon = hackathonService.createHackathon(
                 "Hackathon Test", "Description",
                 LocalDate.now().minusDays(1), LocalDate.now().plusDays(30),
+                LocalDate.now().plusDays(10),
                 5, 1000.0, organizzatore.getId());
-        hackathon.setStato(StatoHackathon.IN_ISCRIZIONE);
-        hackathon.setScadenzaIscrizioni(LocalDate.now().plusDays(10));
-        hackathonRepository.modifyRecord(hackathon);
     }
 
     @Test
