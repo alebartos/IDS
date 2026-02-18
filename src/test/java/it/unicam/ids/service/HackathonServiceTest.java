@@ -37,8 +37,8 @@ class HackathonServiceTest {
         teamRepository = new TeamRepository();
         invitoRepository = new InvitoRepository();
 
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
-        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService);
+        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
+        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
 
         organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
@@ -55,6 +55,7 @@ class HackathonServiceTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hackathon 2025", "Test event",
                 LocalDate.of(2025, 3, 1), LocalDate.of(2025, 3, 3),
+                LocalDate.of(2025, 2, 15),
                 5, 1000.0, organizzatore.getId());
 
         assertNotNull(hackathon);
@@ -68,12 +69,14 @@ class HackathonServiceTest {
         hackathonService.createHackathon(
                 "Duplicate Hackathon", "First",
                 LocalDate.of(2025, 3, 1), LocalDate.of(2025, 3, 3),
+                LocalDate.of(2025, 2, 15),
                 5, 5000.0, organizzatore.getId());
 
         assertThrows(IllegalArgumentException.class,
                 () -> hackathonService.createHackathon(
                         "Duplicate Hackathon", "Second",
                         LocalDate.of(2025, 4, 1), LocalDate.of(2025, 4, 3),
+                        LocalDate.of(2025, 3, 15),
                         5, 5000.0, organizzatore.getId()));
     }
 
@@ -87,6 +90,7 @@ class HackathonServiceTest {
                 () -> hackathonService.createHackathon(
                         "Hackathon No Org", "Test",
                         LocalDate.of(2025, 3, 1), LocalDate.of(2025, 3, 3),
+                        LocalDate.of(2025, 2, 15),
                         5, 5000.0, utenteId));
     }
 
@@ -95,6 +99,7 @@ class HackathonServiceTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hackathon Giudice Test", "Description",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 5, 5000.0, organizzatore.getId());
 
         Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
@@ -114,6 +119,7 @@ class HackathonServiceTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hackathon Giudice Non Org", "Description",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 5, 5000.0, organizzatore.getId());
 
         Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
@@ -133,6 +139,7 @@ class HackathonServiceTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hackathon Doppio Giudice", "Description",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 5, 5000.0, organizzatore.getId());
 
         Utente giudice1 = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
@@ -153,6 +160,7 @@ class HackathonServiceTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hackathon Giudice Null", "Description",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 5, 5000.0, organizzatore.getId());
 
         assertThrows(IllegalArgumentException.class,
@@ -164,6 +172,7 @@ class HackathonServiceTest {
         hackathonService.createHackathon(
                 "Hackathon Mentore Test", "Description",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 5, 5000.0, organizzatore.getId());
 
         Utente mentore = new Utente("Marco", "Neri", "marco@example.com", "password");
@@ -193,6 +202,7 @@ class HackathonServiceTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hackathon Find Test", "Description",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 5, 5000.0, organizzatore.getId());
 
         hackathon.getTeamIds().add(team.getId());
@@ -207,6 +217,7 @@ class HackathonServiceTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hackathon Stato Test", "Description",
                 LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
+                LocalDate.now().plusDays(1),
                 5, 5000.0, organizzatore.getId());
 
         hackathonService.modifcaStato(hackathon.getId(), StatoHackathon.IN_CORSO);
@@ -220,6 +231,7 @@ class HackathonServiceTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hackathon Stato Invalid", "Description",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 5, 5000.0, organizzatore.getId());
 
         assertThrows(IllegalArgumentException.class,
@@ -231,6 +243,7 @@ class HackathonServiceTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hackathon Vincitore Test", "Description",
                 LocalDate.now().minusDays(5), LocalDate.now().minusDays(1),
+                LocalDate.now().minusDays(6),
                 5, 5000.0, organizzatore.getId());
 
         hackathon.getTeamIds().add(team.getId());
@@ -249,10 +262,12 @@ class HackathonServiceTest {
         hackathonService.createHackathon(
                 "Hack Lista 1", "Description",
                 LocalDate.of(2025, 3, 1), LocalDate.of(2025, 3, 3),
+                LocalDate.of(2025, 2, 15),
                 5, 1000.0, organizzatore.getId());
         hackathonService.createHackathon(
                 "Hack Lista 2", "Description",
                 LocalDate.of(2025, 4, 1), LocalDate.of(2025, 4, 3),
+                LocalDate.of(2025, 3, 15),
                 5, 2000.0, organizzatore.getId());
 
         List<Hackathon> lista = hackathonService.creaListaHackathon();
@@ -270,6 +285,7 @@ class HackathonServiceTest {
         hackathonService.createHackathon(
                 "Hack Get 1", "Description",
                 LocalDate.of(2025, 5, 1), LocalDate.of(2025, 5, 3),
+                LocalDate.of(2025, 4, 15),
                 5, 1000.0, organizzatore.getId());
 
         List<Hackathon> hackathons = hackathonService.getHackathons();

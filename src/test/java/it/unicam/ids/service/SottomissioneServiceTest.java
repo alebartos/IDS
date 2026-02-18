@@ -44,9 +44,9 @@ class SottomissioneServiceTest {
         utenteRepository = new UtenteRepository();
         invitoRepository = new InvitoRepository();
 
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
-        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService);
-        sottomissioneService = new SottomissioneService(sottomissioneRepository);
+        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
+        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
+        sottomissioneService = new SottomissioneService(sottomissioneRepository, hackathonRepository, utenteRepository);
 
         organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
@@ -60,6 +60,7 @@ class SottomissioneServiceTest {
         hackathon = hackathonService.createHackathon(
                 "Hackathon Test", "Description",
                 LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
+                LocalDate.now().plusDays(1),
                 5, 1000.0, organizzatore.getId());
         hackathon.setStato(StatoHackathon.IN_CORSO);
         hackathonRepository.modifyRecord(hackathon);

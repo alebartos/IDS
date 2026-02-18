@@ -3,6 +3,7 @@ package it.unicam.ids.service;
 import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
+import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.InvitoRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
@@ -17,6 +18,7 @@ class TeamServiceTest {
     private TeamRepository teamRepository;
     private UtenteRepository utenteRepository;
     private InvitoRepository invitoRepository;
+    private HackathonRepository hackathonRepository;
     private Utente leader;
 
     @BeforeEach
@@ -24,7 +26,8 @@ class TeamServiceTest {
         teamRepository = new TeamRepository();
         utenteRepository = new UtenteRepository();
         invitoRepository = new InvitoRepository();
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
+        hackathonRepository = new HackathonRepository();
+        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
         leader = utenteRepository.add(leader);
