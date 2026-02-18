@@ -2,10 +2,13 @@ package it.unicam.ids.controller;
 
 import it.unicam.ids.model.Team;
 import it.unicam.ids.service.TeamService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-/**
- * Handler per le operazioni sui Team.
- */
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/team")
 public class TeamHandler {
 
     private final TeamService teamService;
@@ -14,59 +17,45 @@ public class TeamHandler {
         this.teamService = teamService;
     }
 
-    /**
-     * Crea un nuovo team.
-     * @param nomeTeam il nome del team
-     * @param leaderId l'ID del leader
-     */
-    public Result<Team> creaTeam(String nomeTeam, Long leaderId) {
+    @PostMapping
+    public ResponseEntity<?> creaTeam(@RequestBody Map<String, Object> body) {
         try {
+            String nomeTeam = (String) body.get("nome");
+            Long leaderId = ((Number) body.get("leaderId")).longValue();
             Team team = teamService.createTeam(nomeTeam, leaderId);
-            return Result.created(team);
+            return ResponseEntity.status(201).body(team);
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    /**
-     * Rimuove un membro dal team.
-     * @param membroId l'ID del membro da rimuovere
-     * @param leaderId l'ID del leader che effettua la rimozione
-     */
-    public Result<Team> rimuoviMembro(Long membroId, Long leaderId) {
+    @DeleteMapping("/{leaderId}/membri/{membroId}")
+    public ResponseEntity<?> rimuoviMembro(@PathVariable Long leaderId, @PathVariable Long membroId) {
         try {
             Team team = teamService.rimuoviMembro(membroId, leaderId);
-            return Result.success(team);
+            return ResponseEntity.ok(team);
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    /**
-     * Nomina un membro del team come viceleader.
-     * @param leaderId l'ID del leader che effettua la nomina
-     * @param membroId l'ID del membro da nominare viceleader
-     */
-    public Result<Team> nominaViceleader(Long leaderId, Long membroId) {
+    @PutMapping("/{leaderId}/viceleader/{membroId}")
+    public ResponseEntity<?> nominaViceleader(@PathVariable Long leaderId, @PathVariable Long membroId) {
         try {
             Team team = teamService.nominaViceleader(leaderId, membroId);
-            return Result.success(team);
+            return ResponseEntity.ok(team);
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    /**
-     * Revoca la nomina di viceleader.
-     * @param leaderId l'ID del leader che effettua la revoca
-     * @param membroId l'ID del membro a cui revocare il ruolo
-     */
-    public Result<Team> revocaViceleader(Long leaderId, Long membroId) {
+    @DeleteMapping("/{leaderId}/viceleader/{membroId}")
+    public ResponseEntity<?> revocaViceleader(@PathVariable Long leaderId, @PathVariable Long membroId) {
         try {
             Team team = teamService.removeViceleader(leaderId, membroId);
-            return Result.success(team);
+            return ResponseEntity.ok(team);
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }
