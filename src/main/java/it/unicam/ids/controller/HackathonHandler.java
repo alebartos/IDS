@@ -22,7 +22,7 @@ public class HackathonHandler {
     }
 
     @PostMapping
-    public ResponseEntity<?> creaHackathon(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> creaHackathonRequest(@RequestBody Map<String, Object> body) {
         try {
             String nome = (String) body.get("nome");
             String descrizione = (String) body.get("descrizione");
