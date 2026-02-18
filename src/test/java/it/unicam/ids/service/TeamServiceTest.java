@@ -3,34 +3,35 @@ package it.unicam.ids.service;
 import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
-import it.unicam.ids.repository.HackathonRepository;
-import it.unicam.ids.repository.InvitoRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
+@Transactional
 class TeamServiceTest {
 
+    @Autowired
     private TeamService teamService;
+
+    @Autowired
     private TeamRepository teamRepository;
+
+    @Autowired
     private UtenteRepository utenteRepository;
-    private InvitoRepository invitoRepository;
-    private HackathonRepository hackathonRepository;
+
     private Utente leader;
 
     @BeforeEach
     void setUp() {
-        teamRepository = new TeamRepository();
-        utenteRepository = new UtenteRepository();
-        invitoRepository = new InvitoRepository();
-        hackathonRepository = new HackathonRepository();
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
-
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
-        leader = utenteRepository.add(leader);
+        leader = utenteRepository.save(leader);
     }
 
     @Test
@@ -49,7 +50,7 @@ class TeamServiceTest {
         teamService.createTeam("Team Duplicate", leader.getId());
 
         Utente leader2 = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
-        leader2 = utenteRepository.add(leader2);
+        leader2 = utenteRepository.save(leader2);
         final Long leader2Id = leader2.getId();
 
         assertThrows(IllegalArgumentException.class,
@@ -75,11 +76,11 @@ class TeamServiceTest {
         Team team = teamService.createTeam("Team Rimuovi", leader.getId());
 
         Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        membro = utenteRepository.add(membro);
+        membro = utenteRepository.save(membro);
         membro.getRuoli().add(Ruolo.MEMBRO_TEAM);
-        utenteRepository.modifyRecord(membro);
+        utenteRepository.save(membro);
         team.getMembri().add(membro.getId());
-        teamRepository.modifyRecord(team);
+        teamRepository.save(team);
 
         Team aggiornato = teamService.rimuoviMembro(membro.getId(), leader.getId());
         assertFalse(aggiornato.getMembri().contains(membro.getId()));
@@ -98,7 +99,7 @@ class TeamServiceTest {
         teamService.createTeam("Team No Member", leader.getId());
 
         Utente estraneo = new Utente("Test", "User", "test@example.com", "pass");
-        estraneo = utenteRepository.add(estraneo);
+        estraneo = utenteRepository.save(estraneo);
         final Long estraneoId = estraneo.getId();
 
         assertThrows(IllegalArgumentException.class,
@@ -110,9 +111,9 @@ class TeamServiceTest {
         Team team = teamService.createTeam("Team Vice", leader.getId());
 
         Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        membro = utenteRepository.add(membro);
+        membro = utenteRepository.save(membro);
         team.getMembri().add(membro.getId());
-        teamRepository.modifyRecord(team);
+        teamRepository.save(team);
 
         Team aggiornato = teamService.nominaViceleader(leader.getId(), membro.getId());
         assertEquals(membro.getId(), aggiornato.getViceleaderId());
@@ -124,13 +125,13 @@ class TeamServiceTest {
         Team team = teamService.createTeam("Team Vice Dup", leader.getId());
 
         Utente m1 = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        m1 = utenteRepository.add(m1);
+        m1 = utenteRepository.save(m1);
         team.getMembri().add(m1.getId());
 
         Utente m2 = new Utente("Luigi", "Verdi", "luigi@example.com", "password");
-        m2 = utenteRepository.add(m2);
+        m2 = utenteRepository.save(m2);
         team.getMembri().add(m2.getId());
-        teamRepository.modifyRecord(team);
+        teamRepository.save(team);
 
         teamService.nominaViceleader(leader.getId(), m1.getId());
         final Long m2Id = m2.getId();
@@ -144,7 +145,7 @@ class TeamServiceTest {
         teamService.createTeam("Team Vice NM", leader.getId());
 
         Utente estraneo = new Utente("Test", "User", "test@example.com", "pass");
-        estraneo = utenteRepository.add(estraneo);
+        estraneo = utenteRepository.save(estraneo);
         final Long estraneoId = estraneo.getId();
 
         assertThrows(IllegalArgumentException.class,
@@ -156,9 +157,9 @@ class TeamServiceTest {
         Team team = teamService.createTeam("Team RemVice", leader.getId());
 
         Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        membro = utenteRepository.add(membro);
+        membro = utenteRepository.save(membro);
         team.getMembri().add(membro.getId());
-        teamRepository.modifyRecord(team);
+        teamRepository.save(team);
 
         teamService.nominaViceleader(leader.getId(), membro.getId());
         Team aggiornato = teamService.removeViceleader(leader.getId(), membro.getId());
@@ -172,9 +173,9 @@ class TeamServiceTest {
         Team team = teamService.createTeam("Team RemVice NV", leader.getId());
 
         Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        membro = utenteRepository.add(membro);
+        membro = utenteRepository.save(membro);
         team.getMembri().add(membro.getId());
-        teamRepository.modifyRecord(team);
+        teamRepository.save(team);
         final Long membroId = membro.getId();
 
         assertThrows(IllegalArgumentException.class,
@@ -186,9 +187,9 @@ class TeamServiceTest {
         Team team = teamService.createTeam("Team FindById", leader.getId());
 
         Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        membro = utenteRepository.add(membro);
+        membro = utenteRepository.save(membro);
         team.getMembri().add(membro.getId());
-        teamRepository.modifyRecord(team);
+        teamRepository.save(team);
 
         assertTrue(teamService.findById(membro.getId()));
         assertFalse(teamService.findById(9999L));

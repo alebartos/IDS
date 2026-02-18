@@ -2,46 +2,37 @@ package it.unicam.ids.repository;
 
 import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Utente;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DataJpaTest
+@Transactional
 class UtenteRepositoryTest {
 
+    @Autowired
     private UtenteRepository utenteRepository;
-
-    @BeforeEach
-    void setUp() {
-        utenteRepository = new UtenteRepository();
-    }
 
     @Test
     void testAdd() {
         Utente utente = new Utente("Mario", "Rossi", "mario@example.com", "password");
-        Utente saved = utenteRepository.add(utente);
+        Utente saved = utenteRepository.save(utente);
 
         assertNotNull(saved.getId());
         assertEquals("Mario", saved.getNome());
     }
 
     @Test
-    void testAddConIdEsistente() {
-        Utente utente = new Utente("Mario", "Rossi", "mario@example.com", "password");
-        utente.setId(50L);
-        Utente saved = utenteRepository.add(utente);
-
-        assertEquals(50L, saved.getId());
-    }
-
-    @Test
     void testModifyRecord() {
-        Utente utente = utenteRepository.add(new Utente("Mario", "Rossi", "mario@example.com", "password"));
+        Utente utente = utenteRepository.save(new Utente("Mario", "Rossi", "mario@example.com", "password"));
         utente.setNome("Mario Modificato");
-        utenteRepository.modifyRecord(utente);
+        utenteRepository.save(utente);
 
         Utente trovato = utenteRepository.findById(utente.getId()).orElseThrow();
         assertEquals("Mario Modificato", trovato.getNome());
@@ -49,7 +40,7 @@ class UtenteRepositoryTest {
 
     @Test
     void testFindById() {
-        Utente utente = utenteRepository.add(new Utente("Anna", "Bianchi", "anna@example.com", "pass"));
+        Utente utente = utenteRepository.save(new Utente("Anna", "Bianchi", "anna@example.com", "pass"));
         assertTrue(utenteRepository.findById(utente.getId()).isPresent());
     }
 
@@ -60,7 +51,7 @@ class UtenteRepositoryTest {
 
     @Test
     void testFindByEmail() {
-        utenteRepository.add(new Utente("Luigi", "Verdi", "luigi@example.com", "pass"));
+        utenteRepository.save(new Utente("Luigi", "Verdi", "luigi@example.com", "pass"));
         Optional<Utente> trovato = utenteRepository.findByEmail("luigi@example.com");
         assertTrue(trovato.isPresent());
         assertEquals("Luigi", trovato.get().getNome());
@@ -73,8 +64,8 @@ class UtenteRepositoryTest {
 
     @Test
     void testFindAll() {
-        utenteRepository.add(new Utente("A", "A", "a@e.com", "p"));
-        utenteRepository.add(new Utente("B", "B", "b@e.com", "p"));
+        utenteRepository.save(new Utente("A", "A", "a@e.com", "p"));
+        utenteRepository.save(new Utente("B", "B", "b@e.com", "p"));
         assertEquals(2, utenteRepository.findAll().size());
     }
 
@@ -82,40 +73,40 @@ class UtenteRepositoryTest {
     void testFindByRuolo() {
         Utente org = new Utente("Org", "Test", "org@e.com", "p");
         org.getRuoli().add(Ruolo.ORGANIZZATORE);
-        utenteRepository.add(org);
+        utenteRepository.save(org);
 
         Utente base = new Utente("Base", "Test", "base@e.com", "p");
-        utenteRepository.add(base);
+        utenteRepository.save(base);
 
-        List<Utente> organizzatori = utenteRepository.findByRuolo(Ruolo.ORGANIZZATORE);
+        List<Utente> organizzatori = utenteRepository.findByRuoliContaining(Ruolo.ORGANIZZATORE);
         assertEquals(1, organizzatori.size());
     }
 
     @Test
     void testDeleteById() {
-        Utente utente = utenteRepository.add(new Utente("X", "Y", "x@e.com", "p"));
+        Utente utente = utenteRepository.save(new Utente("X", "Y", "x@e.com", "p"));
         utenteRepository.deleteById(utente.getId());
         assertTrue(utenteRepository.findById(utente.getId()).isEmpty());
     }
 
     @Test
     void testDeleteAll() {
-        utenteRepository.add(new Utente("A", "A", "a@e.com", "p"));
-        utenteRepository.add(new Utente("B", "B", "b@e.com", "p"));
+        utenteRepository.save(new Utente("A", "A", "a@e.com", "p"));
+        utenteRepository.save(new Utente("B", "B", "b@e.com", "p"));
         utenteRepository.deleteAll();
         assertEquals(0, utenteRepository.count());
     }
 
     @Test
     void testExistsById() {
-        Utente utente = utenteRepository.add(new Utente("M", "R", "m@e.com", "p"));
+        Utente utente = utenteRepository.save(new Utente("M", "R", "m@e.com", "p"));
         assertTrue(utenteRepository.existsById(utente.getId()));
         assertFalse(utenteRepository.existsById(999L));
     }
 
     @Test
     void testExistsByEmail() {
-        utenteRepository.add(new Utente("M", "R", "mario@test.com", "p"));
+        utenteRepository.save(new Utente("M", "R", "mario@test.com", "p"));
         assertTrue(utenteRepository.existsByEmail("mario@test.com"));
         assertFalse(utenteRepository.existsByEmail("nessuno@test.com"));
     }
@@ -123,7 +114,7 @@ class UtenteRepositoryTest {
     @Test
     void testCount() {
         assertEquals(0, utenteRepository.count());
-        utenteRepository.add(new Utente("A", "A", "a@e.com", "p"));
+        utenteRepository.save(new Utente("A", "A", "a@e.com", "p"));
         assertEquals(1, utenteRepository.count());
     }
 }

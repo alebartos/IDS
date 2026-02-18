@@ -52,7 +52,7 @@ public class GoogleCalendarAPI {
         if (!credentialsFile.exists()) {
             throw new IOException(
                     "File credentials.json non trovato in: " + credentialsFilePath +
-                            "\nScaricalo dalla Google Cloud Console (APIs & Services > Credentials).");
+                    "\nScaricalo dalla Google Cloud Console (APIs & Services > Credentials).");
         }
 
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(

@@ -1,7 +1,6 @@
 package it.unicam.ids.service;
 
 import it.unicam.ids.model.Utente;
-import it.unicam.ids.repository.UtenteRepository;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -13,14 +12,15 @@ class ObserverSupportoTest {
         NotificationService notificationService = new NotificationService();
         ObserverSupporto observer = new ObserverSupporto(notificationService);
 
-        UtenteRepository utenteRepo = new UtenteRepository();
-        Utente mentore1 = utenteRepo.add(new Utente("Mario", "Rossi", "mario@example.com", "pass"));
-        Utente mentore2 = utenteRepo.add(new Utente("Luigi", "Verdi", "luigi@example.com", "pass"));
+        Utente mentore1 = new Utente("Mario", "Rossi", "mario@example.com", "pass");
+        mentore1.setId(1L);
+        Utente mentore2 = new Utente("Luigi", "Verdi", "luigi@example.com", "pass");
+        mentore2.setId(2L);
 
         observer.iscrivi(mentore1);
         observer.iscrivi(mentore2);
 
-        assertDoesNotThrow(() -> observer.notifica());
+        assertDoesNotThrow(() -> observer.notifySubscribers());
     }
 
     @Test
@@ -28,7 +28,7 @@ class ObserverSupportoTest {
         NotificationService notificationService = new NotificationService();
         ObserverSupporto observer = new ObserverSupporto(notificationService);
 
-        assertDoesNotThrow(() -> observer.notifica());
+        assertDoesNotThrow(() -> observer.notifySubscribers());
     }
 
     @Test

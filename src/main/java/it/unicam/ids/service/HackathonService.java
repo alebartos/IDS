@@ -22,20 +22,18 @@ public class HackathonService {
 
     private final HackathonRepository hackathonRepo;
     private final UtenteRepository utenteRepo;
-    private final TeamService teamService;
     private final TeamRepository teamRepo;
 
     public HackathonService(HackathonRepository hackathonRepo, UtenteRepository utenteRepo,
-                            TeamService teamService, TeamRepository teamRepo) {
+                             TeamRepository teamRepo) {
         this.hackathonRepo = hackathonRepo;
         this.utenteRepo = utenteRepo;
-        this.teamService = teamService;
         this.teamRepo = teamRepo;
     }
 
     public Hackathon createHackathon(String nome, String descrizione, LocalDate dataInizio,
-                                     LocalDate dataFine, LocalDate scadenzaIscrizioni,
-                                     int maxPartecipanti, double premio, Long organizzatoreId) {
+                                      LocalDate dataFine, LocalDate scadenzaIscrizioni,
+                                      int maxPartecipanti, double premio, Long organizzatoreId) {
         checkId(organizzatoreId);
         Utente organizzatore = utenteRepo.findById(organizzatoreId)
                 .orElseThrow(() -> new IllegalArgumentException("Organizzatore non trovato"));
@@ -50,7 +48,7 @@ public class HackathonService {
         }
         Hackathon hackathon = HackathonBuilder.newBuilder()
                 .nome(nome).descrizione(descrizione).dataInizio(dataInizio).dataFine(dataFine)
-                .scadenzaIscrizioni(scadenzaIscrizioni).premio(premio).maxMembriTeam(maxPartecipanti).build();
+                .scadenzaIscrizioni(scadenzaIscrizioni).premio(String.valueOf(premio)).maxMembriTeam(maxPartecipanti).build();
         hackathon.setOrganizzatoreId(organizzatoreId);
         return hackathonRepo.save(hackathon);
     }
@@ -149,7 +147,7 @@ public class HackathonService {
             case ANNULLATO:
                 if (statoCorrente == StatoHackathon.CONCLUSO)
                     throw new IllegalArgumentException("Un hackathon concluso non può essere annullato");
-                rimuoviPartecipantiDaHackathon(hackathon);
+                removeRuolo();
                 break;
             default:
                 throw new IllegalArgumentException("Transizione di stato non valida");
@@ -185,22 +183,15 @@ public class HackathonService {
         return teams;
     }
 
-    private void rimuoviPartecipantiDaHackathon(Hackathon hackathon) {
-        for (Long teamId : hackathon.getTeamIds()) {
-            Team team = teamRepo.findById(teamId).orElse(null);
-            if (team == null) continue;
-            for (Long membroId : team.getMembri()) {
-                Utente utente = utenteRepo.findById(membroId).orElse(null);
-                if (utente != null) {
-                    utente.getRuoli().remove(Ruolo.PARTECIPANTE);
-                    utenteRepo.save(utente);
-                }
-            }
-            Utente leader = utenteRepo.findById(team.getLeaderId()).orElse(null);
-            if (leader != null) {
-                leader.getRuoli().remove(Ruolo.PARTECIPANTE);
-                utenteRepo.save(leader);
-            }
+    public List<Team> creaListaTeam() {
+        return new ArrayList<>(teamRepo.findAll());
+    }
+
+    public void removeRuolo() {
+        List<Utente> partecipanti = utenteRepo.findByRuoliContaining(Ruolo.PARTECIPANTE);
+        for (Utente u : partecipanti) {
+            u.getRuoli().remove(Ruolo.PARTECIPANTE);
+            utenteRepo.save(u);
         }
     }
 }
