@@ -4,6 +4,7 @@ import it.unicam.ids.model.RichiestaSupporto;
 import it.unicam.ids.service.SupportoService;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 public class SupportoHandler {
@@ -32,10 +33,19 @@ public class SupportoHandler {
         }
     }
 
-    public Result<String> prenotaCall(Long richiestaId, LocalDate dataInizio, LocalDate dataFine) {
+    public Result<String> prenotaCall(Long richiestaId, LocalDate data, LocalTime oraInizio, LocalTime oraFine) {
         try {
-            supportoService.prenotaCall(richiestaId, dataInizio, dataFine);
+            supportoService.prenotaCall(richiestaId, data, oraInizio, oraFine);
             return Result.success("Call prenotata con successo");
+        } catch (IllegalArgumentException e) {
+            return Result.badRequest(e.getMessage());
+        }
+    }
+
+    public Result<String> confermaPartecipazione(String eventId) {
+        try {
+            supportoService.confermaPartecipazione(eventId);
+            return Result.success("Partecipazione confermata con successo");
         } catch (IllegalArgumentException e) {
             return Result.badRequest(e.getMessage());
         }

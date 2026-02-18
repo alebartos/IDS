@@ -12,6 +12,7 @@ import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +39,10 @@ public class SupportoService {
     public boolean checkRuolo(Long utenteId) {
         Utente utente = utenteRepo.findById(utenteId)
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
-        return utente.getRuoli().contains(Ruolo.PARTECIPANTE) || utente.getRuoli().contains(Ruolo.MEMBRO_TEAM);
+        return utente.getRuoli().contains(Ruolo.PARTECIPANTE)
+                || utente.getRuoli().contains(Ruolo.MEMBRO_TEAM)
+                || utente.getRuoli().contains(Ruolo.LEADER)
+                || utente.getRuoli().contains(Ruolo.VICELEADER);
     }
 
     public boolean checkStato(Long hackathonId) {
@@ -82,8 +86,8 @@ public class SupportoService {
         }
     }
 
-    public void prenotaCall(Long richiestaId, LocalDate dataInizio, LocalDate dataFine) {
-        checkDate(dataInizio, dataFine);
+    public void prenotaCall(Long richiestaId, LocalDate data, LocalTime oraInizio, LocalTime oraFine) {
+        checkDate(data, oraInizio, oraFine);
 
         RichiestaSupporto richiesta = supportoRepo.findById(richiestaId)
                 .orElseThrow(() -> new IllegalArgumentException("Richiesta non trovata"));
@@ -93,19 +97,23 @@ public class SupportoService {
 
         List<String> listaMail = creaListaMail(team);
 
-        calendarService.prenotaCall(richiesta.getDescrizione(), dataInizio, dataFine, listaMail);
+        calendarService.prenotaCall(richiesta.getDescrizione(), data, oraInizio, oraFine, listaMail);
 
         richiesta.setRisolta(true);
         supportoRepo.modifyRecord(richiesta);
     }
 
-    public void checkDate(LocalDate dataInizio, LocalDate dataFine) {
-        if (dataInizio == null || dataFine == null) {
-            throw new IllegalArgumentException("Le date non possono essere nulle");
+    public void checkDate(LocalDate data, LocalTime oraInizio, LocalTime oraFine) {
+        if (data == null || oraInizio == null || oraFine == null) {
+            throw new IllegalArgumentException("La data e gli orari non possono essere nulli");
         }
-        if (dataInizio.isAfter(dataFine)) {
-            throw new IllegalArgumentException("La data di inizio non può essere dopo la data di fine");
+        if (oraInizio.isAfter(oraFine)) {
+            throw new IllegalArgumentException("L'orario di inizio non può essere dopo l'orario di fine");
         }
+    }
+
+    public void confermaPartecipazione(String eventId) {
+        calendarService.confermaPartecipazione(eventId);
     }
 
     public List<String> creaListaMail(Team team) {
