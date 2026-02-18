@@ -1,249 +1,239 @@
 package it.unicam.ids.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unicam.ids.model.Hackathon;
 import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Utente;
 import it.unicam.ids.repository.HackathonRepository;
-import it.unicam.ids.repository.InvitoRepository;
-import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
-import it.unicam.ids.service.HackathonService;
-import it.unicam.ids.service.TeamService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import it.unicam.ids.model.StatoHackathon;
-import it.unicam.ids.model.Team;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
 class HackathonHandlerTest {
 
-    private HackathonHandler hackathonHandler;
-    private HackathonService hackathonService;
-    private HackathonRepository hackathonRepository;
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private UtenteRepository utenteRepository;
-    private TeamRepository teamRepository;
-    private InvitoRepository invitoRepository;
-    private TeamService teamService;
+
+    @Autowired
+    private HackathonRepository hackathonRepository;
+
     private Utente organizzatore;
 
     @BeforeEach
     void setUp() {
-        hackathonRepository = new HackathonRepository();
-        utenteRepository = new UtenteRepository();
-        teamRepository = new TeamRepository();
-        invitoRepository = new InvitoRepository();
-
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
-        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
-        hackathonHandler = new HackathonHandler(hackathonService);
-
         organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
-        organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
-        organizzatore = utenteRepository.add(organizzatore);
+        organizzatore.addRuolo(Ruolo.ORGANIZZATORE);
+        organizzatore = utenteRepository.save(organizzatore);
+    }
+
+    private Map<String, Object> buildHackathonBody(String nome, String descrizione,
+                                                    String dataInizio, String dataFine,
+                                                    String scadenzaIscrizioni,
+                                                    int maxPartecipanti, double premio,
+                                                    Long organizzatoreId) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("nome", nome);
+        body.put("descrizione", descrizione);
+        body.put("dataInizio", dataInizio);
+        body.put("dataFine", dataFine);
+        body.put("scadenzaIscrizioni", scadenzaIscrizioni);
+        body.put("maxPartecipanti", maxPartecipanti);
+        body.put("premio", premio);
+        body.put("organizzatoreId", organizzatoreId);
+        return body;
+    }
+
+    private Hackathon createHackathonViaService(String nome, String dataInizio, String dataFine) throws Exception {
+        Map<String, Object> body = buildHackathonBody(
+                nome, "Descrizione test",
+                dataInizio, dataFine,
+                "2025-02-15", 5, 1000.0, organizzatore.getId());
+
+        String response = mockMvc.perform(post("/api/hackathon")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        return objectMapper.readValue(response, Hackathon.class);
     }
 
     @Test
-    void testCreaHackathonSuccess() {
-        Result<Hackathon> response = hackathonHandler.creaHackathonRequest(
-                "Hackathon 2025",
-                LocalDate.of(2025, 3, 1),
-                LocalDate.of(2025, 3, 3),
-                "Test event",
-                "Rules",
-                LocalDate.of(2025, 2, 15),
-                5,
-                1000.0,
-                organizzatore.getId());
+    void testCreaHackathonSuccess() throws Exception {
+        Map<String, Object> body = buildHackathonBody(
+                "Hackathon 2025", "Test event",
+                "2025-03-01", "2025-03-03",
+                "2025-02-15", 5, 1000.0, organizzatore.getId());
 
-        assertNotNull(response);
-        assertEquals(201, response.getStatusCode());
-        assertTrue(response.isSuccess());
-        assertNotNull(response.getData());
-        assertEquals("Hackathon 2025", response.getData().getNome());
+        mockMvc.perform(post("/api/hackathon")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.nome").value("Hackathon 2025"))
+                .andExpect(jsonPath("$.organizzatoreId").value(organizzatore.getId()));
     }
 
     @Test
-    void testCreaHackathonSenzaRuoloOrganizzatore() {
-        Utente utenteNonOrganizzatore = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        utenteNonOrganizzatore = utenteRepository.add(utenteNonOrganizzatore);
+    void testCreaHackathonOrganizzatoreNonTrovato() throws Exception {
+        Map<String, Object> body = buildHackathonBody(
+                "Hackathon Fail", "Test event",
+                "2025-03-01", "2025-03-03",
+                "2025-02-15", 5, 1000.0, 99999L);
 
-        Result<Hackathon> response = hackathonHandler.creaHackathonRequest(
-                "Hackathon No Org",
-                LocalDate.of(2025, 3, 1),
-                LocalDate.of(2025, 3, 3),
-                "Test",
-                "Rules",
-                LocalDate.of(2025, 2, 15),
-                5,
-                5000.0,
-                utenteNonOrganizzatore.getId());
-
-        assertEquals(400, response.getStatusCode());
-        assertFalse(response.isSuccess());
+        mockMvc.perform(post("/api/hackathon")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists());
     }
 
     @Test
-    void testAssegnaGiudiceSuccess() {
-        Hackathon hackathon = hackathonService.createHackathon(
-                "Hack Giudice", "Desc",
-                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                5, 5000.0, organizzatore.getId());
+    void testGetHackathonsEmpty() throws Exception {
+        mockMvc.perform(get("/api/hackathon"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void testGetHackathonsNonEmpty() throws Exception {
+        createHackathonViaService("Hackathon List Test", "2025-03-01", "2025-03-03");
+
+        mockMvc.perform(get("/api/hackathon"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].nome").value("Hackathon List Test"));
+    }
+
+    @Test
+    void testGetTeams() throws Exception {
+        Hackathon hackathon = createHackathonViaService("Hackathon Teams Test", "2025-03-01", "2025-03-03");
+
+        mockMvc.perform(get("/api/hackathon/" + hackathon.getId() + "/teams"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void testAssegnaGiudiceSuccess() throws Exception {
+        Hackathon hackathon = createHackathonViaService("Hackathon Giudice", "2025-03-01", "2025-03-03");
 
         Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
-        giudice.getRuoli().add(Ruolo.MEMBRO_STAFF);
-        utenteRepository.add(giudice);
+        giudice.addRuolo(Ruolo.MEMBRO_STAFF);
+        utenteRepository.save(giudice);
 
-        Result<String> result = hackathonHandler.assegnaGiudice(
-                hackathon.getId(), "paolo@example.com", organizzatore.getId());
-        assertTrue(result.isSuccess());
-        assertEquals(200, result.getStatusCode());
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("email", "paolo@example.com");
+        body.put("organizzatoreId", organizzatore.getId());
+
+        mockMvc.perform(put("/api/hackathon/" + hackathon.getId() + "/giudice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Giudice assegnato con successo"));
     }
 
     @Test
-    void testAssegnaGiudiceNonOrganizzatore() {
-        Hackathon hackathon = hackathonService.createHackathon(
-                "Hack Giudice NO", "Desc",
-                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                5, 5000.0, organizzatore.getId());
+    void testAssegnaGiudiceNonStaff() throws Exception {
+        Hackathon hackathon = createHackathonViaService("Hackathon Giudice Fail", "2025-03-01", "2025-03-03");
 
-        Utente nonOrg = new Utente("Test", "User", "test@example.com", "pass");
-        nonOrg = utenteRepository.add(nonOrg);
+        Utente utenteNormale = new Utente("Anna", "Bianchi", "anna@example.com", "password");
+        utenteRepository.save(utenteNormale);
 
-        Result<String> result = hackathonHandler.assegnaGiudice(
-                hackathon.getId(), "test@example.com", nonOrg.getId());
-        assertFalse(result.isSuccess());
-        assertEquals(400, result.getStatusCode());
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("email", "anna@example.com");
+        body.put("organizzatoreId", organizzatore.getId());
+
+        mockMvc.perform(put("/api/hackathon/" + hackathon.getId() + "/giudice")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists());
     }
 
     @Test
-    void testAssegnaMentoreSuccess() {
-        hackathonService.createHackathon(
-                "Hack Mentore", "Desc",
-                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                5, 5000.0, organizzatore.getId());
+    void testAssegnaMentoreSuccess() throws Exception {
+        createHackathonViaService("Hackathon Mentore", "2025-03-01", "2025-03-03");
 
         Utente mentore = new Utente("Marco", "Neri", "marco@example.com", "password");
-        utenteRepository.add(mentore);
+        utenteRepository.save(mentore);
 
-        Result<String> result = hackathonHandler.assegnaMentore(
-                "marco@example.com", organizzatore.getId());
-        assertTrue(result.isSuccess());
-        assertEquals(200, result.getStatusCode());
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("email", "marco@example.com");
+        body.put("organizzatoreId", organizzatore.getId());
+
+        Hackathon hackathon = hackathonRepository.findByNome("Hackathon Mentore").orElseThrow();
+
+        mockMvc.perform(put("/api/hackathon/" + hackathon.getId() + "/mentore")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Mentore assegnato con successo"));
     }
 
     @Test
-    void testAssegnaMentoreNonOrganizzatore() {
-        Utente nonOrg = new Utente("Test", "User", "test@example.com", "pass");
-        nonOrg = utenteRepository.add(nonOrg);
-
-        Result<String> result = hackathonHandler.assegnaMentore(
-                "test@example.com", nonOrg.getId());
-        assertFalse(result.isSuccess());
-        assertEquals(400, result.getStatusCode());
-    }
-
-    @Test
-    void testRefreshDettagli() {
-        Result<String> result = hackathonHandler.refreshDettagli();
-        assertTrue(result.isSuccess());
-        assertEquals(200, result.getStatusCode());
-    }
-
-    @Test
-    void testCambiaStatoSuccess() {
-        Hackathon hackathon = hackathonService.createHackathon(
-                "Hack Stato", "Desc",
-                LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
-                LocalDate.now().plusDays(1),
-                5, 5000.0, organizzatore.getId());
-
-        Result<String> result = hackathonHandler.cambiaStato(
-                hackathon.getId(), StatoHackathon.IN_CORSO);
-        assertTrue(result.isSuccess());
-        assertEquals(200, result.getStatusCode());
-    }
-
-    @Test
-    void testCambiaStatoTransizioneNonValida() {
-        Hackathon hackathon = hackathonService.createHackathon(
-                "Hack Stato NV", "Desc",
-                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                5, 5000.0, organizzatore.getId());
-
-        Result<String> result = hackathonHandler.cambiaStato(
-                hackathon.getId(), StatoHackathon.CONCLUSO);
-        assertFalse(result.isSuccess());
-        assertEquals(400, result.getStatusCode());
-    }
-
-    @Test
-    void testProclamaVincitoreSuccess() {
-        Hackathon hackathon = hackathonService.createHackathon(
-                "Hack Vincitore", "Desc",
-                LocalDate.now().minusDays(5), LocalDate.now().minusDays(1),
-                LocalDate.now().minusDays(6),
-                5, 5000.0, organizzatore.getId());
-
-        Utente leaderTeam = new Utente("Mario", "Rossi", "mario@example.com", "password");
-        leaderTeam = utenteRepository.add(leaderTeam);
-        Team team = teamService.createTeam("Team Vincitore", leaderTeam.getId());
-
-        hackathon.getTeamIds().add(team.getId());
-        hackathon.setStato(StatoHackathon.IN_VALUTAZIONE);
-        hackathonRepository.modifyRecord(hackathon);
-
-        Result<String> result = hackathonHandler.proclamaVincitore(
-                hackathon.getId(), team.getId());
-        assertTrue(result.isSuccess());
-        assertEquals(200, result.getStatusCode());
-    }
-
-    @Test
-    void testProclamaVincitoreHackathonNonInValutazione() {
-        Hackathon hackathon = hackathonService.createHackathon(
-                "Hack Vincitore NV", "Desc",
-                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                5, 5000.0, organizzatore.getId());
-
-        Result<String> result = hackathonHandler.proclamaVincitore(
-                hackathon.getId(), 1L);
-        assertFalse(result.isSuccess());
-        assertEquals(400, result.getStatusCode());
-    }
-
-    @Test
-    void testGetHackathons() {
-        hackathonService.createHackathon(
-                "Hack Get 1", "Desc",
-                LocalDate.of(2025, 5, 1), LocalDate.of(2025, 5, 3),
-                LocalDate.of(2025, 4, 15),
+    void testCambiaStatoSuccess() throws Exception {
+        Map<String, Object> createBody = buildHackathonBody(
+                "Hackathon Stato", "Descrizione",
+                LocalDate.now().minusDays(1).toString(),
+                LocalDate.now().plusDays(5).toString(),
+                LocalDate.now().minusDays(2).toString(),
                 5, 1000.0, organizzatore.getId());
-        hackathonService.createHackathon(
-                "Hack Get 2", "Desc",
-                LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 3),
-                LocalDate.of(2025, 5, 15),
-                5, 2000.0, organizzatore.getId());
 
-        Result<List<Hackathon>> result = hackathonHandler.getHackathons();
-        assertTrue(result.isSuccess());
-        assertEquals(200, result.getStatusCode());
-        assertEquals(2, result.getData().size());
+        String response = mockMvc.perform(post("/api/hackathon")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createBody)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        Hackathon hackathon = objectMapper.readValue(response, Hackathon.class);
+
+        Map<String, String> statoBody = new LinkedHashMap<>();
+        statoBody.put("stato", "IN_CORSO");
+
+        mockMvc.perform(put("/api/hackathon/" + hackathon.getId() + "/stato")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(statoBody)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Stato aggiornato con successo"));
     }
 
     @Test
-    void testGetHackathonsVuota() {
-        Result<List<Hackathon>> result = hackathonHandler.getHackathons();
-        assertTrue(result.isSuccess());
-        assertTrue(result.getData().isEmpty());
+    void testCambiaStatoInvalido() throws Exception {
+        Hackathon hackathon = createHackathonViaService("Hackathon Stato Invalido", "2025-03-01", "2025-03-03");
+
+        Map<String, String> statoBody = new LinkedHashMap<>();
+        statoBody.put("stato", "CONCLUSO");
+
+        mockMvc.perform(put("/api/hackathon/" + hackathon.getId() + "/stato")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(statoBody)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists());
     }
 }

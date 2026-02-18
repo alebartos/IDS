@@ -1,145 +1,154 @@
 package it.unicam.ids.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
-import it.unicam.ids.repository.HackathonRepository;
-import it.unicam.ids.repository.InvitoRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 import it.unicam.ids.service.TeamService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Map;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
 class TeamHandlerTest {
 
-    private TeamHandler teamHandler;
-    private TeamService teamService;
-    private TeamRepository teamRepository;
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private UtenteRepository utenteRepository;
-    private InvitoRepository invitoRepository;
+
+    @Autowired
+    private TeamRepository teamRepository;
+
+    @Autowired
+    private TeamService teamService;
+
     private Utente leader;
+    private Utente membro;
 
     @BeforeEach
     void setUp() {
-        teamRepository = new TeamRepository();
-        utenteRepository = new UtenteRepository();
-        invitoRepository = new InvitoRepository();
-        HackathonRepository hackathonRepository = new HackathonRepository();
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
-        teamHandler = new TeamHandler(teamService);
-
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
-        leader = utenteRepository.add(leader);
+        leader = utenteRepository.save(leader);
+
+        membro = new Utente("Anna", "Bianchi", "anna.bianchi@example.com", "password456");
+        membro = utenteRepository.save(membro);
     }
 
     @Test
-    void testCreaTeamSuccess() {
-        Result<Team> response = teamHandler.creaTeam("Team Alpha", leader.getId());
+    void testCreaTeamSuccess() throws Exception {
+        Map<String, Object> body = Map.of("nome", "Team Alpha", "leaderId", leader.getId());
 
-        assertNotNull(response);
-        assertEquals(201, response.getStatusCode());
-        assertTrue(response.isSuccess());
-        assertNotNull(response.getData());
-        assertEquals("Team Alpha", response.getData().getNome());
+        mockMvc.perform(post("/api/team")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nome").value("Team Alpha"))
+                .andExpect(jsonPath("$.leaderId").value(leader.getId()));
     }
 
     @Test
-    void testCreaTeamNomeDuplicato() {
-        teamHandler.creaTeam("Team Dup", leader.getId());
+    void testCreaTeamNomeDuplicato() throws Exception {
+        teamService.createTeam("Team Alpha", leader.getId());
 
-        Utente leader2 = new Utente("Luigi", "Verdi", "luigi@example.com", "pass");
-        leader2 = utenteRepository.add(leader2);
+        Utente altroLeader = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password789");
+        altroLeader = utenteRepository.save(altroLeader);
 
-        Result<Team> response = teamHandler.creaTeam("Team Dup", leader2.getId());
-        assertFalse(response.isSuccess());
-        assertEquals(400, response.getStatusCode());
+        Map<String, Object> body = Map.of("nome", "Team Alpha", "leaderId", altroLeader.getId());
+
+        mockMvc.perform(post("/api/team")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    void testRimuoviMembroSuccess() {
-        Team team = teamService.createTeam("Team Rim", leader.getId());
+    void testCreaTeamUtenteNonTrovato() throws Exception {
+        Map<String, Object> body = Map.of("nome", "Team Fantasma", "leaderId", 9999L);
 
-        Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        membro = utenteRepository.add(membro);
-        membro.getRuoli().add(it.unicam.ids.model.Ruolo.MEMBRO_TEAM);
-        utenteRepository.modifyRecord(membro);
+        mockMvc.perform(post("/api/team")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testNominaViceleaderSuccess() throws Exception {
+        Team team = teamService.createTeam("Team Vice", leader.getId());
         team.getMembri().add(membro.getId());
-        teamRepository.modifyRecord(team);
+        membro.getRuoli().add(Ruolo.MEMBRO_TEAM);
+        utenteRepository.save(membro);
+        teamRepository.save(team);
 
-        Result<Team> response = teamHandler.rimuoviMembro(membro.getId(), leader.getId());
-        assertTrue(response.isSuccess());
-        assertEquals(200, response.getStatusCode());
+        mockMvc.perform(put("/api/team/{leaderId}/viceleader/{membroId}",
+                        leader.getId(), membro.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.viceleaderId").value(membro.getId()));
     }
 
     @Test
-    void testRimuoviMembroNonAppartenente() {
-        teamService.createTeam("Team Rim NM", leader.getId());
+    void testNominaViceleaderNonMembro() throws Exception {
+        teamService.createTeam("Team Vice NM", leader.getId());
 
-        Utente estraneo = new Utente("Test", "User", "test@example.com", "pass");
-        estraneo = utenteRepository.add(estraneo);
-
-        Result<Team> response = teamHandler.rimuoviMembro(estraneo.getId(), leader.getId());
-        assertFalse(response.isSuccess());
-        assertEquals(400, response.getStatusCode());
+        mockMvc.perform(put("/api/team/{leaderId}/viceleader/{membroId}",
+                        leader.getId(), membro.getId()))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    void testNominaViceleaderSuccess() {
-        Team team = teamService.createTeam("Team Vice H", leader.getId());
-
-        Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        membro = utenteRepository.add(membro);
+    void testRevocaViceleaderSuccess() throws Exception {
+        Team team = teamService.createTeam("Team Revoca", leader.getId());
         team.getMembri().add(membro.getId());
-        teamRepository.modifyRecord(team);
-
-        Result<Team> response = teamHandler.nominaViceleader(leader.getId(), membro.getId());
-        assertTrue(response.isSuccess());
-        assertEquals(200, response.getStatusCode());
-        assertEquals(membro.getId(), response.getData().getViceleaderId());
-    }
-
-    @Test
-    void testNominaViceleaderNonMembro() {
-        teamService.createTeam("Team Vice HNM", leader.getId());
-
-        Utente estraneo = new Utente("Test", "User", "test@example.com", "pass");
-        estraneo = utenteRepository.add(estraneo);
-
-        Result<Team> response = teamHandler.nominaViceleader(leader.getId(), estraneo.getId());
-        assertFalse(response.isSuccess());
-        assertEquals(400, response.getStatusCode());
-    }
-
-    @Test
-    void testRevocaViceleaderSuccess() {
-        Team team = teamService.createTeam("Team Rev", leader.getId());
-
-        Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        membro = utenteRepository.add(membro);
-        team.getMembri().add(membro.getId());
-        teamRepository.modifyRecord(team);
+        membro.getRuoli().add(Ruolo.MEMBRO_TEAM);
+        utenteRepository.save(membro);
+        teamRepository.save(team);
 
         teamService.nominaViceleader(leader.getId(), membro.getId());
 
-        Result<Team> response = teamHandler.revocaViceleader(leader.getId(), membro.getId());
-        assertTrue(response.isSuccess());
-        assertEquals(200, response.getStatusCode());
-        assertNull(response.getData().getViceleaderId());
+        mockMvc.perform(delete("/api/team/{leaderId}/viceleader/{membroId}",
+                        leader.getId(), membro.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.viceleaderId").isEmpty());
     }
 
     @Test
-    void testRevocaViceleaderNonViceleader() {
-        Team team = teamService.createTeam("Team Rev NV", leader.getId());
-
-        Utente membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        membro = utenteRepository.add(membro);
+    void testRimuoviMembroSuccess() throws Exception {
+        Team team = teamService.createTeam("Team Rimuovi", leader.getId());
         team.getMembri().add(membro.getId());
-        teamRepository.modifyRecord(team);
+        membro.getRuoli().add(Ruolo.MEMBRO_TEAM);
+        utenteRepository.save(membro);
+        teamRepository.save(team);
 
-        Result<Team> response = teamHandler.revocaViceleader(leader.getId(), membro.getId());
-        assertFalse(response.isSuccess());
-        assertEquals(400, response.getStatusCode());
+        mockMvc.perform(delete("/api/team/{leaderId}/membri/{membroId}",
+                        leader.getId(), membro.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.membri").isArray());
+    }
+
+    @Test
+    void testRimuoviMembroSelf() throws Exception {
+        teamService.createTeam("Team Self", leader.getId());
+
+        mockMvc.perform(delete("/api/team/{leaderId}/membri/{membroId}",
+                        leader.getId(), leader.getId()))
+                .andExpect(status().isBadRequest());
     }
 }

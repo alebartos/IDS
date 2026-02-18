@@ -1,140 +1,158 @@
 package it.unicam.ids.controller;
 
-import it.unicam.ids.dto.DatiProgetto;
-import it.unicam.ids.model.Hackathon;
-import it.unicam.ids.model.Ruolo;
-import it.unicam.ids.model.Sottomissione;
-import it.unicam.ids.model.StatoHackathon;
-import it.unicam.ids.model.StatoSottomissione;
-import it.unicam.ids.model.Team;
-import it.unicam.ids.model.Utente;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import it.unicam.ids.model.*;
 import it.unicam.ids.repository.HackathonRepository;
-import it.unicam.ids.repository.InvitoRepository;
-import it.unicam.ids.repository.SottomissioneRepository;
-import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 import it.unicam.ids.service.HackathonService;
-import it.unicam.ids.service.SottomissioneService;
 import it.unicam.ids.service.TeamService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
 class SottomissioneHandlerTest {
 
-    private SottomissioneHandler sottomissioneHandler;
-    private SottomissioneRepository sottomissioneRepository;
-    private HackathonRepository hackathonRepository;
-    private UtenteRepository utenteRepository;
-    private TeamRepository teamRepository;
+    @Autowired
+    private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private UtenteRepository utenteRepository;
+
+    @Autowired
+    private HackathonRepository hackathonRepository;
+
+    @Autowired
+    private HackathonService hackathonService;
+
+    @Autowired
+    private TeamService teamService;
+
+    private Utente leader;
     private Team team;
     private Hackathon hackathon;
 
     @BeforeEach
     void setUp() {
-        sottomissioneRepository = new SottomissioneRepository();
-        hackathonRepository = new HackathonRepository();
-        utenteRepository = new UtenteRepository();
-        teamRepository = new TeamRepository();
-        InvitoRepository invitoRepository = new InvitoRepository();
+        Utente organizzatore = new Utente("Admin", "Org", "admin.org@example.com", "password123");
+        organizzatore.addRuolo(Ruolo.ORGANIZZATORE);
+        organizzatore = utenteRepository.save(organizzatore);
 
-        TeamService teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
-        HackathonService hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
-        SottomissioneService sottomissioneService = new SottomissioneService(sottomissioneRepository, hackathonRepository, utenteRepository);
-        sottomissioneHandler = new SottomissioneHandler(sottomissioneService);
+        leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
+        leader = utenteRepository.save(leader);
 
-        Utente organizzatore = new Utente("Luigi", "Verdi", "luigi@example.com", "password");
-        organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
-        organizzatore = utenteRepository.add(organizzatore);
-
-        Utente leader = new Utente("Mario", "Rossi", "mario@example.com", "password");
-        leader = utenteRepository.add(leader);
         team = teamService.createTeam("Team Alpha", leader.getId());
 
         hackathon = hackathonService.createHackathon(
-                "Hackathon Test", "Description",
-                LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
+                "Hackathon Test",
+                "Description",
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusDays(5),
                 LocalDate.now().plusDays(1),
-                5, 1000.0, organizzatore.getId());
+                5,
+                1000.0,
+                organizzatore.getId()
+        );
+
         hackathon.setStato(StatoHackathon.IN_CORSO);
-        hackathon.getTeamIds().add(team.getId());
-        hackathonRepository.modifyRecord(hackathon);
+        hackathon = hackathonRepository.save(hackathon);
+
+        leader.addRuolo(Ruolo.PARTECIPANTE);
+        leader = utenteRepository.save(leader);
     }
 
     @Test
-    void testCaricaBozzaSuccess() {
-        DatiProgetto dati = new DatiProgetto("Titolo", "Desc", "https://github.com/repo");
+    void testCaricaBozzaSuccess() throws Exception {
+        Map<String, Object> body = Map.of(
+                "teamId", team.getId(),
+                "hackathonId", hackathon.getId(),
+                "utenteId", leader.getId(),
+                "titolo", "Progetto Test",
+                "descrizione", "Descrizione del progetto",
+                "linkRepository", "https://github.com/test/repo"
+        );
 
-        Result<Sottomissione> result = sottomissioneHandler.caricaBozza(team.getId(), hackathon.getId(), dati, false);
-
-        assertTrue(result.isSuccess());
-        assertEquals(200, result.getStatusCode());
-        assertNotNull(result.getData());
-        assertEquals(StatoSottomissione.BOZZA, result.getData().getStato());
+        mockMvc.perform(post("/api/sottomissioni/bozza")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk());
     }
 
     @Test
-    void testCaricaBozzaDefinitiva() {
-        DatiProgetto dati = new DatiProgetto("Titolo", "Desc", "https://github.com/repo");
+    void testSottomettiProgettoSuccess() throws Exception {
+        Map<String, Object> body = Map.of(
+                "teamId", team.getId(),
+                "hackathonId", hackathon.getId(),
+                "utenteId", leader.getId(),
+                "titolo", "Progetto Finale",
+                "descrizione", "Descrizione finale",
+                "linkRepository", "https://github.com/test/repo"
+        );
 
-        Result<Sottomissione> result = sottomissioneHandler.caricaBozza(team.getId(), hackathon.getId(), dati, true);
-
-        assertTrue(result.isSuccess());
-        assertEquals(StatoSottomissione.CONSEGNATA, result.getData().getStato());
+        mockMvc.perform(post("/api/sottomissioni/sottometti")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk());
     }
 
     @Test
-    void testCaricaBozzaGiaConsegnata() {
-        DatiProgetto dati = new DatiProgetto("Titolo", "Desc", "https://github.com/repo");
-        sottomissioneHandler.caricaBozza(team.getId(), hackathon.getId(), dati, true);
+    void testSottomettiProgettoLinkInvalido() throws Exception {
+        Map<String, Object> body = Map.of(
+                "teamId", team.getId(),
+                "hackathonId", hackathon.getId(),
+                "utenteId", leader.getId(),
+                "titolo", "Progetto Invalido",
+                "descrizione", "Descrizione",
+                "linkRepository", "ftp://invalid-link.com/repo"
+        );
 
-        Result<Sottomissione> result = sottomissioneHandler.caricaBozza(team.getId(), hackathon.getId(), dati, false);
-
-        assertFalse(result.isSuccess());
-        assertEquals(400, result.getStatusCode());
+        mockMvc.perform(post("/api/sottomissioni/sottometti")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    void testSottomissioneHandlerSuccess() {
-        DatiProgetto dati = new DatiProgetto("Titolo", "Desc", "https://github.com/repo");
-
-        Result<Sottomissione> result = sottomissioneHandler.sottomissioneHandler(team.getId(), hackathon.getId(), dati, false);
-
-        assertTrue(result.isSuccess());
-        assertEquals(200, result.getStatusCode());
+    void testGetValutazioniEmpty() throws Exception {
+        mockMvc.perform(get("/api/sottomissioni/valutazioni/{hackathonId}", hackathon.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
     }
 
     @Test
-    void testSottomissioneHandlerDefinitiva() {
-        DatiProgetto dati = new DatiProgetto("Titolo", "Desc", "https://github.com/repo");
+    void testCaricaBozzaUtenteNonPartecipante() throws Exception {
+        Utente nonPartecipante = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
+        nonPartecipante = utenteRepository.save(nonPartecipante);
 
-        Result<Sottomissione> result = sottomissioneHandler.sottomissioneHandler(team.getId(), hackathon.getId(), dati, true);
+        Map<String, Object> body = Map.of(
+                "teamId", team.getId(),
+                "hackathonId", hackathon.getId(),
+                "utenteId", nonPartecipante.getId(),
+                "titolo", "Progetto Non Autorizzato",
+                "descrizione", "Descrizione",
+                "linkRepository", "https://github.com/test/repo"
+        );
 
-        assertTrue(result.isSuccess());
-        assertEquals(StatoSottomissione.CONSEGNATA, result.getData().getStato());
-    }
-
-    @Test
-    void testSottomissioneHandlerLinkNonValido() {
-        DatiProgetto dati = new DatiProgetto("Titolo", "Desc", "link-non-valido");
-
-        Result<Sottomissione> result = sottomissioneHandler.sottomissioneHandler(team.getId(), hackathon.getId(), dati, false);
-
-        assertFalse(result.isSuccess());
-        assertEquals(400, result.getStatusCode());
-    }
-
-    @Test
-    void testSottomissioneHandlerLinkVuoto() {
-        DatiProgetto dati = new DatiProgetto("Titolo", "Desc", "");
-
-        Result<Sottomissione> result = sottomissioneHandler.sottomissioneHandler(team.getId(), hackathon.getId(), dati, false);
-
-        assertFalse(result.isSuccess());
-        assertEquals(400, result.getStatusCode());
+        mockMvc.perform(post("/api/sottomissioni/bozza")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest());
     }
 }

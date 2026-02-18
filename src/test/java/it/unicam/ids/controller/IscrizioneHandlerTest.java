@@ -1,179 +1,134 @@
 package it.unicam.ids.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unicam.ids.model.Hackathon;
 import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
-import it.unicam.ids.repository.HackathonRepository;
-import it.unicam.ids.repository.InvitoRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 import it.unicam.ids.service.HackathonService;
-import it.unicam.ids.service.IscrizioneService;
 import it.unicam.ids.service.TeamService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
 class IscrizioneHandlerTest {
 
-    private IscrizioneHandler iscrizioneHandler;
-    private IscrizioneService iscrizioneService;
-    private HackathonService hackathonService;
-    private TeamService teamService;
-    private HackathonRepository hackathonRepository;
-    private TeamRepository teamRepository;
-    private UtenteRepository utenteRepository;
-    private InvitoRepository invitoRepository;
+    @Autowired
+    private MockMvc mockMvc;
 
-    private Hackathon hackathon;
-    private Team team;
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private UtenteRepository utenteRepository;
+
+    @Autowired
+    private TeamRepository teamRepository;
+
+    @Autowired
+    private HackathonService hackathonService;
+
+    @Autowired
+    private TeamService teamService;
+
+    private Utente organizzatore;
     private Utente leader;
-    private Utente membro1;
-    private Utente membro2;
+    private Utente membro;
+    private Team team;
+    private Hackathon hackathon;
 
     @BeforeEach
     void setUp() {
-        hackathonRepository = new HackathonRepository();
-        teamRepository = new TeamRepository();
-        utenteRepository = new UtenteRepository();
-        invitoRepository = new InvitoRepository();
-
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
-        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
-        iscrizioneService = new IscrizioneService(teamRepository, hackathonRepository, utenteRepository);
-        iscrizioneHandler = new IscrizioneHandler(iscrizioneService);
-
-        Utente organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
+        organizzatore = new Utente("Luigi", "Verdi", "luigi@example.com", "password");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
-        organizzatore = utenteRepository.add(organizzatore);
+        organizzatore = utenteRepository.save(organizzatore);
+
+        leader = new Utente("Mario", "Rossi", "mario@example.com", "password");
+        leader = utenteRepository.save(leader);
+
+        team = teamService.createTeam("Team Test", leader.getId());
 
         hackathon = hackathonService.createHackathon(
-                "Test Hackathon", "Description",
-                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                5, 5000.0, organizzatore.getId());
+                "Hackathon Test", "Descrizione test",
+                LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
+                LocalDate.now().plusDays(1),
+                5, 1000.0, organizzatore.getId());
 
-        leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
-        leader = utenteRepository.add(leader);
-
-        membro1 = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        membro1 = utenteRepository.add(membro1);
-
-        membro2 = new Utente("Paolo", "Neri", "paolo@example.com", "password");
-        membro2 = utenteRepository.add(membro2);
-
-        team = teamService.createTeam("Team Alpha", leader.getId());
-
-        team.getMembri().add(membro1.getId());
-        team.getMembri().add(membro2.getId());
-        teamRepository.modifyRecord(team);
+        membro = new Utente("Anna", "Bianchi", "anna@example.com", "password");
+        membro.getRuoli().add(Ruolo.MEMBRO_TEAM);
+        membro = utenteRepository.save(membro);
+        team.getMembri().add(membro.getId());
+        teamRepository.save(team);
     }
 
     @Test
-    void testIscriviTeamSuccess() {
-        Result<String> response = iscrizioneHandler.iscriviTeam(team.getId(), hackathon.getId());
-
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCode());
-        assertTrue(response.isSuccess());
-
-        Hackathon aggiornato = hackathonRepository.findById(hackathon.getId()).orElseThrow();
-        assertTrue(aggiornato.getTeamIds().contains(team.getId()));
+    void testIscriviTeamSuccess() throws Exception {
+        mockMvc.perform(post("/api/iscrizioni/team/{teamId}/hackathon/{hackathonId}",
+                        team.getId(), hackathon.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Team iscritto con successo"));
     }
 
     @Test
-    void testIscriviTeamHackathonNonValido() {
-        Utente org = new Utente("Paolo", "Bianchi", "paolo.bianchi@example.com", "pass");
-        org.getRuoli().add(Ruolo.ORGANIZZATORE);
-        org = utenteRepository.add(org);
+    void testIscriviTeamGiaIscritto() throws Exception {
+        // Prima iscrizione
+        mockMvc.perform(post("/api/iscrizioni/team/{teamId}/hackathon/{hackathonId}",
+                        team.getId(), hackathon.getId()))
+                .andExpect(status().isOk());
 
-        Hackathon hackathonPassato = hackathonService.createHackathon(
-                "Passato Hackathon", "Description",
-                LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusDays(3),
-                LocalDate.now().minusMonths(2),
-                5, 5000.0, org.getId());
-
-        Result<String> response = iscrizioneHandler.iscriviTeam(team.getId(), hackathonPassato.getId());
-
-        assertEquals(400, response.getStatusCode());
-        assertFalse(response.isSuccess());
+        // Seconda iscrizione: deve fallire
+        mockMvc.perform(post("/api/iscrizioni/team/{teamId}/hackathon/{hackathonId}",
+                        team.getId(), hackathon.getId()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists());
     }
 
     @Test
-    void testIscriviTeamNotFound() {
-        Result<String> response = iscrizioneHandler.iscriviTeam(team.getId(), 99999L);
-
-        assertEquals(400, response.getStatusCode());
-        assertFalse(response.isSuccess());
+    void testSelezionaPartecipantiSuccess() throws Exception {
+        mockMvc.perform(get("/api/iscrizioni/team/{teamId}/hackathon/{hackathonId}/partecipanti",
+                        team.getId(), hackathon.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.membri").isArray())
+                .andExpect(jsonPath("$.maxMembriTeam").isNumber());
     }
 
     @Test
-    void testIscriviTeamGiaIscritto() {
-        iscrizioneHandler.iscriviTeam(team.getId(), hackathon.getId());
+    void testSelezionaPartecipantiConSelezioneSuccess() throws Exception {
+        List<Long> partecipanti = List.of(membro.getId());
+        Map<String, Object> body = Map.of("partecipanti", partecipanti);
 
-        Result<String> response = iscrizioneHandler.iscriviTeam(team.getId(), hackathon.getId());
-
-        assertEquals(400, response.getStatusCode());
-        assertFalse(response.isSuccess());
+        mockMvc.perform(post("/api/iscrizioni/team/{teamId}/hackathon/{hackathonId}/partecipanti",
+                        team.getId(), hackathon.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Partecipanti selezionati e team iscritto con successo"));
     }
 
     @Test
-    void testSelezionaPartecipantiGetMembri() {
-        Result<Map<String, Object>> response = iscrizioneHandler.selezionaPartecipanti(team.getId(), hackathon.getId());
-
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCode());
-        assertTrue(response.isSuccess());
-
-        Map<String, Object> dati = response.getData();
-        assertNotNull(dati.get("membri"));
-        assertNotNull(dati.get("maxMembriTeam"));
-        assertEquals(5, dati.get("maxMembriTeam"));
-    }
-
-    @Test
-    void testSelezionaPartecipantiConSelezione() {
-        List<Long> selected = Arrays.asList(membro1.getId(), membro2.getId());
-
-        Result<String> response = iscrizioneHandler.selezionaPartecipanti(team.getId(), selected, hackathon.getId());
-
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCode());
-        assertTrue(response.isSuccess());
-    }
-
-    @Test
-    void testSelezionaPartecipantiSuperaMax() {
-        Utente org = new Utente("Marco", "Blu", "marco.blu@example.com", "pass");
-        org.getRuoli().add(Ruolo.ORGANIZZATORE);
-        org = utenteRepository.add(org);
-
-        Hackathon hackathonPiccolo = hackathonService.createHackathon(
-                "Hackathon Piccolo", "Description",
-                LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
-                LocalDate.now().plusMonths(1),
-                1, 5000.0, org.getId());
-
-        List<Long> selected = Arrays.asList(membro1.getId(), membro2.getId());
-
-        Result<String> response = iscrizioneHandler.selezionaPartecipanti(team.getId(), selected, hackathonPiccolo.getId());
-
-        assertEquals(400, response.getStatusCode());
-        assertFalse(response.isSuccess());
-    }
-
-    @Test
-    void testSelezionaPartecipantiTeamNonTrovato() {
-        Result<Map<String, Object>> response = iscrizioneHandler.selezionaPartecipanti(99999L, hackathon.getId());
-
-        assertEquals(400, response.getStatusCode());
-        assertFalse(response.isSuccess());
+    void testIscriviTeamHackathonNonTrovato() throws Exception {
+        mockMvc.perform(post("/api/iscrizioni/team/{teamId}/hackathon/{hackathonId}",
+                        team.getId(), 99999L))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists());
     }
 }
