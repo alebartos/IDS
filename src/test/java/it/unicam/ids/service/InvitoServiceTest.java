@@ -5,6 +5,7 @@ import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.StatoInvito;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
+import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.InvitoRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
@@ -31,8 +32,9 @@ class InvitoServiceTest {
         teamRepository = new TeamRepository();
         utenteRepository = new UtenteRepository();
 
+        HackathonRepository hackathonRepository = new HackathonRepository();
         invitoService = new InvitoService(utenteRepository, teamRepository, invitoRepository);
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
+        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
         leader = utenteRepository.add(leader);
