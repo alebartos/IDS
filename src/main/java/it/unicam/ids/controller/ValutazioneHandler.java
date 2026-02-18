@@ -3,10 +3,13 @@ package it.unicam.ids.controller;
 import it.unicam.ids.dto.DatiValutazione;
 import it.unicam.ids.model.Sottomissione;
 import it.unicam.ids.service.ValutazioneService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-/**
- * Handler per la gestione delle valutazioni delle sottomissioni.
- */
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/valutazioni")
 public class ValutazioneHandler {
 
     private final ValutazioneService valutazioneService;
@@ -15,21 +18,18 @@ public class ValutazioneHandler {
         this.valutazioneService = valutazioneService;
     }
 
-    /**
-     * Conferma e registra la valutazione di una sottomissione.
-     * @param giudiceId l'ID del giudice
-     * @param sottomissioneId l'ID della sottomissione
-     * @param punteggio il punteggio assegnato
-     * @param giudizio il giudizio testuale
-     * @return Result con la sottomissione aggiornata
-     */
-    public Result<Sottomissione> confermaSottomissione(Long giudiceId, Long sottomissioneId, int punteggio, String giudizio) {
+    @PostMapping
+    public ResponseEntity<?> confermaSottomissione(@RequestBody Map<String, Object> body) {
         try {
+            Long giudiceId = ((Number) body.get("giudiceId")).longValue();
+            Long sottomissioneId = ((Number) body.get("sottomissioneId")).longValue();
+            int punteggio = ((Number) body.get("punteggio")).intValue();
+            String giudizio = (String) body.get("giudizio");
             DatiValutazione datiValutazione = valutazioneService.creaDTO(punteggio, giudizio);
             Sottomissione sottomissione = valutazioneService.valutaSottomissione(giudiceId, sottomissioneId, datiValutazione);
-            return Result.success(sottomissione);
+            return ResponseEntity.ok(sottomissione);
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }
