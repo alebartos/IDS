@@ -21,7 +21,7 @@ public class TestRunner {
         System.out.println("========================================\n");
 
         LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
-                .selectors(selectPackage("com.ids"))
+                .selectors(selectPackage("it.unicam.ids"))
                 .build();
 
         Launcher launcher = LauncherFactory.create();
