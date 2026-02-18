@@ -9,9 +9,13 @@ import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.SegnalazioneRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Service
+@Transactional
 public class SegnalazioneService {
 
     private final SegnalazioneRepository segnalazioneRepo;
@@ -32,7 +36,7 @@ public class SegnalazioneService {
         segnalazione.setDescrizione(descrizione);
         segnalazione.setTeamId(teamId);
         segnalazione.setHackathonId(hackathonId);
-        segnalazioneRepo.add(segnalazione);
+        segnalazioneRepo.save(segnalazione);
 
         Hackathon hackathon = hackathonRepo.findById(hackathonId)
                 .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
@@ -44,14 +48,14 @@ public class SegnalazioneService {
     }
 
     public List<Segnalazione> getSegnalazioni(Long hackathonId) {
-        return segnalazioneRepo.getAllSegnalazioniByHackathon(hackathonId);
+        return segnalazioneRepo.findByHackathonId(hackathonId);
     }
 
     public void archiviaSegnalazione(Long segnalazioneId) {
         Segnalazione segnalazione = segnalazioneRepo.findById(segnalazioneId)
                 .orElseThrow(() -> new IllegalArgumentException("Segnalazione non trovata"));
         segnalazione.setGestita(true);
-        segnalazioneRepo.modifyRecord(segnalazione);
+        segnalazioneRepo.save(segnalazione);
     }
 
     public void squalificaTeam(Long segnalazioneId, Long teamId, Long hackathonId) {
@@ -67,7 +71,7 @@ public class SegnalazioneService {
 
         // Rimuovi il team dall'hackathon
         hackathon.getTeamIds().remove(teamId);
-        hackathonRepo.modifyRecord(hackathon);
+        hackathonRepo.save(hackathon);
 
         // Rimuovi ruolo PARTECIPANTE da tutti i membri del team
         Team team = teamRepo.findById(teamId)
@@ -77,19 +81,19 @@ public class SegnalazioneService {
             Utente utente = utenteRepo.findById(membroId).orElse(null);
             if (utente != null) {
                 utente.getRuoli().remove(Ruolo.PARTECIPANTE);
-                utenteRepo.modifyRecord(utente);
+                utenteRepo.save(utente);
             }
         }
         // Rimuovi PARTECIPANTE anche dal leader
         Utente leader = utenteRepo.findById(team.getLeaderId()).orElse(null);
         if (leader != null) {
             leader.getRuoli().remove(Ruolo.PARTECIPANTE);
-            utenteRepo.modifyRecord(leader);
+            utenteRepo.save(leader);
         }
 
         // Segna la segnalazione come gestita
         segnalazione.setGestita(true);
-        segnalazioneRepo.modifyRecord(segnalazione);
+        segnalazioneRepo.save(segnalazione);
     }
 
     public void inviaMail(String email, String oggetto) {
