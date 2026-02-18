@@ -4,10 +4,15 @@ import it.unicam.ids.model.Hackathon;
 import it.unicam.ids.model.StatoHackathon;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.service.HackathonService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
+@RestController
+@RequestMapping("/api/hackathon")
 public class HackathonHandler {
 
     private final HackathonService hackathonService;
@@ -16,73 +21,87 @@ public class HackathonHandler {
         this.hackathonService = hackathonService;
     }
 
-    public Result<Hackathon> creaHackathonRequest(String nome, LocalDate dataInizio, LocalDate dataFine,
-                                                  String descrizione, String regolamento,
-                                                  LocalDate scadenzaIscrizioni, int maxPartecipanti,
-                                                  double premio, Long organizzatoreId) {
+    @PostMapping
+    public ResponseEntity<?> creaHackathon(@RequestBody Map<String, Object> body) {
         try {
+            String nome = (String) body.get("nome");
+            String descrizione = (String) body.get("descrizione");
+            LocalDate dataInizio = LocalDate.parse((String) body.get("dataInizio"));
+            LocalDate dataFine = LocalDate.parse((String) body.get("dataFine"));
+            LocalDate scadenzaIscrizioni = LocalDate.parse((String) body.get("scadenzaIscrizioni"));
+            int maxPartecipanti = ((Number) body.get("maxPartecipanti")).intValue();
+            double premio = ((Number) body.get("premio")).doubleValue();
+            Long organizzatoreId = ((Number) body.get("organizzatoreId")).longValue();
             Hackathon hackathon = hackathonService.createHackathon(nome, descrizione, dataInizio, dataFine, scadenzaIscrizioni, maxPartecipanti, premio, organizzatoreId);
-            return Result.created(hackathon);
+            return ResponseEntity.status(201).body(hackathon);
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    public Result<String> assegnaGiudice(Long hackathonId, String email, Long organizzatoreId) {
-        try {
-            hackathonService.assegnaGiudice(hackathonId, email, organizzatoreId);
-            return Result.success("Giudice assegnato con successo");
-        } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
-        }
-    }
-
-    public Result<String> assegnaMentore(String email, Long organizzatoreId) {
-        try {
-            hackathonService.assegnaMentore(email, organizzatoreId);
-            return Result.success("Mentore assegnato con successo");
-        } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
-        }
-    }
-
-    public Result<String> refreshDettagli() {
-        return Result.success("Dettagli aggiornati");
-    }
-
-    public Result<String> cambiaStato(Long hackathonId, StatoHackathon nuovoStato) {
-        try {
-            hackathonService.modifcaStato(hackathonId, nuovoStato);
-            return Result.success("Stato aggiornato con successo");
-        } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
-        }
-    }
-
-    public Result<String> proclamaVincitore(Long hackathonId, Long teamId) {
-        try {
-            hackathonService.proclamaVincitore(hackathonId, teamId);
-            return Result.success("Vincitore proclamato con successo");
-        } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
-        }
-    }
-
-    public Result<List<Hackathon>> getHackathons() {
+    @GetMapping
+    public ResponseEntity<?> getHackathons() {
         try {
             List<Hackathon> hackathons = hackathonService.getHackathons();
-            return Result.success(hackathons);
+            return ResponseEntity.ok(hackathons);
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    public Result<List<Team>> getTeams(Long hackathonId) {
+    @GetMapping("/{id}/teams")
+    public ResponseEntity<?> getTeams(@PathVariable Long id) {
         try {
-            List<Team> teams = hackathonService.getTeams(hackathonId);
-            return Result.success(teams);
+            List<Team> teams = hackathonService.getTeams(id);
+            return ResponseEntity.ok(teams);
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/giudice")
+    public ResponseEntity<?> assegnaGiudice(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        try {
+            String email = (String) body.get("email");
+            Long organizzatoreId = ((Number) body.get("organizzatoreId")).longValue();
+            hackathonService.assegnaGiudice(id, email, organizzatoreId);
+            return ResponseEntity.ok(Map.of("message", "Giudice assegnato con successo"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/mentore")
+    public ResponseEntity<?> assegnaMentore(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        try {
+            String email = (String) body.get("email");
+            Long organizzatoreId = ((Number) body.get("organizzatoreId")).longValue();
+            hackathonService.assegnaMentore(email, organizzatoreId);
+            return ResponseEntity.ok(Map.of("message", "Mentore assegnato con successo"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/stato")
+    public ResponseEntity<?> cambiaStato(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        try {
+            StatoHackathon nuovoStato = StatoHackathon.valueOf(body.get("stato"));
+            hackathonService.modifcaStato(id, nuovoStato);
+            return ResponseEntity.ok(Map.of("message", "Stato aggiornato con successo"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/vincitore")
+    public ResponseEntity<?> proclamaVincitore(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        try {
+            Long teamId = ((Number) body.get("teamId")).longValue();
+            hackathonService.proclamaVincitore(id, teamId);
+            return ResponseEntity.ok(Map.of("message", "Vincitore proclamato con successo"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }
