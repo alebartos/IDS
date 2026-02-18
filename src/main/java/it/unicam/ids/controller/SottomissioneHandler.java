@@ -4,10 +4,13 @@ import it.unicam.ids.dto.DatiProgetto;
 import it.unicam.ids.model.Sottomissione;
 import it.unicam.ids.model.StatoSottomissione;
 import it.unicam.ids.service.SottomissioneService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-/**
- * Handler per le operazioni sulle Sottomissioni.
- */
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/sottomissioni")
 public class SottomissioneHandler {
 
     private final SottomissioneService sottomissioneService;
@@ -16,49 +19,30 @@ public class SottomissioneHandler {
         this.sottomissioneService = sottomissioneService;
     }
 
-    /**
-     * Carica una bozza di sottomissione.
-     * @param teamId ID del team
-     * @param hackathonId ID dell'hackathon
-     * @param datiProgetto i dati del progetto
-     * @param isDefinitiva se true, la sottomissione viene consegnata definitivamente
-     */
-    public Result<Sottomissione> caricaBozza(Long teamId, Long hackathonId, DatiProgetto datiProgetto, boolean isDefinitiva) {
+    @PostMapping
+    public ResponseEntity<?> caricaSottomissione(@RequestBody Map<String, Object> body) {
         try {
-            Sottomissione sottomissione = sottomissioneService.gestisciBozze(teamId, hackathonId);
-            sottomissione.setDatiProgetto(datiProgetto);
+            Long teamId = ((Number) body.get("teamId")).longValue();
+            Long hackathonId = ((Number) body.get("hackathonId")).longValue();
+            String titolo = (String) body.get("titolo");
+            String descrizione = (String) body.get("descrizione");
+            String linkRepository = (String) body.get("linkRepository");
+            boolean isDefinitiva = body.containsKey("definitiva") && (boolean) body.get("definitiva");
+
+            DatiProgetto datiProgetto = new DatiProgetto(titolo, descrizione, linkRepository);
 
             if (isDefinitiva) {
-                sottomissione.setStato(StatoSottomissione.CONSEGNATA);
+                sottomissioneService.checkValiditàLink(linkRepository);
             }
-
-            return Result.success(sottomissione);
-        } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
-        }
-    }
-
-    /**
-     * Gestisce la sottomissione di un progetto.
-     * @param teamId ID del team
-     * @param hackathonId ID dell'hackathon
-     * @param datiProgetto i dati del progetto
-     * @param isDefinitiva se true, la sottomissione viene consegnata definitivamente
-     */
-    public Result<Sottomissione> sottomissioneHandler(Long teamId, Long hackathonId, DatiProgetto datiProgetto, boolean isDefinitiva) {
-        try {
-            sottomissioneService.checkValiditàLink(datiProgetto.getLinkRepository());
 
             Sottomissione sottomissione = sottomissioneService.gestisciBozze(teamId, hackathonId);
             sottomissione.setDatiProgetto(datiProgetto);
-
             if (isDefinitiva) {
                 sottomissione.setStato(StatoSottomissione.CONSEGNATA);
             }
-
-            return Result.success(sottomissione);
+            return ResponseEntity.ok(sottomissione);
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }

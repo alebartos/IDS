@@ -1,10 +1,13 @@
 package it.unicam.ids.controller;
 
 import it.unicam.ids.service.InvitoService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-/**
- * Handler per le operazioni sugli inviti.
- */
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/inviti")
 public class InvitoHandler {
 
     private final InvitoService invitoService;
@@ -13,32 +16,27 @@ public class InvitoHandler {
         this.invitoService = invitoService;
     }
 
-    /**
-     * Invia un invito a un utente per unirsi a un team tramite email.
-     * @param email email dell'utente da invitare
-     * @param teamId ID del team
-     * @param richiedenteId ID dell'utente che effettua l'invito (deve essere il leader)
-     */
-    public Result<String> invitaMembro(String email, Long teamId, Long richiedenteId) {
+    @PostMapping
+    public ResponseEntity<?> invitaMembro(@RequestBody Map<String, Object> body) {
         try {
+            String email = (String) body.get("email");
+            Long teamId = ((Number) body.get("teamId")).longValue();
+            Long richiedenteId = ((Number) body.get("richiedenteId")).longValue();
             invitoService.invitaMembro(email, teamId, richiedenteId);
-            return Result.success("Invito inviato con successo");
+            return ResponseEntity.ok(Map.of("message", "Invito inviato con successo"));
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    /**
-     * Gestisce la risposta a un invito (accetta o rifiuta).
-     * @param invitoId ID dell'invito
-     * @param risposta "ACCETTATO" o "RIFIUTATO"
-     */
-    public Result<String> gestisciInvito(Long invitoId, String risposta) {
+    @PutMapping("/{id}")
+    public ResponseEntity<?> gestisciInvito(@PathVariable Long id, @RequestBody Map<String, String> body) {
         try {
-            invitoService.gestisciInvito(invitoId, risposta);
-            return Result.success("Invito gestito con successo");
+            String risposta = body.get("risposta");
+            invitoService.gestisciInvito(id, risposta);
+            return ResponseEntity.ok(Map.of("message", "Invito gestito con successo"));
         } catch (IllegalArgumentException e) {
-            return Result.badRequest(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }
