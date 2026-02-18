@@ -31,10 +31,10 @@ class SegnalazioneHandlerTest {
         TeamRepository teamRepository = new TeamRepository();
         InvitoRepository invitoRepository = new InvitoRepository();
 
-        TeamService teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
-        HackathonService hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService);
+        TeamService teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
+        HackathonService hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
         SegnalazioneService segnalazioneService = new SegnalazioneService(
-                segnalazioneRepository, hackathonRepository, utenteRepository);
+                segnalazioneRepository, hackathonRepository, utenteRepository, teamRepository);
         segnalazioneHandler = new SegnalazioneHandler(segnalazioneService);
 
         Utente organizzatore = new Utente("Luigi", "Verdi", "luigi@example.com", "password");
@@ -44,6 +44,7 @@ class SegnalazioneHandlerTest {
         hackathon = hackathonService.createHackathon(
                 "Hackathon Test", "Description",
                 LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
+                LocalDate.now().plusDays(1),
                 5, 1000.0, organizzatore.getId());
     }
 
