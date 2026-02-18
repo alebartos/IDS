@@ -19,9 +19,9 @@ public class Sottomissione {
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "titolo", column = @Column(name = "progetto_titolo")),
-            @AttributeOverride(name = "descrizione", column = @Column(name = "progetto_descrizione")),
-            @AttributeOverride(name = "linkRepository", column = @Column(name = "progetto_link_repository"))
+        @AttributeOverride(name = "titolo", column = @Column(name = "progetto_titolo")),
+        @AttributeOverride(name = "descrizione", column = @Column(name = "progetto_descrizione")),
+        @AttributeOverride(name = "linkRepository", column = @Column(name = "progetto_link_repository"))
     })
     private DatiProgetto datiProgetto;
 
@@ -35,9 +35,9 @@ public class Sottomissione {
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "punteggio", column = @Column(name = "valutazione_punteggio")),
-            @AttributeOverride(name = "giudizio", column = @Column(name = "valutazione_giudizio")),
-            @AttributeOverride(name = "dataCreazione", column = @Column(name = "valutazione_data_creazione"))
+        @AttributeOverride(name = "punteggio", column = @Column(name = "valutazione_punteggio")),
+        @AttributeOverride(name = "giudizio", column = @Column(name = "valutazione_giudizio")),
+        @AttributeOverride(name = "dataCreazione", column = @Column(name = "valutazione_data_creazione"))
     })
     private DatiValutazione datiValutazione;
 
