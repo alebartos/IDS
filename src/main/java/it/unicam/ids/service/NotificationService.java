@@ -1,5 +1,8 @@
 package it.unicam.ids.service;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public class NotificationService implements Subscriber {
 
     @Override

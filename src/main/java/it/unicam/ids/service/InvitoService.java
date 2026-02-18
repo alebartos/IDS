@@ -29,18 +29,15 @@ public class InvitoService {
         this.invitoRepo = invitoRepo;
     }
 
-    public Invito invitaMembro(String email, Long teamId, Long richiedenteId) {
-        Team team = teamRepo.findById(teamId)
-                .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
-        if (team.getLeaderId() == null || !team.getLeaderId().equals(richiedenteId)) {
-            throw new IllegalArgumentException("Solo il leader del team può invitare nuovi membri");
-        }
+    public Invito invitaMembro(String email) {
         Utente destinatario = utenteRepo.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
-        if (invitoRepo.findByTeamIdAndDestinatarioAndStato(teamId, destinatario.getId(), StatoInvito.IN_ATTESA).isPresent()) {
-            throw new IllegalArgumentException("Esiste già un invito pendente per questo utente in questo team");
+        if (!invitoRepo.findByDestinatarioAndStato(destinatario.getId(), StatoInvito.IN_ATTESA).isEmpty()) {
+            throw new IllegalArgumentException("Esiste già un invito pendente per questo utente");
         }
-        Invito invito = InvitoBuilder.newBuilder().team(teamId).destinatario(destinatario.getId()).build();
+        Invito invito = InvitoBuilder.newBuilder()
+                .destinatario(destinatario.getId())
+                .build();
         return invitoRepo.save(invito);
     }
 
@@ -54,7 +51,7 @@ public class InvitoService {
             invito.setStato(StatoInvito.ACCETTATO);
             invito.setDataRisposta(LocalDate.now());
             invitoRepo.save(invito);
-            Team team = teamRepo.findById(invito.getTeamId()).orElse(null);
+            Team team = invito.getTeamId() != null ? teamRepo.findById(invito.getTeamId()).orElse(null) : null;
             if (team != null) {
                 team.getMembri().add(invito.getDestinatario());
                 teamRepo.save(team);
@@ -79,5 +76,9 @@ public class InvitoService {
         } else {
             throw new IllegalArgumentException("Risposta non valida. Usare ACCETTATO o RIFIUTATO");
         }
+    }
+
+    public boolean checkRuolo(Ruolo ruolo) {
+        return ruolo != null;
     }
 }

@@ -72,7 +72,7 @@ public class SupportoService {
             Utente mentore = utenteRepo.findById(mentoreId).orElse(null);
             if (mentore != null) { observerSupporto.iscrivi(mentore); }
         }
-        observerSupporto.notifica();
+        observerSupporto.notifySubscribers();
     }
 
     public void prenotaCall(Long richiestaId, LocalDate data, LocalTime oraInizio, LocalTime oraFine) {
