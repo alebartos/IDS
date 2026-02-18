@@ -1,128 +1,137 @@
 package it.unicam.ids.controller;
 
-import it.unicam.ids.model.Team;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import it.unicam.ids.model.Invito;
 import it.unicam.ids.model.Utente;
-import it.unicam.ids.repository.HackathonRepository;
-import it.unicam.ids.repository.InvitoRepository;
-import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 import it.unicam.ids.service.InvitoService;
-import it.unicam.ids.service.TeamService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Map;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
 class InvitoHandlerTest {
 
-    private InvitoHandler invitoHandler;
-    private UtenteRepository utenteRepository;
-    private TeamRepository teamRepository;
-    private InvitoRepository invitoRepository;
-    private TeamService teamService;
+    @Autowired
+    private MockMvc mockMvc;
 
-    private Utente leader;
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private UtenteRepository utenteRepository;
+
+    @Autowired
+    private InvitoService invitoService;
+
     private Utente destinatario;
-    private Team team;
 
     @BeforeEach
     void setUp() {
-        utenteRepository = new UtenteRepository();
-        teamRepository = new TeamRepository();
-        invitoRepository = new InvitoRepository();
-
-        HackathonRepository hackathonRepository = new HackathonRepository();
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
-        InvitoService invitoService = new InvitoService(utenteRepository, teamRepository, invitoRepository);
-        invitoHandler = new InvitoHandler(invitoService);
-
-        leader = new Utente("Mario", "Rossi", "mario@example.com", "password");
-        leader = utenteRepository.add(leader);
-        team = teamService.createTeam("Team Test", leader.getId());
-
-        destinatario = new Utente("Anna", "Bianchi", "anna@example.com", "password");
-        destinatario = utenteRepository.add(destinatario);
+        destinatario = new Utente("Anna", "Bianchi", "anna.bianchi@example.com", "password456");
+        destinatario = utenteRepository.save(destinatario);
     }
 
     @Test
-    void testInvitaMembroSuccess() {
-        Result<String> result = invitoHandler.invitaMembro(
-                "anna@example.com", team.getId(), leader.getId());
+    void testInvitaMembroSuccess() throws Exception {
+        Map<String, Object> body = Map.of("email", "anna.bianchi@example.com");
 
-        assertTrue(result.isSuccess());
-        assertEquals(200, result.getStatusCode());
+        mockMvc.perform(post("/api/inviti")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Invito inviato con successo"));
     }
 
     @Test
-    void testInvitaMembroNonLeader() {
-        Utente nonLeader = new Utente("Luigi", "Verdi", "luigi@example.com", "pass");
-        nonLeader = utenteRepository.add(nonLeader);
+    void testInvitaMembroUtenteNonTrovato() throws Exception {
+        Map<String, Object> body = Map.of("email", "inesistente@example.com");
 
-        Result<String> result = invitoHandler.invitaMembro(
-                "anna@example.com", team.getId(), nonLeader.getId());
-
-        assertFalse(result.isSuccess());
-        assertEquals(400, result.getStatusCode());
+        mockMvc.perform(post("/api/inviti")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    void testInvitaMembroEmailNonTrovata() {
-        Result<String> result = invitoHandler.invitaMembro(
-                "nessuno@example.com", team.getId(), leader.getId());
+    void testInvitaMembroDuplicato() throws Exception {
+        Map<String, Object> body = Map.of("email", "anna.bianchi@example.com");
 
-        assertFalse(result.isSuccess());
-        assertEquals(400, result.getStatusCode());
+        mockMvc.perform(post("/api/inviti")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/inviti")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    void testInvitaMembroDuplicato() {
-        invitoHandler.invitaMembro("anna@example.com", team.getId(), leader.getId());
+    void testGestisciInvitoAccettato() throws Exception {
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com");
 
-        Result<String> result = invitoHandler.invitaMembro(
-                "anna@example.com", team.getId(), leader.getId());
+        Map<String, String> body = Map.of("risposta", "ACCETTATO");
 
-        assertFalse(result.isSuccess());
-        assertEquals(400, result.getStatusCode());
+        mockMvc.perform(put("/api/inviti/{id}", invito.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Invito gestito con successo"));
     }
 
     @Test
-    void testGestisciInvitoAccettato() {
-        invitoHandler.invitaMembro("anna@example.com", team.getId(), leader.getId());
-        Long invitoId = invitoRepository.findAll().get(0).getId();
+    void testGestisciInvitoRifiutato() throws Exception {
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com");
 
-        Result<String> result = invitoHandler.gestisciInvito(invitoId, "ACCETTATO");
+        Map<String, String> body = Map.of("risposta", "RIFIUTATO");
 
-        assertTrue(result.isSuccess());
-        assertEquals(200, result.getStatusCode());
+        mockMvc.perform(put("/api/inviti/{id}", invito.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Invito gestito con successo"));
     }
 
     @Test
-    void testGestisciInvitoRifiutato() {
-        invitoHandler.invitaMembro("anna@example.com", team.getId(), leader.getId());
-        Long invitoId = invitoRepository.findAll().get(0).getId();
+    void testGestisciInvitoRispostaNonValida() throws Exception {
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com");
 
-        Result<String> result = invitoHandler.gestisciInvito(invitoId, "RIFIUTATO");
+        Map<String, String> body = Map.of("risposta", "INVALIDA");
 
-        assertTrue(result.isSuccess());
-        assertEquals(200, result.getStatusCode());
+        mockMvc.perform(put("/api/inviti/{id}", invito.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    void testGestisciInvitoNonTrovato() {
-        Result<String> result = invitoHandler.gestisciInvito(999L, "ACCETTATO");
+    void testGestisciInvitoGiaGestito() throws Exception {
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com");
 
-        assertFalse(result.isSuccess());
-        assertEquals(400, result.getStatusCode());
-    }
+        Map<String, String> body = Map.of("risposta", "ACCETTATO");
 
-    @Test
-    void testGestisciInvitoRispostaNonValida() {
-        invitoHandler.invitaMembro("anna@example.com", team.getId(), leader.getId());
-        Long invitoId = invitoRepository.findAll().get(0).getId();
+        mockMvc.perform(put("/api/inviti/{id}", invito.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk());
 
-        Result<String> result = invitoHandler.gestisciInvito(invitoId, "INVALIDA");
-
-        assertFalse(result.isSuccess());
-        assertEquals(400, result.getStatusCode());
+        mockMvc.perform(put("/api/inviti/{id}", invito.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest());
     }
 }

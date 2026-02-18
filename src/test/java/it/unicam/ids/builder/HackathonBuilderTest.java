@@ -19,7 +19,7 @@ class HackathonBuilderTest {
                 .scadenzaIscrizioni(LocalDate.of(2025, 2, 15))
                 .luogo("Milano")
                 .regolamento("Rules")
-                .premio(1000.0)
+                .premio("1000.0")
                 .maxMembriTeam(6)
                 .build();
 
