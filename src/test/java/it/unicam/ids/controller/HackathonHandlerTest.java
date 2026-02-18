@@ -38,8 +38,8 @@ class HackathonHandlerTest {
         teamRepository = new TeamRepository();
         invitoRepository = new InvitoRepository();
 
-        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository);
-        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService);
+        teamService = new TeamService(teamRepository, invitoRepository, utenteRepository, hackathonRepository);
+        hackathonService = new HackathonService(hackathonRepository, utenteRepository, teamService, teamRepository);
         hackathonHandler = new HackathonHandler(hackathonService);
 
         organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
@@ -92,6 +92,7 @@ class HackathonHandlerTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hack Giudice", "Desc",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 5, 5000.0, organizzatore.getId());
 
         Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
@@ -109,6 +110,7 @@ class HackathonHandlerTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hack Giudice NO", "Desc",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 5, 5000.0, organizzatore.getId());
 
         Utente nonOrg = new Utente("Test", "User", "test@example.com", "pass");
@@ -125,6 +127,7 @@ class HackathonHandlerTest {
         hackathonService.createHackathon(
                 "Hack Mentore", "Desc",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 5, 5000.0, organizzatore.getId());
 
         Utente mentore = new Utente("Marco", "Neri", "marco@example.com", "password");
@@ -159,6 +162,7 @@ class HackathonHandlerTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hack Stato", "Desc",
                 LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
+                LocalDate.now().plusDays(1),
                 5, 5000.0, organizzatore.getId());
 
         Result<String> result = hackathonHandler.cambiaStato(
@@ -172,6 +176,7 @@ class HackathonHandlerTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hack Stato NV", "Desc",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 5, 5000.0, organizzatore.getId());
 
         Result<String> result = hackathonHandler.cambiaStato(
@@ -185,6 +190,7 @@ class HackathonHandlerTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hack Vincitore", "Desc",
                 LocalDate.now().minusDays(5), LocalDate.now().minusDays(1),
+                LocalDate.now().minusDays(6),
                 5, 5000.0, organizzatore.getId());
 
         Utente leaderTeam = new Utente("Mario", "Rossi", "mario@example.com", "password");
@@ -206,6 +212,7 @@ class HackathonHandlerTest {
         Hackathon hackathon = hackathonService.createHackathon(
                 "Hack Vincitore NV", "Desc",
                 LocalDate.now().plusMonths(2), LocalDate.now().plusMonths(2).plusDays(3),
+                LocalDate.now().plusMonths(1),
                 5, 5000.0, organizzatore.getId());
 
         Result<String> result = hackathonHandler.proclamaVincitore(
@@ -219,10 +226,12 @@ class HackathonHandlerTest {
         hackathonService.createHackathon(
                 "Hack Get 1", "Desc",
                 LocalDate.of(2025, 5, 1), LocalDate.of(2025, 5, 3),
+                LocalDate.of(2025, 4, 15),
                 5, 1000.0, organizzatore.getId());
         hackathonService.createHackathon(
                 "Hack Get 2", "Desc",
                 LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 3),
+                LocalDate.of(2025, 5, 15),
                 5, 2000.0, organizzatore.getId());
 
         Result<List<Hackathon>> result = hackathonHandler.getHackathons();
