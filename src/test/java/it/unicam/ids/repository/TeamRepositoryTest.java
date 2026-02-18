@@ -1,6 +1,6 @@
 package it.unicam.ids.repository;
 
-import com.ids.model.Team;
+import it.unicam.ids.model.Team;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
