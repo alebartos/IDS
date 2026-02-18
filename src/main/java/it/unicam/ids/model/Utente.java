@@ -1,5 +1,6 @@
 package it.unicam.ids.model;
 
+import it.unicam.ids.service.Subscriber;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,7 +12,7 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode(of = {"id", "email"})
 @ToString(exclude = "password")
-public class Utente {
+public class Utente implements Subscriber {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,5 +45,26 @@ public class Utente {
         if (!this.ruoli.contains(Ruolo.BASE)) {
             this.ruoli.add(Ruolo.BASE);
         }
+    }
+
+    public void addRuolo(Ruolo r) {
+        if (r != null && !this.ruoli.contains(r)) {
+            this.ruoli.add(r);
+        }
+    }
+
+    public void deleteRuolo(Ruolo r) {
+        if (r != null && r != Ruolo.BASE) {
+            this.ruoli.remove(r);
+        }
+    }
+
+    public boolean checkRuolo() {
+        return this.ruoli != null && !this.ruoli.isEmpty();
+    }
+
+    @Override
+    public void update(String contesto) {
+        System.out.println("[NOTIFICA] Utente " + email + ": " + contesto);
     }
 }
