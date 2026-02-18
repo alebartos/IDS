@@ -142,7 +142,7 @@ class InvitoTest {
 
         assertTrue(toString.contains("id=1"));
         assertTrue(toString.contains("teamId=1"));
-        assertTrue(toString.contains("destinatarioId=100"));
+        assertTrue(toString.contains("destinatario=100"));
         assertTrue(toString.contains("IN_ATTESA"));
     }
 }
