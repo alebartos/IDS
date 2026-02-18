@@ -1,7 +1,7 @@
 package it.unicam.ids.model;
 
-import com.ids.dto.DatiProgetto;
-import com.ids.dto.DatiValutazione;
+import it.unicam.ids.dto.DatiProgetto;
+import it.unicam.ids.dto.DatiValutazione;
 import jakarta.persistence.*;
 import lombok.*;
 
