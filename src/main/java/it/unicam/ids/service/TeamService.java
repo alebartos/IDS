@@ -1,9 +1,11 @@
 package it.unicam.ids.service;
 
 import it.unicam.ids.builder.TeamBuilder;
+import it.unicam.ids.model.Hackathon;
 import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
+import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.InvitoRepository;
 import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
@@ -13,11 +15,14 @@ public class TeamService {
     private final TeamRepository teamRepo;
     private final InvitoRepository invitoRepo;
     private final UtenteRepository utenteRepo;
+    private final HackathonRepository hackathonRepo;
 
-    public TeamService(TeamRepository teamRepo, InvitoRepository invitoRepo, UtenteRepository utenteRepo) {
+    public TeamService(TeamRepository teamRepo, InvitoRepository invitoRepo, UtenteRepository utenteRepo,
+                       HackathonRepository hackathonRepo) {
         this.teamRepo = teamRepo;
         this.invitoRepo = invitoRepo;
         this.utenteRepo = utenteRepo;
+        this.hackathonRepo = hackathonRepo;
     }
 
     public Team createTeam(String nomeTeam, Long leaderId) {
@@ -50,6 +55,13 @@ public class TeamService {
     public Team rimuoviMembro(Long membroId, Long leaderId) {
         Team team = teamRepo.findByLeaderId(leaderId)
                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
+
+        // Verifica che il team non sia iscritto a un hackathon
+        for (Hackathon h : hackathonRepo.findAll()) {
+            if (h.getTeamIds().contains(team.getId())) {
+                throw new IllegalArgumentException("Non puoi rimuovere un membro: il team è iscritto a un hackathon");
+            }
+        }
 
         if (leaderId.equals(membroId)) {
             throw new IllegalArgumentException("Non puoi rimuovere te stesso");
