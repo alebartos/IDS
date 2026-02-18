@@ -2,70 +2,18 @@ package it.unicam.ids.repository;
 
 import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Utente;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
-public class UtenteRepository {
+@Repository
+public interface UtenteRepository extends JpaRepository<Utente, Long> {
 
-    private final Map<Long, Utente> storage = new HashMap<>();
-    private final AtomicLong idGenerator = new AtomicLong(1);
+    Optional<Utente> findByEmail(String email);
 
-    public Utente add(Utente utente) {
-        if (utente.getId() == null) {
-            utente.setId(idGenerator.getAndIncrement());
-        }
-        storage.put(utente.getId(), utente);
-        return utente;
-    }
+    boolean existsByEmail(String email);
 
-    public void modifyRecord(Utente utente) {
-        storage.put(utente.getId(), utente);
-    }
-
-    public Optional<Utente> findById(Long id) {
-        return Optional.ofNullable(storage.get(id));
-    }
-
-    public Optional<Utente> findByEmail(String email) {
-        return storage.values().stream()
-                .filter(u -> u.getEmail() != null && u.getEmail().equals(email))
-                .findFirst();
-    }
-
-    public List<Utente> findAll() {
-        return new ArrayList<>(storage.values());
-    }
-
-    public List<Utente> findByRuolo(Ruolo ruolo) {
-        return storage.values().stream()
-                .filter(u -> u.getRuoli().contains(ruolo))
-                .collect(Collectors.toList());
-    }
-
-    public void deleteById(Long id) {
-        storage.remove(id);
-    }
-
-    public void deleteAll() {
-        storage.clear();
-    }
-
-    public boolean existsById(Long id) {
-        return storage.containsKey(id);
-    }
-
-    public boolean existsByEmail(String email) {
-        return storage.values().stream()
-                .anyMatch(u -> u.getEmail() != null && u.getEmail().equals(email));
-    }
-
-    public long count() {
-        return storage.size();
-    }
+    List<Utente> findByRuoliContaining(Ruolo ruolo);
 }
