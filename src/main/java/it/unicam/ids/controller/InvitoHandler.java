@@ -20,7 +20,8 @@ public class InvitoHandler {
     public ResponseEntity<?> invitaMembro(@RequestBody Map<String, Object> body) {
         try {
             String email = (String) body.get("email");
-            invitoService.invitaMembro(email);
+            Long teamId = ((Number) body.get("teamId")).longValue();
+            invitoService.invitaMembro(email, teamId);
             return ResponseEntity.ok(Map.of("message", "Invito inviato con successo"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

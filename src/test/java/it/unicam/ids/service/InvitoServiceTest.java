@@ -2,6 +2,7 @@ package it.unicam.ids.service;
 
 import it.unicam.ids.model.Invito;
 import it.unicam.ids.model.StatoInvito;
+import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
 import it.unicam.ids.repository.InvitoRepository;
 import it.unicam.ids.repository.UtenteRepository;
@@ -26,17 +27,25 @@ class InvitoServiceTest {
     @Autowired
     private UtenteRepository utenteRepository;
 
+    @Autowired
+    private TeamService teamService;
+
     private Utente destinatario;
+    private Team team;
 
     @BeforeEach
     void setUp() {
+        Utente leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
+        leader = utenteRepository.save(leader);
+        team = teamService.createTeam("Team Invito", leader.getId());
+
         destinatario = new Utente("Anna", "Bianchi", "anna.bianchi@example.com", "password456");
         destinatario = utenteRepository.save(destinatario);
     }
 
     @Test
     void testInvitaMembroSuccess() {
-        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com");
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com", team.getId());
 
         assertNotNull(invito);
         assertNotNull(invito.getId());
@@ -47,20 +56,20 @@ class InvitoServiceTest {
     @Test
     void testInvitaMembroUtenteNonTrovato() {
         assertThrows(IllegalArgumentException.class,
-                () -> invitoService.invitaMembro("nonexistent@example.com"));
+                () -> invitoService.invitaMembro("nonexistent@example.com", team.getId()));
     }
 
     @Test
     void testInvitaMembroDuplicato() {
-        invitoService.invitaMembro("anna.bianchi@example.com");
+        invitoService.invitaMembro("anna.bianchi@example.com", team.getId());
 
         assertThrows(IllegalArgumentException.class,
-                () -> invitoService.invitaMembro("anna.bianchi@example.com"));
+                () -> invitoService.invitaMembro("anna.bianchi@example.com", team.getId()));
     }
 
     @Test
     void testGestisciInvitoAccettato() {
-        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com");
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com", team.getId());
 
         invitoService.gestisciInvito(invito.getId(), "ACCETTATO");
 
@@ -70,7 +79,7 @@ class InvitoServiceTest {
 
     @Test
     void testGestisciInvitoRifiutato() {
-        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com");
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com", team.getId());
 
         invitoService.gestisciInvito(invito.getId(), "RIFIUTATO");
 
@@ -80,7 +89,7 @@ class InvitoServiceTest {
 
     @Test
     void testGestisciInvitoRispostaNonValida() {
-        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com");
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com", team.getId());
 
         assertThrows(IllegalArgumentException.class,
                 () -> invitoService.gestisciInvito(invito.getId(), "INVALID"));
@@ -88,7 +97,7 @@ class InvitoServiceTest {
 
     @Test
     void testGestisciInvitoGiaGestito() {
-        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com");
+        Invito invito = invitoService.invitaMembro("anna.bianchi@example.com", team.getId());
 
         invitoService.gestisciInvito(invito.getId(), "ACCETTATO");
 

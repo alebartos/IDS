@@ -29,13 +29,14 @@ public class InvitoService {
         this.invitoRepo = invitoRepo;
     }
 
-    public Invito invitaMembro(String email) {
+    public Invito invitaMembro(String email, Long teamId) {
         Utente destinatario = utenteRepo.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
         if (!invitoRepo.findByDestinatarioAndStato(destinatario.getId(), StatoInvito.IN_ATTESA).isEmpty()) {
             throw new IllegalArgumentException("Esiste già un invito pendente per questo utente");
         }
         Invito invito = InvitoBuilder.newBuilder()
+                .team(teamId)
                 .destinatario(destinatario.getId())
                 .build();
         return invitoRepo.save(invito);
