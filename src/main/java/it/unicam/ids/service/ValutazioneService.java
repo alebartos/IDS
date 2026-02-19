@@ -1,8 +1,11 @@
 package it.unicam.ids.service;
 
 import it.unicam.ids.dto.DatiValutazione;
+import it.unicam.ids.model.Hackathon;
 import it.unicam.ids.model.Sottomissione;
+import it.unicam.ids.model.StatoHackathon;
 import it.unicam.ids.model.StatoSottomissione;
+import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.SottomissioneRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +17,11 @@ import java.time.LocalDate;
 public class ValutazioneService {
 
     private final SottomissioneRepository sottomissioneRepo;
+    private final HackathonRepository hackathonRepo;
 
-    public ValutazioneService(SottomissioneRepository sottomissioneRepo) {
+    public ValutazioneService(SottomissioneRepository sottomissioneRepo, HackathonRepository hackathonRepo) {
         this.sottomissioneRepo = sottomissioneRepo;
+        this.hackathonRepo = hackathonRepo;
     }
 
     public DatiValutazione creaDTO(int punteggio, String giudizio) {
@@ -34,6 +39,11 @@ public class ValutazioneService {
         checkValidità(datiValutazione);
         Sottomissione sottomissione = sottomissioneRepo.findById(sottomissioneId)
                 .orElseThrow(() -> new IllegalArgumentException("Sottomissione non trovata"));
+        Hackathon hackathon = hackathonRepo.findById(sottomissione.getHackathonId())
+                .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
+        if (hackathon.getStato() != StatoHackathon.IN_VALUTAZIONE) {
+            throw new IllegalArgumentException("L'hackathon non è in fase di valutazione");
+        }
         if (sottomissione.getStato() == StatoSottomissione.VALUTATA)
             throw new IllegalArgumentException("La sottomissione è già stata valutata");
         if (sottomissione.getStato() != StatoSottomissione.CONSEGNATA)

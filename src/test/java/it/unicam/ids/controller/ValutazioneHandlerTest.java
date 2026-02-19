@@ -83,6 +83,9 @@ class ValutazioneHandlerTest {
         sottomissione.setStato(StatoSottomissione.CONSEGNATA);
         sottomissione = sottomissioneRepository.save(sottomissione);
 
+        hackathon.setStato(StatoHackathon.IN_VALUTAZIONE);
+        hackathonRepository.save(hackathon);
+
         giudice = new Utente("Paolo", "Neri", "paolo.neri@example.com", "password789");
         giudice.addRuolo(Ruolo.GIUDICE);
         giudice = utenteRepository.save(giudice);
@@ -125,17 +128,13 @@ class ValutazioneHandlerTest {
 
     @Test
     void testConfermaSottomissioneNonConsegnata() throws Exception {
-        Utente altroLeader = new Utente("Anna", "Bianchi", "anna.bianchi@example.com", "password000");
-        altroLeader = utenteRepository.save(altroLeader);
-
-        Team altroTeam = teamService.createTeam("Team Beta", altroLeader.getId());
-
         Hackathon hackathon = hackathonRepository.findByNome("Hackathon Test").orElseThrow();
 
-        altroLeader.addRuolo(Ruolo.PARTECIPANTE);
-        altroLeader = utenteRepository.save(altroLeader);
-
-        Sottomissione bozza = sottomissioneService.gestisciBozze(altroTeam.getId(), hackathon.getId(), altroLeader.getId());
+        Sottomissione bozza = new Sottomissione();
+        bozza.setTeamId(999L);
+        bozza.setHackathonId(hackathon.getId());
+        bozza.setStato(StatoSottomissione.BOZZA);
+        bozza = sottomissioneRepository.save(bozza);
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("giudiceId", giudice.getId());
