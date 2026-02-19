@@ -79,6 +79,9 @@ public class SupportoService {
         checkDate(data, oraInizio, oraFine);
         RichiestaSupporto richiesta = supportoRepo.findById(richiestaId)
                 .orElseThrow(() -> new IllegalArgumentException("Richiesta non trovata"));
+        if (!checkStato(richiesta.getHackathonId())) {
+            throw new IllegalArgumentException("L'hackathon non è attivo");
+        }
         Team team = teamRepo.findById(richiesta.getTeamId())
                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
         List<String> listaMail = creaListaMail(team);
