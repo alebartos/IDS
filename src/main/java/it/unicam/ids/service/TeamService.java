@@ -41,6 +41,7 @@ public class TeamService {
         leader.getRuoli().add(Ruolo.LEADER);
         utenteRepo.save(leader);
         Team team = TeamBuilder.newBuilder().nome(nomeTeam).leaderId(leaderId).build();
+        team.getMembri().add(leaderId);
         return teamRepo.save(team);
     }
 

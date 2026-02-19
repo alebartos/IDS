@@ -25,7 +25,7 @@ public class SottomissioneService {
     private final UtenteRepository utenteRepo;
 
     public SottomissioneService(SottomissioneRepository sottomissioneRepo,
-                                 HackathonRepository hackathonRepo, UtenteRepository utenteRepo) {
+                                HackathonRepository hackathonRepo, UtenteRepository utenteRepo) {
         this.sottomissioneRepo = sottomissioneRepo;
         this.hackathonRepo = hackathonRepo;
         this.utenteRepo = utenteRepo;
@@ -72,6 +72,10 @@ public class SottomissioneService {
 
     public DatiProgetto creaDTO(String titolo, String descrizione, String linkRepository) {
         return new DatiProgetto(titolo, descrizione, linkRepository);
+    }
+
+    public Sottomissione save(Sottomissione sottomissione) {
+        return sottomissioneRepo.save(sottomissione);
     }
 
     public List<Sottomissione> getValutazioni(Long hackathonId) {

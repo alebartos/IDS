@@ -33,6 +33,7 @@ public class SottomissioneHandler {
             DatiProgetto datiProgetto = new DatiProgetto(titolo, descrizione, linkRepository);
             Sottomissione sottomissione = sottomissioneService.gestisciBozze(teamId, hackathonId, utenteId);
             sottomissione.setDatiProgetto(datiProgetto);
+            sottomissione = sottomissioneService.save(sottomissione);
             return ResponseEntity.ok(sottomissione);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -54,6 +55,7 @@ public class SottomissioneHandler {
             Sottomissione sottomissione = sottomissioneService.gestisciBozze(teamId, hackathonId, utenteId);
             sottomissione.setDatiProgetto(datiProgetto);
             sottomissione.setStato(StatoSottomissione.CONSEGNATA);
+            sottomissione = sottomissioneService.save(sottomissione);
             return ResponseEntity.ok(sottomissione);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
