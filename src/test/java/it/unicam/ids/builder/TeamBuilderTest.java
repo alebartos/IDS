@@ -1,6 +1,6 @@
 package it.unicam.ids.builder;
 
-import it.unicam.ids.model.Team;
+import com.ids.model.Team;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
