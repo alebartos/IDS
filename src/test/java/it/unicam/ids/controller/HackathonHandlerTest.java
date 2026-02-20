@@ -45,14 +45,15 @@ class HackathonHandlerTest {
     void setUp() {
         organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
         organizzatore.addRuolo(Ruolo.ORGANIZZATORE);
+        organizzatore.addRuolo(Ruolo.MEMBRO_STAFF);
         organizzatore = utenteRepository.save(organizzatore);
     }
 
     private Map<String, Object> buildHackathonBody(String nome, String descrizione,
-                                                    String dataInizio, String dataFine,
-                                                    String scadenzaIscrizioni,
-                                                    int maxPartecipanti, double premio,
-                                                    Long organizzatoreId) {
+                                                   String dataInizio, String dataFine,
+                                                   String scadenzaIscrizioni,
+                                                   int maxPartecipanti, double premio,
+                                                   Long organizzatoreId) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("nome", nome);
         body.put("descrizione", descrizione);
@@ -145,7 +146,11 @@ class HackathonHandlerTest {
 
         Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
         giudice.addRuolo(Ruolo.MEMBRO_STAFF);
-        utenteRepository.save(giudice);
+        giudice = utenteRepository.save(giudice);
+
+        Hackathon h = hackathonRepository.findById(hackathon.getId()).orElseThrow();
+        h.getMembroStaffIds().add(giudice.getId());
+        hackathonRepository.save(h);
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("email", "paolo@example.com");
@@ -181,13 +186,15 @@ class HackathonHandlerTest {
         createHackathonViaService("Hackathon Mentore", "2025-03-01", "2025-03-03");
 
         Utente mentore = new Utente("Marco", "Neri", "marco@example.com", "password");
-        utenteRepository.save(mentore);
+        mentore = utenteRepository.save(mentore);
+
+        Hackathon hackathon = hackathonRepository.findByNome("Hackathon Mentore").orElseThrow();
+        hackathon.getMembroStaffIds().add(mentore.getId());
+        hackathonRepository.save(hackathon);
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("email", "marco@example.com");
         body.put("organizzatoreId", organizzatore.getId());
-
-        Hackathon hackathon = hackathonRepository.findByNome("Hackathon Mentore").orElseThrow();
 
         mockMvc.perform(put("/api/hackathon/" + hackathon.getId() + "/mentore")
                         .contentType(MediaType.APPLICATION_JSON)

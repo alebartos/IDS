@@ -3,6 +3,7 @@ package it.unicam.ids.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unicam.ids.model.Hackathon;
 import it.unicam.ids.model.Ruolo;
+import it.unicam.ids.model.StatoHackathon;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
 import it.unicam.ids.repository.HackathonRepository;
@@ -64,6 +65,7 @@ class SegnalazioneHandlerTest {
     void setUp() {
         organizzatore = new Utente("Luigi", "Verdi", "luigi@example.com", "password");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
+        organizzatore.getRuoli().add(Ruolo.MEMBRO_STAFF);
         organizzatore = utenteRepository.save(organizzatore);
 
         leader = new Utente("Mario", "Rossi", "mario@example.com", "password");
@@ -78,6 +80,9 @@ class SegnalazioneHandlerTest {
                 5, 1000.0, organizzatore.getId());
 
         hackathon.getTeamIds().add(team.getId());
+        hackathon = hackathonRepository.save(hackathon);
+
+        hackathon.setStato(StatoHackathon.IN_CORSO);
         hackathon = hackathonRepository.save(hackathon);
     }
 

@@ -60,6 +60,7 @@ class ValutazioneHandlerTest {
     void setUp() {
         Utente organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
         organizzatore.addRuolo(Ruolo.ORGANIZZATORE);
+        organizzatore.addRuolo(Ruolo.MEMBRO_STAFF);
         organizzatore = utenteRepository.save(organizzatore);
 
         Utente leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
