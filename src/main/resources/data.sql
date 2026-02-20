@@ -38,6 +38,7 @@ DELETE FROM utente_ruoli WHERE utente_id IN (1, 2);
 -- Ruoli Organizzatore
 INSERT INTO utente_ruoli (utente_id, ruoli) VALUES (1, 'BASE');
 INSERT INTO utente_ruoli (utente_id, ruoli) VALUES (1, 'ORGANIZZATORE');
+INSERT INTO utente_ruoli (utente_id, ruoli) VALUES (1, 'MEMBRO_STAFF');
 
 -- Ruoli Membro Staff
 INSERT INTO utente_ruoli (utente_id, ruoli) VALUES (2, 'BASE');

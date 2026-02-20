@@ -3,6 +3,7 @@ package it.unicam.ids.service;
 import it.unicam.ids.model.Hackathon;
 import it.unicam.ids.model.Ruolo;
 import it.unicam.ids.model.Segnalazione;
+import it.unicam.ids.model.StatoHackathon;
 import it.unicam.ids.model.Team;
 import it.unicam.ids.model.Utente;
 import it.unicam.ids.repository.HackathonRepository;
@@ -32,14 +33,17 @@ public class SegnalazioneService {
     }
 
     public void segnala(Long teamId, String descrizione, Long hackathonId) {
+        Hackathon hackathon = hackathonRepo.findById(hackathonId)
+                .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
+        if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
+            throw new IllegalArgumentException("L'hackathon non è attivo");
+        }
+
         Segnalazione segnalazione = new Segnalazione();
         segnalazione.setDescrizione(descrizione);
         segnalazione.setTeamId(teamId);
         segnalazione.setHackathonId(hackathonId);
         segnalazioneRepo.save(segnalazione);
-
-        Hackathon hackathon = hackathonRepo.findById(hackathonId)
-                .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
 
         Utente organizzatore = utenteRepo.findById(hackathon.getOrganizzatoreId())
                 .orElseThrow(() -> new IllegalArgumentException("Organizzatore non trovato"));
