@@ -25,20 +25,23 @@ public class HackathonService {
     private final TeamRepository teamRepo;
 
     public HackathonService(HackathonRepository hackathonRepo, UtenteRepository utenteRepo,
-                             TeamRepository teamRepo) {
+                            TeamRepository teamRepo) {
         this.hackathonRepo = hackathonRepo;
         this.utenteRepo = utenteRepo;
         this.teamRepo = teamRepo;
     }
 
     public Hackathon createHackathon(String nome, String descrizione, LocalDate dataInizio,
-                                      LocalDate dataFine, LocalDate scadenzaIscrizioni,
-                                      int maxPartecipanti, double premio, Long organizzatoreId) {
+                                     LocalDate dataFine, LocalDate scadenzaIscrizioni,
+                                     int maxPartecipanti, double premio, Long organizzatoreId) {
         checkId(organizzatoreId);
         Utente organizzatore = utenteRepo.findById(organizzatoreId)
                 .orElseThrow(() -> new IllegalArgumentException("Organizzatore non trovato"));
         if (!organizzatore.getRuoli().contains(Ruolo.ORGANIZZATORE)) {
             throw new IllegalArgumentException("L'utente deve avere il ruolo ORGANIZZATORE");
+        }
+        if (!organizzatore.getRuoli().contains(Ruolo.MEMBRO_STAFF)) {
+            throw new IllegalArgumentException("L'utente deve far parte dello staff");
         }
         if (esisteHackathonConNome(nome)) {
             throw new IllegalArgumentException("Esiste già un hackathon con questo nome");
@@ -66,8 +69,8 @@ public class HackathonService {
         if (hackathon.getGiudiceId() != null) {
             throw new IllegalArgumentException("L'hackathon ha già un giudice assegnato");
         }
-        if (!giudice.getRuoli().contains(Ruolo.MEMBRO_STAFF)) {
-            throw new IllegalArgumentException("L'utente non fa parte dello staff");
+        if (!hackathon.getMembroStaffIds().contains(giudice.getId())) {
+            throw new IllegalArgumentException("L'utente non fa parte dello staff di questo hackathon");
         }
         giudice.getRuoli().add(Ruolo.GIUDICE);
         utenteRepo.save(giudice);
@@ -95,6 +98,9 @@ public class HackathonService {
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
         Hackathon hackathon = hackathonRepo.findByOrganizzatoreId(organizzatoreId)
                 .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato per questo organizzatore"));
+        if (!hackathon.getMembroStaffIds().contains(utente.getId())) {
+            throw new IllegalArgumentException("L'utente non fa parte dello staff di questo hackathon");
+        }
         if (hackathon.getMentoreIds().contains(utente.getId())) {
             throw new IllegalArgumentException("L'utente è già mentore di questo hackathon");
         }

@@ -69,6 +69,7 @@ class SupportoHandlerTest {
         // Crea organizzatore
         organizzatore = new Utente("Luigi", "Verdi", "luigi@example.com", "password");
         organizzatore.addRuolo(Ruolo.ORGANIZZATORE);
+        organizzatore.addRuolo(Ruolo.MEMBRO_STAFF);
         organizzatore = utenteRepository.save(organizzatore);
 
         // Crea leader e team

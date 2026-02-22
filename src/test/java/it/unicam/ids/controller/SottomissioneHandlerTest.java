@@ -52,6 +52,7 @@ class SottomissioneHandlerTest {
     void setUp() {
         Utente organizzatore = new Utente("Admin", "Org", "admin.org@example.com", "password123");
         organizzatore.addRuolo(Ruolo.ORGANIZZATORE);
+        organizzatore.addRuolo(Ruolo.MEMBRO_STAFF);
         organizzatore = utenteRepository.save(organizzatore);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");

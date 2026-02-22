@@ -50,6 +50,7 @@ public class SottomissioneHandler {
             String descrizione = (String) body.get("descrizione");
             String linkRepository = (String) body.get("linkRepository");
 
+            sottomissioneService.checkLeader(utenteId, teamId);
             sottomissioneService.checkValiditàLink(linkRepository);
             DatiProgetto datiProgetto = new DatiProgetto(titolo, descrizione, linkRepository);
             Sottomissione sottomissione = sottomissioneService.gestisciBozze(teamId, hackathonId, utenteId);

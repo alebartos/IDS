@@ -8,8 +8,10 @@ import it.unicam.ids.model.StatoHackathon;
 import it.unicam.ids.model.StatoSottomissione;
 import it.unicam.ids.model.Utente;
 import it.unicam.ids.builder.SottomissioneBuilder;
+import it.unicam.ids.model.Team;
 import it.unicam.ids.repository.HackathonRepository;
 import it.unicam.ids.repository.SottomissioneRepository;
+import it.unicam.ids.repository.TeamRepository;
 import it.unicam.ids.repository.UtenteRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,12 +25,15 @@ public class SottomissioneService {
     private final SottomissioneRepository sottomissioneRepo;
     private final HackathonRepository hackathonRepo;
     private final UtenteRepository utenteRepo;
+    private final TeamRepository teamRepo;
 
     public SottomissioneService(SottomissioneRepository sottomissioneRepo,
-                                HackathonRepository hackathonRepo, UtenteRepository utenteRepo) {
+                                HackathonRepository hackathonRepo, UtenteRepository utenteRepo,
+                                TeamRepository teamRepo) {
         this.sottomissioneRepo = sottomissioneRepo;
         this.hackathonRepo = hackathonRepo;
         this.utenteRepo = utenteRepo;
+        this.teamRepo = teamRepo;
     }
 
     public boolean checkRuolo(Ruolo ruolo) {
@@ -59,6 +64,14 @@ public class SottomissioneService {
         sottomissione = SottomissioneBuilder.newBuilder()
                 .teamId(teamId).hackathonId(hackathonId).stato(StatoSottomissione.BOZZA).build();
         return sottomissioneRepo.save(sottomissione);
+    }
+
+    public void checkLeader(Long utenteId, Long teamId) {
+        Team team = teamRepo.findById(teamId)
+                .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
+        if (!team.getLeaderId().equals(utenteId)) {
+            throw new IllegalArgumentException("Solo il leader del team può inviare la sottomissione finale");
+        }
     }
 
     public void checkValiditàLink(String linkRepository) {

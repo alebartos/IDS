@@ -46,6 +46,7 @@ class HackathonServiceTest {
     void setUp() {
         organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
+        organizzatore.getRuoli().add(Ruolo.MEMBRO_STAFF);
         organizzatore = utenteRepository.save(organizzatore);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");
@@ -110,6 +111,9 @@ class HackathonServiceTest {
         giudice.getRuoli().add(Ruolo.MEMBRO_STAFF);
         giudice = utenteRepository.save(giudice);
 
+        hackathon.getMembroStaffIds().add(giudice.getId());
+        hackathonRepository.save(hackathon);
+
         hackathonService.assegnaGiudice(hackathon.getId(), "paolo@example.com", organizzatore.getId());
 
         Hackathon aggiornato = hackathonRepository.findById(hackathon.getId()).orElseThrow();
@@ -129,6 +133,9 @@ class HackathonServiceTest {
         Utente giudice = new Utente("Paolo", "Verdi", "paolo@example.com", "password");
         giudice.getRuoli().add(Ruolo.MEMBRO_STAFF);
         giudice = utenteRepository.save(giudice);
+
+        hackathon.getMembroStaffIds().add(giudice.getId());
+        hackathonRepository.save(hackathon);
 
         Utente nonOrganizzatore = new Utente("Anna", "Bianchi", "anna@example.com", "password");
         nonOrganizzatore = utenteRepository.save(nonOrganizzatore);
@@ -152,6 +159,10 @@ class HackathonServiceTest {
         Utente giudice2 = new Utente("Anna", "Bianchi", "anna@example.com", "password");
         giudice2.getRuoli().add(Ruolo.MEMBRO_STAFF);
         giudice2 = utenteRepository.save(giudice2);
+
+        hackathon.getMembroStaffIds().add(giudice1.getId());
+        hackathon.getMembroStaffIds().add(giudice2.getId());
+        hackathonRepository.save(hackathon);
 
         hackathonService.assegnaGiudice(hackathon.getId(), "paolo@example.com", organizzatore.getId());
 
@@ -181,6 +192,10 @@ class HackathonServiceTest {
 
         Utente mentore = new Utente("Marco", "Neri", "marco@example.com", "password");
         mentore = utenteRepository.save(mentore);
+
+        Hackathon h = hackathonRepository.findByNome("Hackathon Mentore Test").orElseThrow();
+        h.getMembroStaffIds().add(mentore.getId());
+        hackathonRepository.save(h);
 
         hackathonService.assegnaMentore("marco@example.com", organizzatore.getId());
 

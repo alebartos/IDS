@@ -56,6 +56,7 @@ class SottomissioneServiceTest {
     void setUp() {
         organizzatore = new Utente("Luigi", "Verdi", "luigi.verdi@example.com", "password456");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
+        organizzatore.getRuoli().add(Ruolo.MEMBRO_STAFF);
         organizzatore = utenteRepository.save(organizzatore);
 
         leader = new Utente("Mario", "Rossi", "mario.rossi@example.com", "password123");

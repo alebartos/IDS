@@ -43,6 +43,7 @@ class SegnalazioneServiceTest {
     void setUp() {
         organizzatore = new Utente("Luigi", "Verdi", "luigi@example.com", "password");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
+        organizzatore.getRuoli().add(Ruolo.MEMBRO_STAFF);
         organizzatore = utenteRepository.save(organizzatore);
 
         hackathon = hackathonService.createHackathon(
@@ -50,6 +51,8 @@ class SegnalazioneServiceTest {
                 LocalDate.now().minusDays(1), LocalDate.now().plusDays(5),
                 LocalDate.now().plusDays(1),
                 5, 1000.0, organizzatore.getId());
+        hackathon.setStato(it.unicam.ids.model.StatoHackathon.IN_CORSO);
+        hackathon = hackathonRepository.save(hackathon);
     }
 
     @Test

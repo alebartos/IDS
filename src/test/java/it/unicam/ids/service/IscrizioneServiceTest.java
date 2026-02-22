@@ -50,6 +50,7 @@ class IscrizioneServiceTest {
     void setUp() {
         organizzatore = new Utente("Luigi", "Verdi", "luigi@example.com", "password");
         organizzatore.getRuoli().add(Ruolo.ORGANIZZATORE);
+        organizzatore.getRuoli().add(Ruolo.MEMBRO_STAFF);
         organizzatore = utenteRepository.save(organizzatore);
 
         Utente leader = new Utente("Mario", "Rossi", "mario@example.com", "password");
